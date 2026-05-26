@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { SEOHead } from '@/components/seo/SEOHead';
+import bookCallPhone from '@/assets/book-call-phone.png';
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),
