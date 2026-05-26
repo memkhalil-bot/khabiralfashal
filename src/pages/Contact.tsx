@@ -138,7 +138,7 @@ export default function Contact() {
               </h3>
               <p className="text-white/60 font-light max-w-md mx-auto leading-relaxed">
                 I read every submission personally. If your case fits, you'll
-                hear from me within 48 hours.
+                hear from me directly.
               </p>
             </motion.div>
           ) : (
