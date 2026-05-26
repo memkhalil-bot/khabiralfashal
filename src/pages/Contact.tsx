@@ -45,7 +45,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="dark bg-obsidian text-white font-sans-ui min-h-screen">
+    <div className="dark bg-black text-white font-sans-ui min-h-screen">
       <SEOHead
         title="Book a Risk Session — خبير الفشل"
         description="A private, honest conversation about your company, your decisions, and the risks ahead. No coaching. No clichés."
@@ -53,7 +53,7 @@ export default function Contact() {
 
       {/* HERO */}
       <section className="relative pt-32 md:pt-40 pb-20 px-6 lg:px-12 overflow-hidden border-b border-white/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(26_100%_51%/0.12),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.12),transparent_65%)]" />
         <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -91,7 +91,7 @@ export default function Contact() {
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
             className="order-1 lg:order-2 relative"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(26_100%_51%/0.18),transparent_70%)] blur-2xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.18),transparent_70%)] blur-2xl" />
             <img
               src={bookCallPhone}
               alt="Orange phone receiver — book a risk session"
@@ -110,7 +110,7 @@ export default function Contact() {
             { k: 'Direct', v: 'I will tell you what your team will not.' },
             { k: 'Honest', v: 'No clichés. No theater. Just the truth on the table.' },
           ].map((b) => (
-            <div key={b.k} className="bg-obsidian p-8">
+            <div key={b.k} className="bg-black p-8">
               <div className="font-serif-display text-3xl text-ember mb-3">
                 {b.k}
               </div>
