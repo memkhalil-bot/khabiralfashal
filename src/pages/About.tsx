@@ -46,7 +46,7 @@ export default function About() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
-    <div className="dark bg-black text-white font-sans-ui">
+    <div className="dark bg-obsidian text-white font-sans-ui">
       <SEOHead
         title="About — خبير الفشل"
         description="The founder behind خبير الفشل. A study of startup collapse, founder psychology, and the blind spots that kill companies long before they shut down."

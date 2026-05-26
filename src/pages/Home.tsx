@@ -53,7 +53,7 @@ export default function Home() {
   const titleOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
-    <div className="dark bg-black text-white font-sans-ui">
+    <div className="dark bg-obsidian text-white font-sans-ui">
       <SEOHead
         title="خبير الفشل — Startup Failure Intelligence"
         description="A forensic study of why startups die. No coaching. No clichés. Founder psychology, decision autopsies, and pattern intelligence from hundreds of post-mortems."

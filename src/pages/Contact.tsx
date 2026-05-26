@@ -45,7 +45,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="dark bg-black text-white font-sans-ui min-h-screen">
+    <div className="dark bg-obsidian text-white font-sans-ui min-h-screen">
       <SEOHead
         title="Book a Risk Session — خبير الفشل"
         description="A private, honest conversation about your company, your decisions, and the risks ahead. No coaching. No clichés."

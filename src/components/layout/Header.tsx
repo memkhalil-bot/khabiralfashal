@@ -28,7 +28,7 @@ export function Header() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
         isScrolled
-          ? 'bg-black/80 backdrop-blur-xl border-b border-white/5'
+          ? 'bg-obsidian/80 backdrop-blur-xl border-b border-white/5'
           : 'bg-transparent'
       )}
     >
@@ -88,7 +88,7 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-black border-t border-white/5"
+            className="md:hidden bg-obsidian border-t border-white/5"
           >
             <nav className="flex flex-col px-6 py-8 gap-6">
               {navLinks.map((link) => (
