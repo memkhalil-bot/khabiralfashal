@@ -65,7 +65,7 @@ export default function Home() {
         className="relative min-h-screen flex flex-col justify-between overflow-hidden pt-32 pb-12 px-6 lg:px-12"
       >
         {/* Atmosphere */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,hsl(18_92%_55%/0.18),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_120%,hsl(26_100%_51%/0.18),transparent_55%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,black_0%,transparent_25%,transparent_70%,black_100%)] pointer-events-none" />
         {/* Subtle horizontal lines */}
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -257,7 +257,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.8, delay: i * 0.08 }}
-                className="group relative bg-black p-10 md:p-14 hover:bg-ember/[0.04] transition-colors duration-700"
+                className="group relative bg-obsidian p-10 md:p-14 hover:bg-ember/[0.04] transition-colors duration-700"
               >
                 <div className="flex items-start justify-between mb-10">
                   <span className="text-xs tracking-[0.3em] text-ember">
@@ -279,7 +279,7 @@ export default function Home() {
 
       {/* ============ PULL QUOTE ============ */}
       <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(18_92%_55%/0.10),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(26_100%_51%/0.10),transparent_70%)]" />
         <motion.blockquote
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -310,7 +310,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.08 }}
-              className="bg-black p-8 md:p-10"
+              className="bg-obsidian p-8 md:p-10"
             >
               <div className="font-serif-display text-5xl md:text-6xl text-ember mb-3">
                 {s.k}
@@ -325,7 +325,7 @@ export default function Home() {
 
       {/* ============ CLOSING CTA ============ */}
       <section className="relative py-40 md:py-56 px-6 lg:px-12 border-t border-white/5 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(18_92%_55%/0.12),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(26_100%_51%/0.12),transparent_60%)]" />
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}

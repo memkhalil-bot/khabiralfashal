@@ -58,7 +58,7 @@ export default function About() {
         className="relative min-h-screen flex items-end overflow-hidden"
       >
         {/* Grain + glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(18_92%_55%/0.15),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(26_100%_51%/0.15),transparent_60%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,transparent_55%,black_100%)]" />
 
         <motion.div
@@ -143,7 +143,7 @@ export default function About() {
 
       {/* ============ PULL QUOTE ============ */}
       <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(18_92%_55%/0.08),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(26_100%_51%/0.08),transparent_70%)]" />
         <motion.blockquote
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
