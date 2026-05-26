@@ -157,6 +157,8 @@ All colors MUST be HSL.
   --color-gray-alpha-200: var(--ds-gray-alpha-200);
   --color-gray-alpha-400: var(--ds-gray-alpha-400);
   --color-background-100: var(--ds-background-100);
+  --color-verdant: hsl(103 63% 60%);
+  --color-obsidian: hsl(0 0% 17%);
   --shadow-focus-ring: var(--ds-focus-ring);
   --shadow-border-small: var(--ds-shadow-border-small);
 
