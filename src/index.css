@@ -1,5 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+
+@theme {
+  --color-ember: hsl(18 92% 55%);
+  --color-ember-dim: hsl(18 70% 45%);
+  --font-serif-display: 'Instrument Serif', serif;
+  --font-arabic: 'Cairo', sans-serif;
+  --font-sans-ui: 'Inter', sans-serif;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
