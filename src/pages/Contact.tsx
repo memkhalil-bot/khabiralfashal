@@ -128,7 +128,7 @@ export default function Contact() {
               <img
                 src={bookCallPhone}
                 alt="Orange phone receiver — book a risk session"
-                className="relative z-10 w-full h-auto select-none pointer-events-none animate-float"
+                className="relative z-10 w-full h-auto select-none pointer-events-none animate-float scale-x-[-1]"
                 draggable={false}
               />
             </div>
