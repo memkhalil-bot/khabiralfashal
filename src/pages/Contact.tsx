@@ -92,12 +92,46 @@ export default function Contact() {
             className="order-1 lg:order-2 relative"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.18),transparent_70%)] blur-2xl" />
-            <img
-              src={bookCallPhone}
-              alt="Orange phone receiver — book a risk session"
-              className="relative w-full h-auto max-w-lg mx-auto select-none pointer-events-none"
-              draggable={false}
-            />
+
+            <div className="relative w-full max-w-lg mx-auto">
+              {/* Sound-wave ripples emanating from the earpiece */}
+              <div className="pointer-events-none absolute left-[42%] top-[14%] -translate-x-1/2 -translate-y-1/2 z-0">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="absolute left-1/2 top-1/2 block rounded-full border border-ember/40 animate-ripple"
+                    style={{
+                      width: 40,
+                      height: 40,
+                      marginLeft: -20,
+                      marginTop: -20,
+                      animationDelay: `${i * 1.2}s`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Floating signal arcs */}
+              <svg
+                className="pointer-events-none absolute left-[30%] top-[6%] w-24 h-24 z-0 text-ember/60"
+                viewBox="0 0 100 100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+              >
+                <path d="M20 70 Q50 30 80 70" className="animate-arc" style={{ animationDelay: '0s' }} />
+                <path d="M30 75 Q50 45 70 75" className="animate-arc" style={{ animationDelay: '0.6s' }} />
+                <path d="M40 80 Q50 60 60 80" className="animate-arc" style={{ animationDelay: '1.2s' }} />
+              </svg>
+
+              <img
+                src={bookCallPhone}
+                alt="Orange phone receiver — book a risk session"
+                className="relative z-10 w-full h-auto select-none pointer-events-none animate-float"
+                draggable={false}
+              />
+            </div>
           </motion.div>
         </div>
       </section>

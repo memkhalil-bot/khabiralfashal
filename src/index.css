@@ -203,4 +203,35 @@ All colors MUST be HSL.
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-ripple {
+    animation: ripple 3.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .animate-arc {
+    animation: arc-pulse 3s ease-out infinite;
+    opacity: 0;
+    transform-origin: center;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.4); opacity: 0.7; }
+  80% { opacity: 0.05; }
+  100% { transform: scale(6); opacity: 0; }
+}
+
+@keyframes arc-pulse {
+  0%, 100% { opacity: 0; transform: translateY(4px) scale(0.92); }
+  40% { opacity: 1; transform: translateY(0) scale(1); }
+  70% { opacity: 0.4; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
