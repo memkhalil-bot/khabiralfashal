@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { FounderTestimonials } from '@/components/testimonials/FounderTestimonials';
 
 /**
  * Home — خبير الفشل | Khabir Al Fashal
@@ -322,6 +323,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ============ FOUNDER TESTIMONIALS ============ */}
+      <FounderTestimonials />
 
       {/* ============ CLOSING CTA ============ */}
       <section className="relative py-40 md:py-56 px-6 lg:px-12 border-t border-white/5 overflow-hidden">
