@@ -324,6 +324,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ============ FOUNDER TESTIMONIALS ============ */}
+      <FounderTestimonials />
+
       {/* ============ CLOSING CTA ============ */}
       <section className="relative py-40 md:py-56 px-6 lg:px-12 border-t border-white/5 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,hsl(18_92%_55%/0.12),transparent_60%)]" />
