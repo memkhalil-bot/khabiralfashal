@@ -149,7 +149,7 @@ export default function ValleyOfDeath() {
     <div className="dark bg-black text-white font-sans-ui min-h-screen">
       <SEOHead
         title="Valley of Death — The Founder Test | خبير الفشل"
-        description="A brutal self-diagnostic for founders. 8 questions. No motivation. Just the truth about how close your company is to the edge."
+        description="A brutal self-diagnostic for founders. No motivation. Just the truth about how close your company is to the edge."
       />
 
       {/* HERO */}
@@ -174,7 +174,7 @@ export default function ValleyOfDeath() {
               <span className="italic text-ember">of Death.</span>
             </h1>
             <p className="mt-10 text-lg md:text-xl text-white/55 max-w-2xl leading-relaxed font-light">
-              Eight questions. No motivation. No coaching. Answer honestly —
+              No motivation. No coaching. Answer honestly —
               the only person you can lie to here is yourself.
             </p>
             <p
