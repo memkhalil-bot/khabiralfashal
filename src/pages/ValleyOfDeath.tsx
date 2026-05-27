@@ -54,6 +54,13 @@ export default function ValleyOfDeath() {
       {/* Cinematic in-site founder diagnostic */}
       <FounderAssessment />
 
+      {/* Founder-to-founder field notes */}
+      <FounderTestimonials
+        eyebrow="After the Session"
+        heading={"What they said\nwhen the room got quiet."}
+      />
+
+
     </div>
   );
 }
