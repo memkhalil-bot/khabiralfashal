@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { FounderAssessment } from '@/components/valley/FounderAssessment';
 import { ValleyCurve } from '@/components/valley/ValleyCurve';
+import { FounderTestimonials } from '@/components/testimonials/FounderTestimonials';
 
 
 export default function ValleyOfDeath() {
