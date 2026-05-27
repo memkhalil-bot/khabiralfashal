@@ -334,6 +334,9 @@ export default function ValleyOfDeath() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Arabic interactive quiz */}
+      <ValleyQuizArabic />
     </div>
   );
 }
