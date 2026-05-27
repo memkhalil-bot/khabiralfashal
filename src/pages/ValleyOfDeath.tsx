@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { ValleyQuizArabic } from '@/components/valley/ValleyQuizArabic';
+import { FounderAssessment } from '@/components/valley/FounderAssessment';
 import { ValleyCurve } from '@/components/valley/ValleyCurve';
+
 
 export default function ValleyOfDeath() {
   return (
@@ -49,8 +50,9 @@ export default function ValleyOfDeath() {
       {/* Animated Valley of Death curve diagram */}
       <ValleyCurve />
 
-      {/* Arabic interactive quiz */}
-      <ValleyQuizArabic />
+      {/* Cinematic in-site founder diagnostic */}
+      <FounderAssessment />
+
     </div>
   );
 }
