@@ -3,23 +3,31 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useT } from '@/hooks/useT';
 import { cn } from '@/lib/utils';
-
-const navLinks = [
-  { name: 'Home', path: '/', ar: 'الرئيسية' },
-  { name: 'Case File', path: '/about', ar: 'الملف' },
-  { name: 'Valley of Death', path: '/valley-of-death', ar: 'الاختبار' },
-  { name: 'Session', path: '/contact', ar: 'الجلسة' },
-];
 
 /**
  * Header — Khabir Al Fashal
  * Always dark. Minimal. Cinematic.
+ * Language-aware: shows active lang, links to /en/* or /ar/* equivalents.
  */
 export function Header() {
   const location = useLocation();
   const { isScrolled } = useScrollPosition();
   const [open, setOpen] = useState(false);
+  const { lang, getPath, switchPath } = useLanguage();
+  const t = useT();
+
+  // Build nav links from translations (base paths without lang prefix)
+  const navLinks = [
+    { name: t.nav.home,     basePath: '/' },
+    { name: t.nav.caseFile, basePath: '/about' },
+    { name: t.nav.valley,   basePath: '/valley-of-death' },
+    { name: t.nav.session,  basePath: '/contact' },
+  ];
+
+  const isRTL = lang === 'ar';
 
   return (
     <motion.header
@@ -36,9 +44,12 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="group flex items-center gap-3">
+          <Link to={getPath('/')} className="group flex items-center gap-3">
             <span className="h-px w-8 bg-ember transition-all duration-500 group-hover:w-12" />
-            <span className="text-[11px] tracking-[0.35em] uppercase text-white font-medium">
+            <span className={cn(
+              'text-[11px] tracking-[0.35em] uppercase text-white font-medium',
+              isRTL && 'font-arabic tracking-normal'
+            )}>
               خبير الفشل
             </span>
             <span className="hidden sm:inline text-[10px] tracking-[0.3em] uppercase text-white/30">
@@ -47,27 +58,41 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-10">
+          <nav className={cn('hidden md:flex items-center gap-10', isRTL && 'flex-row-reverse')}>
             {navLinks.map((link) => {
-              const active = location.pathname === link.path;
+              const href = getPath(link.basePath);
+              const active = location.pathname === href || (link.basePath === '/' && /^\/(en|ar)\/?$/.test(location.pathname));
               return (
                 <Link
-                  key={link.path}
-                  to={link.path}
-                  className="relative group text-[11px] tracking-[0.3em] uppercase text-white/60 hover:text-white transition-colors duration-300"
+                  key={link.basePath}
+                  to={href}
+                  className={cn(
+                    'relative group text-[11px] uppercase text-white/60 hover:text-white transition-colors duration-300',
+                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+                  )}
                 >
                   <span className={cn(active && 'text-white')}>
                     {link.name}
                   </span>
                   <span
                     className={cn(
-                      'absolute -bottom-2 left-0 h-px bg-ember transition-all duration-500',
+                      'absolute -bottom-2 h-px bg-ember transition-all duration-500',
+                      isRTL ? 'right-0' : 'left-0',
                       active ? 'w-full' : 'w-0 group-hover:w-full'
                     )}
                   />
                 </Link>
               );
             })}
+
+            {/* Language toggle */}
+            <Link
+              to={switchPath(lang === 'en' ? 'ar' : 'en')}
+              className="text-[11px] tracking-[0.3em] uppercase text-ember/80 hover:text-ember border border-ember/30 hover:border-ember px-2 py-1 transition-all duration-300"
+              aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+            >
+              {t.nav.langToggle}
+            </Link>
           </nav>
 
           {/* Mobile trigger */}
@@ -94,19 +119,27 @@ export function Header() {
             <nav className="flex flex-col px-6 py-8 gap-6">
               {navLinks.map((link) => (
                 <Link
-                  key={link.path}
-                  to={link.path}
+                  key={link.basePath}
+                  to={getPath(link.basePath)}
                   onClick={() => setOpen(false)}
                   className="flex items-baseline justify-between text-white border-b border-white/5 pb-4"
                 >
-                  <span className="font-serif-display text-3xl">
+                  <span className={cn(
+                    'font-serif-display text-3xl',
+                    isRTL && 'font-arabic'
+                  )}>
                     {link.name}
-                  </span>
-                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/30">
-                    {link.ar}
                   </span>
                 </Link>
               ))}
+              {/* Mobile language toggle */}
+              <Link
+                to={switchPath(lang === 'en' ? 'ar' : 'en')}
+                onClick={() => setOpen(false)}
+                className="inline-flex self-start items-center gap-2 text-[11px] tracking-[0.3em] uppercase text-ember border border-ember/30 px-3 py-2"
+              >
+                {t.nav.langToggle}
+              </Link>
             </nav>
           </motion.div>
         )}

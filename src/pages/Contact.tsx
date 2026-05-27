@@ -6,6 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { SEOHead } from '@/components/seo/SEOHead';
 import bookCallPhone from '@/assets/book-call-phone.png';
+import { useT } from '@/hooks/useT';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -16,15 +19,12 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-const stages = [
-  { v: 'idea', label: 'Idea / Pre-build' },
-  { v: 'pre-seed', label: 'Pre-seed' },
-  { v: 'seed', label: 'Seed' },
-  { v: 'series-a', label: 'Series A+' },
-  { v: 'post-failure', label: 'Post-failure / Pivot' },
-];
-
 export default function Contact() {
+  const t = useT();
+  const c = t.contact;
+  const { lang } = useLanguage();
+  const isRTL = lang === 'ar';
+
   const [done, setDone] = useState(false);
   const {
     register,
@@ -44,45 +44,58 @@ export default function Contact() {
     setTimeout(() => setDone(false), 6000);
   };
 
+  const inputClass = cn(
+    'w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors',
+    isRTL && 'font-arabic text-right'
+  );
+
   return (
-    <div className="dark bg-black text-white font-sans-ui min-h-screen">
-      <SEOHead
-        title="Book a Risk Session — خبير الفشل"
-        description="A private, honest conversation about your company, your decisions, and the risks ahead. No coaching. No clichés."
-      />
+    <div className={cn('dark bg-black text-white min-h-screen', isRTL ? 'font-arabic' : 'font-sans-ui')}>
+      <SEOHead title={c.metaTitle} description={c.metaDesc} />
 
       {/* HERO */}
       <section className="relative pt-32 md:pt-40 pb-20 px-6 lg:px-12 overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.12),transparent_65%)]" />
         <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={{ opacity: 0, x: isRTL ? 40 : -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="order-2 lg:order-1"
+            className={cn('order-2 lg:order-1', isRTL && 'text-right')}
           >
-            <div className="flex items-center gap-3 mb-8">
+            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
               <span className="h-px w-12 bg-ember" />
-              <span className="text-xs tracking-[0.3em] uppercase text-ember font-medium">
-                Private Session · جلسة مغلقة
+              <span className={cn(
+                'text-xs uppercase text-ember font-medium',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+              )}>
+                {c.eyebrow}
               </span>
             </div>
-            <h1 className="font-serif-display text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight">
-              Book a
+            <h1 className={cn(
+              'leading-[0.95] tracking-tight',
+              isRTL
+                ? 'font-arabic font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.3]'
+                : 'font-serif-display text-5xl md:text-7xl lg:text-8xl'
+            )}>
+              {c.heroHeading1}
               <br />
-              <span className="italic text-ember">Risk Session.</span>
+              <span className={cn('text-ember', !isRTL && 'italic')}>{c.heroHeading2}</span>
             </h1>
-            <p className="mt-10 text-lg md:text-xl text-white/55 max-w-xl leading-relaxed font-light">
-              No fake optimism. No startup clichés. Just an honest conversation
-              about your company, your decisions, and the risks already moving
-              underneath them.
+            <p className={cn(
+              'mt-10 text-lg md:text-xl text-white/55 max-w-xl leading-relaxed font-light',
+              isRTL && 'leading-[2.2]'
+            )}>
+              {c.heroSub}
             </p>
-            <p
-              dir="rtl"
-              className="mt-6 font-arabic text-base md:text-lg text-white/40 leading-relaxed max-w-xl"
-            >
-              خطوة واحدة قد تغير مسار شركتك.
-            </p>
+            {!isRTL && (
+              <p
+                dir="rtl"
+                className="mt-6 font-arabic text-base md:text-lg text-white/40 leading-relaxed max-w-xl"
+              >
+                {c.heroArabicSub}
+              </p>
+            )}
           </motion.div>
 
           <motion.div
@@ -92,39 +105,24 @@ export default function Contact() {
             className="order-1 lg:order-2 relative"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.18),transparent_70%)] blur-2xl" />
-
             <div className="relative w-full max-w-lg mx-auto">
-              {/* Sound-wave ripples emanating from the earpiece */}
               <div className="pointer-events-none absolute left-[42%] top-[14%] -translate-x-1/2 -translate-y-1/2 z-0">
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
                     className="absolute left-1/2 top-1/2 block rounded-full border border-ember/40 animate-ripple"
-                    style={{
-                      width: 40,
-                      height: 40,
-                      marginLeft: -20,
-                      marginTop: -20,
-                      animationDelay: `${i * 1.2}s`,
-                    }}
+                    style={{ width: 40, height: 40, marginLeft: -20, marginTop: -20, animationDelay: `${i * 1.2}s` }}
                   />
                 ))}
               </div>
-
-              {/* Floating signal arcs */}
               <svg
                 className="pointer-events-none absolute left-[30%] top-[6%] w-24 h-24 z-0 text-ember/60"
-                viewBox="0 0 100 100"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.25"
-                strokeLinecap="round"
+                viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"
               >
                 <path d="M20 70 Q50 30 80 70" className="animate-arc" style={{ animationDelay: '0s' }} />
                 <path d="M30 75 Q50 45 70 75" className="animate-arc" style={{ animationDelay: '0.6s' }} />
                 <path d="M40 80 Q50 60 60 80" className="animate-arc" style={{ animationDelay: '1.2s' }} />
               </svg>
-
               <img
                 src={bookCallPhone}
                 alt="Orange phone receiver — book a risk session"
@@ -139,23 +137,21 @@ export default function Contact() {
       {/* WHAT IT IS */}
       <section className="px-6 lg:px-12 py-20 border-b border-white/5">
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-px bg-white/5 border border-white/5">
-          {[
-            { k: 'Private', v: 'Nothing leaves the room. No notes shared.' },
-            { k: 'Direct', v: 'I will tell you what your team will not.' },
-            { k: 'Honest', v: 'No clichés. No theater. Just the truth on the table.' },
-          ].map((b) => (
-            <div key={b.k} className="bg-black p-8">
-              <div className="font-serif-display text-3xl text-ember mb-3">
+          {c.pillars.map((b) => (
+            <div key={b.k} className={cn('bg-black p-8', isRTL && 'text-right')}>
+              <div className={cn(
+                'text-3xl text-ember mb-3',
+                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+              )}>
                 {b.k}
               </div>
-              <p className="text-sm text-white/50 font-light leading-relaxed">
+              <p className={cn('text-sm text-white/50 font-light leading-relaxed', isRTL && 'leading-[2]')}>
                 {b.v}
               </p>
             </div>
           ))}
         </div>
       </section>
-
 
       {/* FORM */}
       <section className="px-6 lg:px-12 py-24 md:py-32">
@@ -167,12 +163,17 @@ export default function Contact() {
               className="border border-ember/30 bg-ember/5 p-12 text-center"
             >
               <CheckCircle2 className="size-12 mx-auto text-ember mb-6" />
-              <h3 className="font-serif-display text-3xl mb-3">
-                Request received.
+              <h3 className={cn(
+                'text-3xl mb-3',
+                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+              )}>
+                {c.successHeading}
               </h3>
-              <p className="text-white/60 font-light max-w-md mx-auto leading-relaxed">
-                I read every submission personally. If your case fits, you'll
-                hear from me directly.
+              <p className={cn(
+                'text-white/60 font-light max-w-md mx-auto leading-relaxed',
+                isRTL && 'font-arabic leading-[2]'
+              )}>
+                {c.successBody}
               </p>
             </motion.div>
           ) : (
@@ -184,61 +185,64 @@ export default function Contact() {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-10"
             >
-              <div className="mb-12">
-                <p className="text-xs tracking-[0.3em] uppercase text-ember mb-4">
-                  Intake · استمارة
+              <div className={cn('mb-12', isRTL && 'text-right')}>
+                <p className={cn(
+                  'text-xs uppercase text-ember mb-4',
+                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+                )}>
+                  {c.formLabel}
                 </p>
-                <h2 className="font-serif-display text-3xl md:text-4xl tracking-tight">
-                  Tell me what's actually happening.
+                <h2 className={cn(
+                  'text-3xl md:text-4xl tracking-tight',
+                  isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
+                )}>
+                  {c.formHeading}
                 </h2>
               </div>
 
-              {/* Name + Email */}
               <div className="grid md:grid-cols-2 gap-8">
-                <Field label="Your name" error={errors.name?.message}>
+                <Field label={c.fieldName} error={errors.name?.message} isRTL={isRTL}>
                   <input
                     {...register('name')}
-                    className="w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors"
-                    placeholder="Mohamed K."
+                    className={inputClass}
+                    placeholder={c.fieldNamePlaceholder}
                   />
                 </Field>
-                <Field label="Email" error={errors.email?.message}>
+                <Field label={c.fieldEmail} error={errors.email?.message} isRTL={isRTL}>
                   <input
                     {...register('email')}
                     type="email"
-                    className="w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors"
-                    placeholder="you@company.com"
+                    className={inputClass}
+                    placeholder={c.fieldEmailPlaceholder}
+                    dir="ltr"
                   />
                 </Field>
               </div>
 
-              <Field label="Company / Project (optional)">
+              <Field label={c.fieldCompany} isRTL={isRTL}>
                 <input
                   {...register('company')}
-                  className="w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors"
-                  placeholder="Name or stealth"
+                  className={inputClass}
+                  placeholder={c.fieldCompanyPlaceholder}
                 />
               </Field>
 
-              {/* Stage */}
-              <Field label="Stage" error={errors.stage?.message}>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {stages.map((s) => {
+              <Field label={c.fieldStage} error={errors.stage?.message} isRTL={isRTL}>
+                <div className={cn('flex flex-wrap gap-2 pt-2', isRTL && 'justify-end')}>
+                  {c.stages.map((s) => {
                     const active = selectedStage === s.v;
                     return (
                       <button
                         type="button"
                         key={s.v}
-                        onClick={() =>
-                          setValue('stage', s.v as FormValues['stage'], {
-                            shouldValidate: true,
-                          })
-                        }
-                        className={`px-4 py-2 text-xs tracking-[0.15em] uppercase border transition-all ${
+                        onClick={() => setValue('stage', s.v as FormValues['stage'], { shouldValidate: true })}
+                        className={cn(
+                          'px-4 py-2 text-xs border transition-all',
+                          isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.15em] uppercase',
                           active
                             ? 'border-ember bg-ember/10 text-ember'
                             : 'border-white/15 text-white/50 hover:border-white/40 hover:text-white/80'
-                        }`}
+                        )}
                       >
                         {s.label}
                       </button>
@@ -248,37 +252,43 @@ export default function Contact() {
               </Field>
 
               <Field
-                label="What's the situation?"
-                hint="Be direct. The more honest the intake, the sharper the session."
+                label={c.fieldContext}
+                hint={c.fieldContextHint}
                 error={errors.context?.message}
+                isRTL={isRTL}
               >
                 <textarea
                   {...register('context')}
                   rows={6}
-                  className="w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-base font-light leading-relaxed resize-none transition-colors"
-                  placeholder="The numbers say one thing. My gut says another. We're..."
+                  className={cn(inputClass, 'resize-none')}
+                  placeholder={c.fieldContextPlaceholder}
                 />
               </Field>
 
-              <div className="pt-8">
+              <div className={cn('pt-8', isRTL && 'text-right')}>
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="group relative w-full md:w-auto inline-flex items-center justify-between gap-12 px-10 py-6 bg-ember text-black hover:bg-white transition-all duration-500 disabled:opacity-50"
                 >
-                  <span className="text-sm tracking-[0.25em] uppercase font-semibold">
-                    {isSubmitting ? 'Submitting…' : 'Request the Session'}
+                  <span className={cn(
+                    'text-sm uppercase font-semibold',
+                    isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]'
+                  )}>
+                    {isSubmitting ? c.submittingLabel : c.submitLabel}
                   </span>
                   {isSubmitting ? (
                     <Loader2 className="size-5 animate-spin" />
                   ) : (
-                    <ArrowUpRight className="size-5 transition-transform group-hover:rotate-45" />
+                    <ArrowUpRight className={cn('size-5 transition-transform group-hover:rotate-45', isRTL && 'rotate-180')} />
                   )}
                 </button>
 
-                <p className="mt-6 text-xs text-white/30 tracking-wide font-light max-w-md">
-                  Submitting does not guarantee a session. I take a limited
-                  number of cases each month based on fit.
+                <p className={cn(
+                  'mt-6 text-xs text-white/30 tracking-wide font-light max-w-md',
+                  isRTL && 'font-arabic text-right leading-[2]'
+                )}>
+                  {c.submitDisclaimer}
                 </p>
               </div>
             </motion.form>
@@ -289,10 +299,11 @@ export default function Contact() {
       {/* CLOSING */}
       <section className="border-t border-white/5 py-24 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="font-serif-display text-2xl md:text-4xl italic text-white/40 leading-snug">
-            "Save it <span className="text-ember">before</span> it becomes
-            <br />
-            another case study."
+          <p className={cn(
+            'text-2xl md:text-4xl italic text-white/40 leading-snug',
+            isRTL ? 'font-arabic font-bold leading-[1.8]' : 'font-serif-display'
+          )}>
+            {c.closingQuote}
           </p>
         </div>
       </section>
@@ -305,24 +316,29 @@ function Field({
   label,
   hint,
   error,
+  isRTL,
   children,
 }: {
   label: string;
   hint?: string;
   error?: string;
+  isRTL?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <label className="block text-[11px] tracking-[0.25em] uppercase text-white/40 mb-2">
+    <div className={isRTL ? 'text-right' : undefined}>
+      <label className={cn(
+        'block text-[11px] uppercase text-white/40 mb-2',
+        isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.25em]'
+      )}>
         {label}
       </label>
       {children}
       {hint && !error && (
-        <p className="mt-2 text-xs text-white/30 font-light">{hint}</p>
+        <p className={cn('mt-2 text-xs text-white/30 font-light', isRTL && 'font-arabic leading-[2]')}>{hint}</p>
       )}
       {error && (
-        <p className="mt-2 text-xs text-ember font-light">{error}</p>
+        <p className={cn('mt-2 text-xs text-ember font-light', isRTL && 'font-arabic')}>{error}</p>
       )}
     </div>
   );
