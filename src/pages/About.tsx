@@ -4,39 +4,20 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import portrait from '@/assets/khabir-portrait.png';
+import { useT } from '@/hooks/useT';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 /**
  * About — cinematic, documentary-style founder story
- * Brand: خبير الفشل | Khabir Al Fashal
+ * Brand: خبير الفشل | Khabir Al Fashal. Fully bilingual.
  */
-const chapters = [
-  {
-    eyebrow: 'I',
-    title: 'The Collapse',
-    body:
-      'I built something I believed in. Then I watched it die — slowly, quietly, while every dashboard still looked green. By the time the numbers told the truth, the company was already gone. The autopsy started long before the funeral.',
-  },
-  {
-    eyebrow: 'II',
-    title: 'The Realization',
-    body:
-      'Most startups don\'t fail because of the market. They fail because the founder stopped seeing clearly. I stopped seeing clearly. The blind spots were not in the spreadsheet — they were in me.',
-  },
-  {
-    eyebrow: 'III',
-    title: 'Birth of خبير الفشل',
-    body:
-      'I went back to every collapse — mine, and hundreds of others. I read the post-mortems. I sat with the founders. I mapped the patterns nobody wanted to name. خبير الفشل is what came out of that obsession: a discipline, not a brand.',
-  },
-  {
-    eyebrow: 'IV',
-    title: 'The Work',
-    body:
-      'I study the psychology of founders who broke. The cognitive distortions. The denial loops. The decisions that looked rational at the time and detonated eighteen months later. This is not coaching. This is forensic analysis of the human inside the company.',
-  },
-];
-
 export default function About() {
+  const t = useT();
+  const a = t.about;
+  const { getPath, lang } = useLanguage();
+  const isRTL = lang === 'ar';
+
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -46,31 +27,35 @@ export default function About() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
-    <div className="dark bg-black text-white font-sans-ui">
-      <SEOHead
-        title="About — خبير الفشل"
-        description="The founder behind خبير الفشل. A study of startup collapse, founder psychology, and the blind spots that kill companies long before they shut down."
-      />
+    <div className={cn('dark bg-black text-white', isRTL ? 'font-arabic' : 'font-sans-ui')}>
+      <SEOHead title={a.metaTitle} description={a.metaDesc} />
 
       {/* ============ HERO ============ */}
       <section
         ref={heroRef}
         className="relative min-h-screen flex items-end overflow-hidden"
       >
-        {/* Grain + glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(18_92%_55%/0.15),transparent_60%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,transparent_55%,black_100%)]" />
 
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="absolute right-0 top-0 h-full w-full md:w-[55%] opacity-40 md:opacity-60"
+          className={cn(
+            'absolute top-0 h-full w-full md:w-[55%] opacity-40 md:opacity-60',
+            isRTL ? 'left-0' : 'right-0'
+          )}
         >
           <img
             src={portrait}
             alt="Mohamed Khalil"
             className="h-full w-full object-cover grayscale contrast-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-black/40 to-black" />
+          <div className={cn(
+            'absolute inset-0',
+            isRTL
+              ? 'bg-gradient-to-r from-transparent via-black/40 to-black'
+              : 'bg-gradient-to-l from-transparent via-black/40 to-black'
+          )} />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
         </motion.div>
 
@@ -79,60 +64,86 @@ export default function About() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-3xl"
+            className={cn('max-w-3xl', isRTL && 'text-right')}
           >
-            <div className="flex items-center gap-3 mb-8">
+            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
               <span className="h-px w-12 bg-ember" />
-              <span className="text-xs tracking-[0.3em] uppercase text-ember font-medium">
-                Case File · 001
+              <span className={cn(
+                'text-xs uppercase text-ember font-medium',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+              )}>
+                {a.eyebrow}
               </span>
             </div>
 
-            <h1 className="font-serif-display text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight mb-8">
-              Some startups die
+            <h1 className={cn(
+              'leading-[0.95] tracking-tight mb-8',
+              isRTL
+                ? 'font-arabic font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.3]'
+                : 'font-serif-display text-5xl md:text-7xl lg:text-8xl'
+            )}>
+              {a.heroLine1}
               <br />
-              <span className="italic text-white/70">long before</span>
+              <span className={cn('text-white/70', !isRTL && 'italic')}>{a.heroLine2}</span>
               <br />
-              they officially
+              {a.heroLine3}
               <br />
-              shut down.
+              {a.heroLine4}
             </h1>
 
-            <p className="text-lg md:text-xl text-white/50 max-w-xl leading-relaxed font-light">
-              I'm Mohamed Khalil. I study the death of companies — not to mourn them, but to understand the founder who didn't see it coming. Usually, that founder was me.
+            <p className={cn(
+              'text-lg md:text-xl text-white/50 max-w-xl leading-relaxed font-light',
+              isRTL && 'leading-[2.2]'
+            )}>
+              {a.heroBio}
             </p>
           </motion.div>
         </div>
 
-        {/* Bottom marker */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] tracking-[0.4em] uppercase text-white/30">
-          Scroll · شاهد
+          {a.scrollLabel}
         </div>
       </section>
 
       {/* ============ CHAPTERS ============ */}
       <section className="relative py-32 md:py-48 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto space-y-32 md:space-y-48">
-          {chapters.map((c, i) => (
+          {a.chapters.map((c) => (
             <motion.article
               key={c.eyebrow}
               initial={{ opacity: 0, y: 60 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="grid md:grid-cols-[80px_1fr] gap-6 md:gap-12"
+              className={cn(
+                'grid gap-6 md:gap-12',
+                isRTL
+                  ? 'md:grid-cols-[1fr_80px] text-right'
+                  : 'md:grid-cols-[80px_1fr]'
+              )}
             >
-              <div className="md:pt-4">
-                <div className="font-serif-display text-4xl italic text-ember">
+              <div className={cn('md:pt-4', isRTL && 'order-last md:order-first')}>
+                <div className={cn(
+                  'text-4xl italic text-ember',
+                  isRTL ? 'font-arabic text-right' : 'font-serif-display'
+                )}>
                   {c.eyebrow}
                 </div>
-                <div className="mt-2 h-px w-12 bg-white/20" />
+                <div className={cn('mt-2 h-px w-12 bg-white/20', isRTL && 'mr-auto')} />
               </div>
               <div>
-                <h2 className="font-serif-display text-4xl md:text-6xl tracking-tight mb-8 leading-[1.05]">
+                <h2 className={cn(
+                  'tracking-tight mb-8 leading-[1.05]',
+                  isRTL
+                    ? 'font-arabic font-bold text-3xl md:text-5xl leading-[1.4]'
+                    : 'font-serif-display text-4xl md:text-6xl'
+                )}>
                   {c.title}
                 </h2>
-                <p className="text-lg md:text-xl text-white/60 leading-[1.8] font-light max-w-2xl">
+                <p className={cn(
+                  'text-lg md:text-xl text-white/60 font-light max-w-2xl',
+                  isRTL ? 'leading-[2.2]' : 'leading-[1.8]'
+                )}>
                   {c.body}
                 </p>
               </div>
@@ -151,18 +162,27 @@ export default function About() {
           transition={{ duration: 1.5 }}
           className="relative max-w-5xl mx-auto text-center"
         >
-          <div className="font-serif-display text-7xl text-ember/40 leading-none mb-8">
-            "
+          <div className={cn(
+            'text-7xl text-ember/40 leading-none mb-8',
+            isRTL ? 'font-arabic' : 'font-serif-display'
+          )}>
+            {a.quoteOpen}
           </div>
-          <p className="font-serif-display text-3xl md:text-5xl lg:text-6xl leading-[1.15] tracking-tight text-white/90">
-            I am not here to motivate you.
+          <p className={cn(
+            'text-3xl md:text-5xl lg:text-6xl leading-[1.15] tracking-tight text-white/90',
+            isRTL ? 'font-arabic font-bold leading-[1.8]' : 'font-serif-display'
+          )}>
+            {a.quoteBody1}
             <br />
-            <span className="italic text-white/50">
-              I am here to tell you what you refuse to see.
+            <span className={cn('text-white/50', !isRTL && 'italic')}>
+              {a.quoteBody2}
             </span>
           </p>
-          <p className="mt-12 text-xs tracking-[0.3em] uppercase text-white/30">
-            — Mohamed Khalil · مؤسس خبير الفشل
+          <p className={cn(
+            'mt-12 text-xs uppercase text-white/30',
+            isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+          )}>
+            {a.quoteAttr}
           </p>
         </motion.blockquote>
       </section>
@@ -170,34 +190,26 @@ export default function About() {
       {/* ============ MISSION ============ */}
       <section className="py-32 px-6 lg:px-12 border-t border-white/5">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12 md:gap-16">
-          {[
-            {
-              n: '01',
-              k: 'No fake gurus',
-              v: 'No motivational theater. No LinkedIn philosophy. The data is brutal enough on its own.',
-            },
-            {
-              n: '02',
-              k: 'Founder psychology',
-              v: 'Every collapse has a human signature. We trace the decision back to the cognitive state that produced it.',
-            },
-            {
-              n: '03',
-              k: 'Pattern intelligence',
-              v: 'Hundreds of post-mortems. Cross-referenced. The patterns repeat. We name them before they repeat in you.',
-            },
-          ].map((p) => (
+          {a.pillars.map((p) => (
             <motion.div
               key={p.n}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="border-t border-white/10 pt-6"
+              className={cn('border-t border-white/10 pt-6', isRTL && 'text-right')}
             >
               <div className="text-xs tracking-[0.3em] text-ember mb-4">{p.n}</div>
-              <h3 className="font-serif-display text-2xl mb-3">{p.k}</h3>
-              <p className="text-sm text-white/50 leading-relaxed font-light">
+              <h3 className={cn(
+                'text-2xl mb-3',
+                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+              )}>
+                {p.k}
+              </h3>
+              <p className={cn(
+                'text-sm text-white/50 leading-relaxed font-light',
+                isRTL && 'leading-[2]'
+              )}>
                 {p.v}
               </p>
             </motion.div>
@@ -214,27 +226,30 @@ export default function About() {
           transition={{ duration: 1 }}
           className="max-w-4xl mx-auto text-center space-y-12"
         >
-          <p className="font-serif-display text-3xl md:text-5xl leading-tight text-white/90">
-            If you've read this far,
-            <br />
-            <span className="italic text-ember">
-              something already feels off
-            </span>
-            <br />
-            inside your company.
+          <p className={cn(
+            'text-3xl md:text-5xl leading-tight text-white/90',
+            isRTL ? 'font-arabic font-bold leading-[1.8]' : 'font-serif-display'
+          )}>
+            {a.closingBody}
           </p>
-          <p className="text-base md:text-lg text-white/50 font-light max-w-xl mx-auto leading-relaxed">
-            Trust that feeling. Most founders meet me six months too late.
+          <p className={cn(
+            'text-base md:text-lg text-white/50 font-light max-w-xl mx-auto leading-relaxed',
+            isRTL && 'leading-[2.2]'
+          )}>
+            {a.closingSub}
           </p>
 
           <Link
-            to="/contact"
+            to={getPath('/contact')}
             className="group inline-flex items-center gap-4 px-8 py-5 border border-white/20 hover:border-ember hover:bg-ember/5 transition-all duration-500"
           >
-            <span className="text-sm tracking-[0.25em] uppercase font-medium">
-              Request an Autopsy
+            <span className={cn(
+              'text-sm uppercase font-medium',
+              isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]'
+            )}>
+              {a.ctaButton}
             </span>
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className={cn('size-4 transition-transform group-hover:translate-x-1', isRTL && 'rotate-180')} />
           </Link>
         </motion.div>
       </section>

@@ -1,76 +1,133 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { photographerInfo } from '@/data/photographer';
+
+// ── Brand constants ────────────────────────────────────────────────────────
+// Keep in sync with index.html so the first HTML paint matches JS hydration.
+
+const BRAND = {
+  siteName:    'خبير الفشل | Khabir Al Fashal',
+  defaultTitle:'خبير الفشل | Startup Failure Intelligence Platform',
+  description: 'A cinematic startup failure intelligence platform focused on founder psychology, startup autopsy, blind spots, and Valley of Death analysis.',
+  keywords:    'startup failure, founder psychology, Valley of Death, startup autopsy, blind spots, Khabir Al Fashal, خبير الفشل, failure intelligence, startup post-mortem',
+  /** Stable path served from /public — no Vite hash */
+  ogImage:     '/og-image.png',
+} as const;
+
+// ── Types ──────────────────────────────────────────────────────────────────
 
 interface SEOHeadProps {
+  /** Per-page title. When provided the final title becomes "<title> | خبير الفشل".
+   *  When omitted the default brand title is used. */
   title?: string;
+  /** Per-page description override. Falls back to BRAND.description. */
   description?: string;
+  /** Per-page OG image override. Falls back to the brand portrait. */
   image?: string;
+  /** OG type. Defaults to "website". */
   type?: 'website' | 'article';
 }
 
+// ── Helper ─────────────────────────────────────────────────────────────────
+
+function upsertMeta(nameOrProp: string, content: string, isProperty = false) {
+  const attr = isProperty ? 'property' : 'name';
+  let el = document.querySelector<HTMLMetaElement>(`meta[${attr}="${nameOrProp}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, nameOrProp);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
+
 /**
- * SEO component for managing page meta tags
- * Handles title, description, and Open Graph tags
+ * SEOHead — manages document title + meta tags on a per-page basis.
+ *
+ * The static metadata in index.html provides the initial values seen by
+ * crawlers and bots that don't execute JavaScript.  This component layers
+ * on top with per-route overrides, so the browser tab and social previews
+ * stay accurate as the user navigates.
+ *
+ * Usage:
+ *   <SEOHead title="Valley of Death — The Founder Test" />
+ *   <SEOHead />   ← uses brand defaults
  */
-export function SEOHead({ 
-  title, 
-  description, 
-  // Photo by Oyemike Princewill on Unsplash
-  image = 'https://images.unsplash.com/photo-1662333085102-f6ae3be21c91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3MDA2OTF8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NjI3Njk1NjB8&ixlib=rb-4.1.0&q=80&w=1080',
-  type = 'website'
+export function SEOHead({
+  title,
+  description = BRAND.description,
+  image = BRAND.ogImage,
+  type = 'website',
 }: SEOHeadProps) {
   const location = useLocation();
-  
-  const fullTitle = title 
-    ? `${title} | ${photographerInfo.name}` 
-    : `${photographerInfo.name} - ${photographerInfo.tagline}`;
-  
-  const defaultDescription = photographerInfo.heroIntroduction;
-  const fullDescription = description || defaultDescription;
-  
-  const baseUrl = window.location.origin;
+
+  // Derive language from the URL prefix (no context hook needed — safe for
+  // both public /en|ar pages and admin pages)
+  const lang = location.pathname.startsWith('/ar') ? 'ar' : 'en';
+  const basePath = location.pathname.replace(/^\/(en|ar)/, '') || '/';
+  const basePathClean = basePath === '/' ? '' : basePath;
+
+  const fullTitle = title
+    ? `${title} | خبير الفشل`
+    : BRAND.defaultTitle;
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const fullUrl = `${baseUrl}${location.pathname}`;
 
+  // Resolve a relative image path to an absolute URL for OG / Twitter tags
+  const absoluteImage =
+    image.startsWith('http') ? image : `${baseUrl}${image}`;
+
+  // hreflang alternate URLs
+  const enUrl = `${baseUrl}/en${basePathClean}`;
+  const arUrl = `${baseUrl}/ar${basePathClean}`;
+
   useEffect(() => {
-    // Update document title
+    // ── Document title ────────────────────────────────────────────────────
     document.title = fullTitle;
 
-    // Update or create meta tags
-    const updateMetaTag = (name: string, content: string, isProperty = false) => {
-      const attribute = isProperty ? 'property' : 'name';
-      let element = document.querySelector(`meta[${attribute}="${name}"]`);
-      
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute(attribute, name);
-        document.head.appendChild(element);
-      }
-      
-      element.setAttribute('content', content);
-    };
+    // ── Standard meta ─────────────────────────────────────────────────────
+    upsertMeta('description', description);
+    upsertMeta('keywords',    BRAND.keywords);
+    upsertMeta('author',      BRAND.siteName);
 
-    // Standard meta tags
-    updateMetaTag('description', fullDescription);
-    
-    // Open Graph tags
-    updateMetaTag('og:title', fullTitle, true);
-    updateMetaTag('og:description', fullDescription, true);
-    updateMetaTag('og:type', type, true);
-    updateMetaTag('og:url', fullUrl, true);
-    updateMetaTag('og:image', image, true);
-    updateMetaTag('og:site_name', photographerInfo.name, true);
-    
-    // Twitter Card tags
-    updateMetaTag('twitter:card', 'summary_large_image');
-    updateMetaTag('twitter:title', fullTitle);
-    updateMetaTag('twitter:description', fullDescription);
-    updateMetaTag('twitter:image', image);
+    // ── Open Graph ────────────────────────────────────────────────────────
+    upsertMeta('og:site_name',   BRAND.siteName,  true);
+    upsertMeta('og:type',        type,            true);
+    upsertMeta('og:url',         fullUrl,         true);
+    upsertMeta('og:title',       fullTitle,       true);
+    upsertMeta('og:description', description,     true);
+    upsertMeta('og:image',       absoluteImage,   true);
+    upsertMeta('og:image:alt',   'خبير الفشل — Startup Failure Intelligence', true);
+    upsertMeta('og:locale',      lang === 'ar' ? 'ar_SA' : 'en_US', true);
 
-    // Additional SEO tags
-    updateMetaTag('author', photographerInfo.name);
-    updateMetaTag('keywords', `photography, ${photographerInfo.name}, professional photographer, ${photographerInfo.tagline}`);
-  }, [fullTitle, fullDescription, fullUrl, image, type]);
+    // ── Twitter / X Card ──────────────────────────────────────────────────
+    upsertMeta('twitter:card',        'summary_large_image');
+    upsertMeta('twitter:title',       fullTitle);
+    upsertMeta('twitter:description', description);
+    upsertMeta('twitter:image',       absoluteImage);
+    upsertMeta('twitter:image:alt',   'خبير الفشل — Startup Failure Intelligence');
+
+    // ── hreflang alternate links ──────────────────────────────────────────
+    upsertHreflang('en', enUrl);
+    upsertHreflang('ar', arUrl);
+    upsertHreflang('x-default', enUrl);
+  }, [fullTitle, description, fullUrl, absoluteImage, type, lang, enUrl, arUrl]);
 
   return null;
+}
+
+/** Create or update a <link rel="alternate" hreflang="..."> element */
+function upsertHreflang(hreflang: string, href: string) {
+  let el = document.querySelector<HTMLLinkElement>(
+    `link[rel="alternate"][hreflang="${hreflang}"]`
+  );
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'alternate');
+    el.setAttribute('hreflang', hreflang);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', href);
 }

@@ -9,18 +9,20 @@ interface LayoutProps {
 
 /**
  * Main layout wrapper component
- * Provides consistent header and footer across all pages
- * Homepage removes top padding to allow header overlay on hero
+ * Provides consistent header and footer across all pages.
+ * Homepage (/ en | /ar) removes top padding to allow header overlay on hero.
+ * RTL direction is applied to <html> by LanguageContext.
  */
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
-  const isHomepage = location.pathname === '/';
+  // Homepage paths: /en, /ar, /en/, /ar/
+  const isHomepage = /^\/(en|ar)\/?$/.test(location.pathname);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main 
-        id="main-content" 
+      <main
+        id="main-content"
         className={`flex-1 ${isHomepage ? '' : 'pt-16'}`}
         tabIndex={-1}
       >

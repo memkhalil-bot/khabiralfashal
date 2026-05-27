@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useT } from '@/hooks/useT';
+import { cn } from '@/lib/utils';
 
 /**
  * FounderTestimonials
@@ -26,10 +29,18 @@ interface Props {
 }
 
 export function FounderTestimonials({
-  eyebrow = 'Founder Field Notes',
-  heading = 'What founders said\nafter the session.',
+  eyebrow,
+  heading,
   intervalMs = 7000,
 }: Props) {
+  const { lang } = useLanguage();
+  const t = useT();
+  const isRTL = lang === 'ar';
+
+  // Fall back to translated defaults if not explicitly provided
+  const resolvedEyebrow = eyebrow ?? t.testimonials.defaultEyebrow;
+  const resolvedHeading = heading ?? t.testimonials.defaultHeading;
+
   const [items, setItems] = useState<Testimonial[]>([]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -84,19 +95,25 @@ export function FounderTestimonials({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.9 }}
-          className="mb-16 md:mb-24"
+          className={cn('mb-16 md:mb-24', isRTL && 'text-right')}
         >
-          <div className="flex items-center gap-3 mb-6">
+          <div className={cn('flex items-center gap-3 mb-6', isRTL && 'flex-row-reverse')}>
             <span className="h-px w-10 bg-ember" />
-            <span className="text-[10px] tracking-[0.4em] uppercase text-ember font-medium">
-              {eyebrow}
+            <span className={cn(
+              'text-[10px] uppercase text-ember font-medium',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+            )}>
+              {resolvedEyebrow}
             </span>
           </div>
-          <h2 className="font-serif-display text-4xl md:text-6xl leading-[1.05] tracking-tight whitespace-pre-line max-w-3xl">
-            {heading.split('\n').map((line, i, arr) => (
+          <h2 className={cn(
+            'text-4xl md:text-6xl leading-[1.05] tracking-tight whitespace-pre-line max-w-3xl',
+            isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
+          )}>
+            {resolvedHeading.split('\n').map((line, i, arr) => (
               <span key={i}>
                 {i === arr.length - 1 ? (
-                  <span className="italic text-white/55">{line}</span>
+                  <span className={cn('text-white/55', !isRTL && 'italic')}>{line}</span>
                 ) : (
                   line
                 )}
@@ -125,11 +142,14 @@ export function FounderTestimonials({
                 &ldquo;
               </div>
 
-              <blockquote className="relative font-serif-display text-2xl md:text-4xl leading-[1.35] text-white/90 max-w-4xl">
+              <blockquote className={cn(
+                'relative text-2xl md:text-4xl leading-[1.35] text-white/90 max-w-4xl',
+                isRTL ? 'font-arabic font-semibold leading-[1.8] text-right' : 'font-serif-display'
+              )}>
                 {current.quote}
               </blockquote>
 
-              <figcaption className="mt-10 flex items-center gap-4 text-sm">
+              <figcaption className={cn('mt-10 flex items-center gap-4 text-sm', isRTL && 'flex-row-reverse')}>
                 <span className="h-px w-8 bg-ember" />
                 <span className="text-white/80 font-medium">
                   {current.author_name}

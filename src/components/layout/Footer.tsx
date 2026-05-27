@@ -1,43 +1,75 @@
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useT } from '@/hooks/useT';
+import { cn } from '@/lib/utils';
 
 /**
  * Footer — Khabir Al Fashal
- * Minimal dark closing strip.
+ * Minimal dark closing strip. Fully bilingual.
  */
 export function Footer() {
   const year = new Date().getFullYear();
+  const { getPath, lang } = useLanguage();
+  const t = useT();
+  const f = t.footer;
+  const isRTL = lang === 'ar';
 
   return (
     <footer className="bg-black text-white border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
         <div className="grid md:grid-cols-12 gap-12 mb-16">
+          {/* Pull quote */}
           <div className="md:col-span-5">
-            <p className="font-serif-display text-3xl md:text-5xl leading-[1.1] tracking-tight max-w-xl">
-              Most founders meet me{' '}
-              <span className="italic text-ember">six months</span> too late.
+            <p className={cn(
+              'text-3xl md:text-5xl leading-[1.1] tracking-tight max-w-xl',
+              isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+            )}>
+              {f.pullQuote1}{' '}
+              <span className="italic text-ember">{f.pullQuote2}</span>
             </p>
             <Link
-              to="/contact"
-              className="inline-block mt-8 text-[11px] tracking-[0.3em] uppercase text-white/60 hover:text-ember transition-colors border-b border-white/20 hover:border-ember pb-1"
+              to={getPath('/contact')}
+              className={cn(
+                'inline-block mt-8 text-[11px] uppercase text-white/60 hover:text-ember transition-colors border-b border-white/20 hover:border-ember pb-1',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+              )}
             >
-              Don&apos;t be one of them →
+              {f.pullCta}
             </Link>
           </div>
 
+          {/* Nav links */}
           <div className="md:col-span-2">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
-              Navigate
+            <p className={cn(
+              'text-[10px] uppercase text-white/30 mb-5',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+            )}>
+              {f.navLabel}
             </p>
             <ul className="space-y-3 text-sm text-white/70 font-light">
-              <li><Link to="/" className="hover:text-ember transition-colors">Home</Link></li>
-              <li><Link to="/about" className="hover:text-ember transition-colors">Case File</Link></li>
-              <li><Link to="/contact" className="hover:text-ember transition-colors">Book a Session</Link></li>
+              {f.navLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={getPath(link.path)}
+                    className={cn(
+                      'hover:text-ember transition-colors',
+                      isRTL && 'font-arabic'
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Direct contact */}
           <div className="md:col-span-2">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
-              Direct
+            <p className={cn(
+              'text-[10px] uppercase text-white/30 mb-5',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+            )}>
+              {f.directLabel}
             </p>
             <ul className="space-y-3 text-sm text-white/70 font-light">
               <li>
@@ -45,13 +77,19 @@ export function Footer() {
                   case@khabiralfashal.com
                 </a>
               </li>
-              <li>Riyadh · Remote</li>
+              <li className={isRTL ? 'font-arabic' : ''}>
+                {isRTL ? 'الرياض · عن بُعد' : 'Riyadh · Remote'}
+              </li>
             </ul>
           </div>
 
+          {/* Social icons */}
           <div className="md:col-span-3">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
-              Social
+            <p className={cn(
+              'text-[10px] uppercase text-white/30 mb-5',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+            )}>
+              {f.socialLabel}
             </p>
             <div className="flex items-center gap-4">
               <a href="https://www.linkedin.com/in/mohamedkhalilfailexpert" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-white/50 hover:text-ember transition-colors duration-300">
@@ -85,8 +123,11 @@ export function Footer() {
               خبير الفشل · Khabir Al Fashal
             </span>
           </div>
-          <p className="text-[10px] tracking-[0.3em] uppercase text-white/30">
-            © {year} · Case Files · All Rights Reserved
+          <p className={cn(
+            'text-[10px] uppercase text-white/30',
+            isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+          )}>
+            {f.copyright.replace('{year}', String(year))}
           </p>
         </div>
       </div>
