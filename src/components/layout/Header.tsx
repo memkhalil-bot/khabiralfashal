@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { name: 'Home', path: '/', ar: 'الرئيسية' },
   { name: 'Case File', path: '/about', ar: 'الملف' },
+  { name: 'Valley of Death', path: '/valley-of-death', ar: 'الاختبار' },
   { name: 'Session', path: '/contact', ar: 'الجلسة' },
 ];
 

@@ -18,6 +18,7 @@ const Portfolio = lazy(() => import("./pages/Portfolio"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const ValleyOfDeath = lazy(() => import("./pages/ValleyOfDeath"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -65,6 +66,14 @@ function AnimatedRoutes() {
           element={
             <PageTransition>
               <Contact />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/valley-of-death"
+          element={
+            <PageTransition>
+              <ValleyOfDeath />
             </PageTransition>
           }
         />
