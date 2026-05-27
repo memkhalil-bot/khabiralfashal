@@ -192,7 +192,7 @@ export function ValleyQuizArabic() {
             </span>
             <span className="h-px w-12 bg-ember" />
           </div>
-          <h2 className="font-serif-display text-4xl md:text-6xl leading-tight tracking-tight">
+          <h2 className="font-arabic text-4xl md:text-6xl leading-tight tracking-tight">
             هل شركتك هتعدّي
             <br />
             <span className="italic text-ember">وادي الموت؟</span>
