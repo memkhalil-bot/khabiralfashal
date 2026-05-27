@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      founder_assessments: {
+        Row: {
+          answers: Json
+          blind_spots: string[] | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          insight: string | null
+          name: string | null
+          risk_level: string | null
+          risk_score: number
+          sector: string | null
+          stage: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          answers?: Json
+          blind_spots?: string[] | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          insight?: string | null
+          name?: string | null
+          risk_level?: string | null
+          risk_score?: number
+          sector?: string | null
+          stage?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          answers?: Json
+          blind_spots?: string[] | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          insight?: string | null
+          name?: string | null
+          risk_level?: string | null
+          risk_score?: number
+          sector?: string | null
+          stage?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
