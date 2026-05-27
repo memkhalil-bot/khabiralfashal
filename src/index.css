@@ -235,6 +235,24 @@ All colors MUST be HSL.
   .ar-input::placeholder { color: hsl(0 0% 100% / 0.3); }
   select.ar-input { appearance: none; cursor: pointer; }
   select.ar-input option { background: hsl(0 0% 5%); color: hsl(0 0% 100%); }
+
+  .cinematic-input {
+    width: 100%;
+    padding: 0.9rem 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid hsl(0 0% 100% / 0.15);
+    color: hsl(0 0% 100%);
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    transition: border-color 0.4s, color 0.3s;
+    outline: none;
+    border-radius: 0;
+  }
+  .cinematic-input:focus { border-color: hsl(18 92% 55%); }
+  .cinematic-input::placeholder { color: hsl(0 0% 100% / 0.25); }
+  select.cinematic-input { appearance: none; cursor: pointer; padding-right: 1rem; }
+  select.cinematic-input option { background: hsl(0 0% 5%); color: hsl(0 0% 100%); }
 }
 
 @keyframes ripple {
