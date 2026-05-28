@@ -687,7 +687,33 @@ export function FounderAssessment() {
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               className={cn('space-y-12', isRTL && 'text-right')}
             >
-              <div>
+              {/* SHOCK moment — single line, slow fade, then the diagnosis lands */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 1, 0.0] }}
+                transition={{ duration: 2.6, times: [0, 0.25, 0.75, 1], ease: 'easeInOut' }}
+                className="absolute inset-x-0 top-32 z-10 pointer-events-none text-center px-6"
+              >
+                <p className={cn(
+                  'text-[10px] uppercase mb-4',
+                  verdict.tone,
+                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+                )}>
+                  {a.diagnosisLabel}
+                </p>
+                <p className={cn(
+                  'text-2xl md:text-4xl text-white/90 max-w-2xl mx-auto leading-snug',
+                  isRTL ? 'font-arabic font-bold leading-[1.6]' : 'font-serif-display italic'
+                )}>
+                  {verdict.title}
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.2, duration: 0.8 }}
+              >
                 <p className={cn(
                   'text-[11px] uppercase text-ember mb-6',
                   isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.35em]'
@@ -700,7 +726,8 @@ export function FounderAssessment() {
                 )}>
                   {verdict.title}
                 </h2>
-              </div>
+              </motion.div>
+
 
               <div className="grid md:grid-cols-3 gap-3">
                 {/* Risk level */}
