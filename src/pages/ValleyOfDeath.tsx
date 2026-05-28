@@ -27,15 +27,17 @@ export default function ValleyOfDeath() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
-              <span className="h-px w-12 bg-ember" />
-              <span className={cn(
-                'text-xs uppercase text-ember font-medium',
-                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-              )}>
-                {v.eyebrow}
-              </span>
-            </div>
+            {v.eyebrow && (
+              <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
+                <span className="h-px w-12 bg-ember" />
+                <span className={cn(
+                  'text-xs uppercase text-ember font-medium',
+                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+                )}>
+                  {v.eyebrow}
+                </span>
+              </div>
+            )}
             <h1 className={cn(
               'leading-[0.95] tracking-tight',
               isRTL
