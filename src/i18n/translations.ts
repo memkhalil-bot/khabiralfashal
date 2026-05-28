@@ -978,8 +978,8 @@ const ar: LangStrings = {
   },
 
   assessment: {
-    diagnosticLabel: '​',
-    introHeading1: '\n',
+    diagnosticLabel: '',
+    introHeading1: '',
     introHeading2: '',
     introDesc:
       'هذا ليس استبياناً. إنه تشخيص نفسي منضبط مصمَّم لاستخراج ما لا يستطيع معظم المؤسسين قوله بصوت عالٍ — عن شركاتهم وفرقهم وأنفسهم.',
