@@ -678,7 +678,7 @@ export function FounderAssessment() {
             </motion.div>
           )}
 
-          {/* ================= RESULT — cinematic progressive reveal ================= */}
+          {/* ================= RESULT ================= */}
           {stage === 'result' && (() => {
             const riskBucket: 'low' | 'medium' | 'high' =
               verdict.level === 'COLLAPSE PROXIMITY'
@@ -689,300 +689,41 @@ export function FounderAssessment() {
             const ctas = a.dynamicCtas[riskBucket];
             const consequence = a.consequences[verdict.level] ?? '';
             const recovery = a.recoveryPaths[verdict.level] ?? '';
-            const iconFor = (intent: string) => {
-              if (intent === 'emergency') return <Siren className="size-5" />;
-              if (intent === 'autopsy' || intent === 'report') return <FileSearch className="size-5" />;
-              return <Phone className="size-5" />;
-            };
-
             return (
               <motion.div
                 key="result"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className={cn('relative space-y-20 md:space-y-28', isRTL && 'text-right')}
               >
-                {/* High-risk pulsing red atmosphere */}
-                {riskBucket === 'high' && (
-                  <motion.div
-                    aria-hidden
-                    className="pointer-events-none fixed inset-0 z-0"
-                    animate={{ opacity: [0.25, 0.55, 0.25] }}
-                    transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{
-                      background:
-                        'radial-gradient(ellipse at 50% 70%, hsl(0 84% 35% / 0.35), transparent 65%)',
-                      mixBlendMode: 'screen',
-                    }}
-                  />
-                )}
-
-                {/* ── SCENE 1 · SHOCK ─────────────────────────────── */}
-                <div className="relative min-h-[60vh] flex flex-col justify-center">
-                  <motion.p
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.2, delay: 0.2 }}
-                    className={cn(
-                      'text-[10px] uppercase mb-10',
-                      verdict.tone,
-                      isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.5em]'
-                    )}
-                  >
-                    {a.shockEyebrow}
-                  </motion.p>
-                  <motion.h2
-                    initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    transition={{ duration: 1.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                    className={cn(
-                      'text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight max-w-3xl',
-                      isRTL ? 'font-arabic font-bold leading-[1.35]' : 'font-serif-display'
-                    )}
-                  >
-                    <span className={cn(!isRTL && 'italic')}>{verdict.title}</span>
-                  </motion.h2>
-                  <motion.div
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 1.4, delay: 2.6, ease: [0.16, 1, 0.3, 1] }}
-                    className={cn(
-                      'mt-14 h-px w-32 origin-left bg-ember/50',
-                      isRTL && 'origin-right ml-auto'
-                    )}
-                  />
-                </div>
-
-                {/* ── SCENE 2 · DIAGNOSIS (inline, not cards) ─────── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-120px' }}
-                  transition={{ duration: 1.2 }}
-                >
-                  <p className={cn(
-                    'text-[10px] uppercase text-white/35 mb-8',
-                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                  )}>
-                    {a.diagnosisLabel} {lead?.name ?? ''}
-                  </p>
-                  <div className={cn(
-                    'grid gap-y-10 gap-x-12 md:grid-cols-[auto_1fr] items-baseline',
-                    isRTL && 'md:grid-cols-[1fr_auto]'
-                  )}>
-                    <span className={cn(
-                      'text-[10px] uppercase text-white/40 md:pt-3',
-                      isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-                    )}>
-                      {a.riskLevelLabel}
-                    </span>
-                    <p className={cn(
-                      'text-3xl md:text-5xl leading-none',
-                      verdict.tone,
-                      isRTL ? 'font-arabic font-bold' : 'font-serif-display'
-                    )}>
-                      {verdict.level}
-                    </p>
-
-                    <span className={cn(
-                      'text-[10px] uppercase text-white/40 md:pt-3',
-                      isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-                    )}>
-                      {a.riskScoreLabel}
-                    </span>
-                    <p className={cn(
-                      'text-5xl md:text-7xl leading-none tabular-nums',
-                      verdict.tone,
-                      isRTL ? 'font-arabic font-bold' : 'font-serif-display italic'
-                    )}>
-                      {valleyScorePct}
-                      <span className="text-2xl md:text-3xl text-white/25">/100</span>
-                    </p>
-
-                    <span className={cn(
-                      'text-[10px] uppercase text-white/40 md:pt-3',
-                      isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-                    )}>
-                      {a.blindSpotsLabel}
-                    </span>
-                    <p className={cn(
-                      'text-4xl md:text-6xl leading-none text-white tabular-nums',
-                      isRTL ? 'font-arabic font-bold' : 'font-serif-display'
-                    )}>
-                      {String(blindSpots.length).padStart(2, '0')}
-                    </p>
-                  </div>
-                </motion.div>
-
-                {/* ── SCENE 3 · INSIGHT ───────────────────────────── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ duration: 1.2 }}
-                  className="border-t border-white/10 pt-12"
-                >
-                  <p className={cn(
-                    'text-[10px] uppercase text-ember mb-8',
-                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                  )}>
-                    {a.insightSection}
-                  </p>
-                  <blockquote className={cn(
-                    'text-2xl md:text-4xl text-white/90 leading-[1.3] max-w-3xl',
-                    isRTL ? 'font-arabic font-semibold leading-[1.8]' : 'font-serif-display italic'
-                  )}>
-                    &ldquo;{verdict.insight}&rdquo;
-                  </blockquote>
-                </motion.div>
-
-                {/* ── SCENE 4 · BLIND SPOTS (one by one) ──────────── */}
-                {blindSpots.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true, margin: '-100px' }}
-                    transition={{ duration: 1 }}
-                    className="border-t border-white/10 pt-12"
-                  >
-                    <p className={cn(
-                      'text-[10px] uppercase text-ember mb-10',
-                      isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                    )}>
-                      {a.blindSpotsSection}
-                    </p>
-                    <ul className="space-y-6">
-                      {blindSpots.map((b, i) => (
-                        <motion.li
-                          key={b}
-                          initial={{ opacity: 0, x: isRTL ? 24 : -24 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true, margin: '-60px' }}
-                          transition={{ duration: 0.9, delay: i * 0.25, ease: [0.16, 1, 0.3, 1] }}
-                          className={cn(
-                            'flex items-baseline gap-6 border-b border-white/[0.06] pb-6',
-                            isRTL && 'flex-row-reverse text-right'
-                          )}
-                        >
-                          <span className="font-serif-display text-ember/80 tabular-nums text-2xl md:text-3xl flex-shrink-0">
-                            {String(i + 1).padStart(2, '0')}
-                          </span>
-                          <span className={cn(
-                            'text-xl md:text-3xl text-white/85 leading-snug',
-                            isRTL ? 'font-arabic font-semibold leading-[1.7]' : 'font-serif-display'
-                          )}>
-                            {b}
-                          </span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                )}
-
-                {/* ── SCENE 5 · CONSEQUENCES ──────────────────────── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ duration: 1.4 }}
-                  className="relative border-t border-white/10 pt-12"
-                >
-                  <p className={cn(
-                    'text-[10px] uppercase mb-8',
-                    riskBucket === 'high' ? 'text-red-400' : 'text-ember',
-                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                  )}>
-                    {a.consequencesSection}
-                  </p>
-                  <p className={cn(
-                    'text-2xl md:text-4xl leading-[1.35] text-white/80 max-w-3xl',
-                    isRTL ? 'font-arabic font-semibold leading-[1.8]' : 'font-serif-display'
-                  )}>
-                    {consequence}
-                  </p>
-                </motion.div>
-
-                {/* ── SCENE 6 · RECOVERY PATH ─────────────────────── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ duration: 1.4 }}
-                  className="border-t border-white/10 pt-12"
-                >
-                  <p className={cn(
-                    'text-[10px] uppercase text-ember mb-8',
-                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                  )}>
-                    {a.recoverySection}
-                  </p>
-                  <p className={cn(
-                    'text-xl md:text-2xl leading-relaxed text-white/70 max-w-3xl',
-                    isRTL ? 'font-arabic leading-[2]' : 'font-light'
-                  )}>
-                    {recovery}
-                  </p>
-                </motion.div>
-
-                {/* ── SCENE 7 · DYNAMIC CTAs ──────────────────────── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-100px' }}
-                  transition={{ duration: 1.2 }}
-                  className="border-t border-white/10 pt-12"
-                >
-                  <p className={cn(
-                    'text-[10px] uppercase mb-10',
-                    riskBucket === 'high' ? 'text-red-400' : 'text-ember',
-                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-                  )}>
-                    {a.nextMoveSection}
-                  </p>
-                  <div className={cn(
-                    'grid gap-3',
-                    ctas.length === 1 ? 'md:grid-cols-1 max-w-2xl' :
-                    ctas.length === 2 ? 'md:grid-cols-2' :
-                    'md:grid-cols-3'
-                  )}>
-                    {ctas.map((c, i) => (
-                      <motion.div
-                        key={c.intent}
-                        initial={{ opacity: 0, y: 14 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7, delay: i * 0.15 }}
-                      >
-                        <ResultCTA
-                          to={getPath('/contact') + `?intent=${c.intent}`}
-                          icon={iconFor(c.intent)}
-                          title={c.title}
-                          desc={c.desc}
-                          isRTL={isRTL}
-                          primary={c.urgent || (i === 0 && riskBucket !== 'low')}
-                          urgent={c.urgent}
-                          continueLabel={a.continueLabel}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                <div className="flex justify-center pt-6">
-                  <button
-                    onClick={reset}
-                    className={cn(
-                      'inline-flex items-center gap-3 text-[10px] uppercase text-white/40 hover:text-ember transition-colors',
-                      isRTL ? 'font-arabic tracking-normal text-sm flex-row-reverse' : 'tracking-[0.3em]'
-                    )}
-                  >
-                    <RotateCcw className="size-3" /> {a.restartDiagnosticLabel}
-                  </button>
-                </div>
+                <AssessmentResult
+                  verdict={verdict}
+                  scorePct={valleyScorePct}
+                  blindSpots={blindSpots}
+                  founderName={lead?.name}
+                  riskBucket={riskBucket}
+                  consequence={consequence}
+                  recovery={recovery}
+                  ctas={ctas}
+                  isRTL={isRTL}
+                  contactPath={getPath('/contact')}
+                  labels={{
+                    diagnosisLabel: a.diagnosisLabel,
+                    shockEyebrow: a.shockEyebrow,
+                    riskScoreLabel: a.riskScoreLabel,
+                    riskLevelLabel: a.riskLevelLabel,
+                    blindSpotsSection: a.blindSpotsSection,
+                    consequencesSection: a.consequencesSection,
+                    recoverySection: a.recoverySection,
+                    nextMoveSection: a.nextMoveSection,
+                    restartDiagnosticLabel: a.restartDiagnosticLabel,
+                  }}
+                  onReset={reset}
+                />
               </motion.div>
             );
           })()}
+
         </AnimatePresence>
       </div>
     </section>
