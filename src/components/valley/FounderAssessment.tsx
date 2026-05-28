@@ -267,29 +267,44 @@ export function FounderAssessment() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.10),transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-      {/* progress bar (sticky-feel) */}
-      {(stage === 'quiz' || stage === 'submitting') && (
-        <div className="sticky top-0 z-20 backdrop-blur-md bg-black/60 border-b border-white/10">
-          <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-4">
-            <span className={cn(
-              'text-[10px] uppercase text-white/40',
-              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-            )}>
-              {a.diagnosticProgress}
-            </span>
-            <div className="flex-1 h-px bg-white/10 relative overflow-hidden">
-              <motion.div
-                className="absolute inset-y-0 left-0 bg-ember"
-                animate={{ width: `${progress * 100}%` }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              />
+      {/* Descent bar with emotional state — no visible question count */}
+      {(stage === 'quiz' || stage === 'submitting') && (() => {
+        const answered = Object.keys(answers).length;
+        const partialMax = Math.max(answered, 1) * 5;
+        const partialScore = Object.values(answers).reduce((s, v) => s + v, 0);
+        const tension = answered === 0 ? 0 : partialScore / partialMax; // 0.2..1
+        const stateIdx = Math.min(4, Math.floor(tension * 5));
+        const stateLabel = a.emotionalStates[stateIdx] ?? '';
+        return (
+          <div className="sticky top-0 z-20 backdrop-blur-md bg-black/70 border-b border-white/10">
+            <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-4">
+              <span className={cn(
+                'text-[10px] uppercase text-white/40',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+              )}>
+                {a.diagnosticProgress}
+              </span>
+              <div className="flex-1 h-px bg-white/10 relative overflow-hidden">
+                <motion.div
+                  className={cn(
+                    'absolute inset-y-0 left-0',
+                    stateIdx >= 4 ? 'bg-red-500' : stateIdx >= 3 ? 'bg-ember' : 'bg-ember/80'
+                  )}
+                  animate={{ width: `${progress * 100}%` }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+              <span className={cn(
+                'text-[10px] uppercase',
+                stateIdx >= 4 ? 'text-red-400' : stateIdx >= 3 ? 'text-ember' : 'text-white/50',
+                isRTL ? 'font-arabic text-sm tracking-normal' : 'tracking-[0.3em]'
+              )}>
+                {stateLabel}
+              </span>
             </div>
-            <span className="text-[10px] tracking-[0.3em] uppercase text-white/50 tabular-nums">
-              {String(Math.min(idx + 1, total)).padStart(2, '0')} / {String(total).padStart(2, '0')}
-            </span>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="relative max-w-3xl mx-auto px-6 lg:px-10 py-20 md:py-28 min-h-[80vh] flex flex-col justify-center">
         <AnimatePresence mode="wait">
