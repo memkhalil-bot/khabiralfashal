@@ -109,6 +109,21 @@ interface LangStrings {
       p2: string;
       p3: string;
     };
+    narrative: {
+      eyebrow: string;
+      intro: string;
+      heading: string;
+      p1: string;
+      p2: string;
+      p3: string;
+      p4: string;
+    };
+    diagnosisCta: {
+      intro: string;
+      timeNote: string;
+      privacyNote: string;
+      button: string;
+    };
     curve: {
       eyebrow: string;
       heading1: string;
@@ -406,6 +421,21 @@ const en: LangStrings = {
       p1: 'The Valley of Death is the silent window between burning the last of your conviction and earning the first dollar of real revenue. It is where the cash is shrinking, the team is reading your face, and the spreadsheet has stopped lying.',
       p2: 'Most companies do not die from the market. They die in the valley — because the founder kept performing certainty while the ground gave way underneath.',
       p3: 'This diagnostic was built from analyzing hundreds of startup failure post-mortems and the cognitive patterns founders show in the months before collapse. There is no right answer. There is only what you finally admit.',
+    },
+    narrative: {
+      eyebrow: 'What is the Valley of Death?',
+      intro: 'Investors and entrepreneurs coined "Valley of Death" to describe the gap between building a product and reaching sustainable revenue — the stage where most startups disappear.',
+      heading: 'Most founders never see the valley until they are already inside it.',
+      p1: 'The Valley of Death is the silent gap between burning the last ember of your conviction and the first dollar of real revenue. This is where cash is shrinking, the team is reading your face, and the spreadsheets have stopped lying.',
+      p2: 'Companies rarely die from the market. They die inside the valley — because the founder kept performing certainty while the ground gave way beneath him.',
+      p3: 'This diagnostic was built from analyzing hundreds of failure cases, and from the cognitive patterns founders display in the months before collapse.',
+      p4: 'There is no right answer here.\nThere is only what you will finally admit.',
+    },
+    diagnosisCta: {
+      intro: 'This is not a survey. It is a disciplined psychological diagnostic designed to extract what most founders cannot say out loud — about their companies, their teams, and themselves.',
+      timeNote: 'Takes about 4 minutes.',
+      privacyNote: 'Your results are private. Only you see the diagnosis.',
+      button: 'Begin Diagnosis',
     },
     curve: {
       eyebrow: 'The Curve',
@@ -904,6 +934,21 @@ const ar: LangStrings = {
       p1: 'وادي الموت هو الفجوة الصامتة بين احتراق آخر شعلة من قناعتك، وأول دولار حقيقي من الإيراد. هنا يتقلّص النقد، ويقرأ الفريق وجهك، وتكفّ الجداول عن الكذب.',
       p2: 'الشركات لا تموت من السوق غالباً. تموت داخل الوادي — لأن المؤسس استمر في تمثيل الثقة بينما الأرض تنهار تحته.',
       p3: 'بُني هذا التشخيص من تحليل مئات حالات الفشل، ومن الأنماط الإدراكية التي يُظهرها المؤسسون في الأشهر السابقة على الانهيار. لا توجد إجابة صحيحة هنا. هناك فقط ما ستعترف به أخيراً.',
+    },
+    narrative: {
+      eyebrow: 'ما هو وادي الموت؟',
+      intro: 'استخدم المستثمرون ورواد الأعمال مصطلح "وادي الموت" لوصف الفجوة بين بناء المنتج وتحقيق الإيراد المستدام — وهي المرحلة التي تختفي فيها معظم الشركات الناشئة.',
+      heading: 'معظم المؤسسين لا يرون الوادي إلا حين يصبحون داخله.',
+      p1: 'وادي الموت هو الفجوة الصامتة بين احتراق آخر شعلة من قناعتك، وأول دولار حقيقي من الإيراد. هنا يتقلّص النقد، ويقرأ الفريق وجهك، وتكفّ الجداول عن الكذب.',
+      p2: 'الشركات لا تموت من السوق غالباً. تموت داخل الوادي — لأن المؤسس استمر في تمثيل الثقة بينما الأرض تنهار تحته.',
+      p3: 'بُني هذا التشخيص من تحليل مئات حالات الفشل، ومن الأنماط الإدراكية التي يظهرها المؤسسون في الأشهر السابقة على الانهيار.',
+      p4: 'لا توجد إجابة صحيحة هنا.\nهناك فقط ما ستعترف به أخيراً.',
+    },
+    diagnosisCta: {
+      intro: 'هذا ليس استبياناً. إنه تشخيص نفسي منضبط مصمَّم لاستخراج ما لا يستطيع معظم المؤسسين قوله بصوت عالٍ — عن شركاتهم وفرقهم وأنفسهم.',
+      timeNote: 'يستغرق نحو 4 دقائق.',
+      privacyNote: 'نتائجك خاصة. أنت وحدك ترى التشخيص.',
+      button: 'ابدأ التشخيص',
     },
     curve: {
       eyebrow: 'المنحنى',

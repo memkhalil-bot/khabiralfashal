@@ -130,7 +130,7 @@ function classify(
 
 type Stage = 'intro' | 'lead' | 'quiz' | 'submitting' | 'result' | 'error';
 
-export function FounderAssessment() {
+export function FounderAssessment({ autoStart = false }: { autoStart?: boolean }) {
   const t = useT();
   const a = t.assessment;
   const { getPath, lang } = useLanguage();
@@ -139,7 +139,7 @@ export function FounderAssessment() {
   // Questions come from translations (English or Arabic based on active lang)
   const ACTIVE_QUESTIONS = a.questions;
 
-  const [stage, setStage] = useState<Stage>('intro');
+  const [stage, setStage] = useState<Stage>(autoStart ? 'lead' : 'intro');
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [chosenTags, setChosenTags] = useState<Record<string, string>>({}); // qid -> tag
