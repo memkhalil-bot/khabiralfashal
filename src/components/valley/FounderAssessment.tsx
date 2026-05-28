@@ -362,23 +362,27 @@ export function FounderAssessment() {
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               className={isRTL ? 'text-right' : undefined}
             >
-              <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
-                <span className="h-px w-12 bg-ember" />
-                <span className={cn(
-                  'text-xs uppercase text-ember font-medium',
-                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+              {a.diagnosticLabel && (
+                <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
+                  <span className="h-px w-12 bg-ember" />
+                  <span className={cn(
+                    'text-xs uppercase text-ember font-medium',
+                    isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+                  )}>
+                    {a.diagnosticLabel}
+                  </span>
+                </div>
+              )}
+              {(a.introHeading1 || a.introHeading2) && (
+                <h2 className={cn(
+                  'text-4xl md:text-6xl leading-[1.05] tracking-tight',
+                  isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
                 )}>
-                  {a.diagnosticLabel}
-                </span>
-              </div>
-              <h2 className={cn(
-                'text-4xl md:text-6xl leading-[1.05] tracking-tight',
-                isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
-              )}>
-                {a.introHeading1}
-                <br />
-                <span className={cn('text-ember', !isRTL && 'italic')}>{a.introHeading2}</span>
-              </h2>
+                  {a.introHeading1}
+                  {a.introHeading1 && a.introHeading2 && <br />}
+                  <span className={cn('text-ember', !isRTL && 'italic')}>{a.introHeading2}</span>
+                </h2>
+              )}
               <p className={cn(
                 'mt-8 text-white/60 text-lg leading-relaxed max-w-xl',
                 isRTL && 'leading-[2.2]'
