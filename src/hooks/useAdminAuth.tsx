@@ -27,7 +27,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const checkAdmin = useCallback(async (uid: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('user_roles')
       .select('role')
       .eq('user_id', uid)
