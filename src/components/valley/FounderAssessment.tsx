@@ -258,6 +258,13 @@ export function FounderAssessment() {
     scrollTop();
   };
 
+  // Tension drives atmospheric overlay color + descent curve position
+  const answered = Object.keys(answers).length;
+  const partialMax = Math.max(answered, 1) * 5;
+  const partialScore = Object.values(answers).reduce((s, v) => s + v, 0);
+  const tension = answered === 0 ? 0 : partialScore / partialMax; // 0..1
+  const stateIdx = Math.min(4, Math.floor(tension * 5));
+
   return (
     <section
       ref={rootRef}
@@ -267,35 +274,70 @@ export function FounderAssessment() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.10),transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-      {/* Descent bar with emotional state — no visible question count */}
+      {/* Atmospheric tension overlay — reddens as the founder descends */}
+      {(stage === 'quiz' || stage === 'submitting') && (
+        <motion.div
+          className="pointer-events-none absolute inset-0 mix-blend-screen"
+          initial={false}
+          animate={{
+            opacity: 0.15 + tension * 0.55,
+            background: `radial-gradient(ellipse at 50% 80%, hsl(${stateIdx >= 4 ? '0' : '14'} ${60 + tension * 30}% ${20 + tension * 10}% / ${0.25 + tension * 0.45}), transparent 70%)`,
+          }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        />
+      )}
+      {/* Vignette that tightens at high tension */}
+      {(stage === 'quiz' || stage === 'submitting') && (
+        <motion.div
+          className="pointer-events-none absolute inset-0"
+          initial={false}
+          animate={{
+            boxShadow: `inset 0 0 ${120 + tension * 220}px ${40 + tension * 80}px hsl(0 0% 0% / ${0.4 + tension * 0.4})`,
+          }}
+          transition={{ duration: 0.9 }}
+        />
+      )}
+
+      {/* Descent bar with mini valley curve + avatar — no visible question count */}
       {(stage === 'quiz' || stage === 'submitting') && (() => {
-        const answered = Object.keys(answers).length;
-        const partialMax = Math.max(answered, 1) * 5;
-        const partialScore = Object.values(answers).reduce((s, v) => s + v, 0);
-        const tension = answered === 0 ? 0 : partialScore / partialMax; // 0.2..1
-        const stateIdx = Math.min(4, Math.floor(tension * 5));
         const stateLabel = a.emotionalStates[stateIdx] ?? '';
+        const t01 = progress;
+        const cx = 4 + t01 * 92;
+        const valleyY = 6 + 14 * Math.sin(Math.PI * Math.min(1, t01));
         return (
           <div className="sticky top-0 z-20 backdrop-blur-md bg-black/70 border-b border-white/10">
             <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-4">
               <span className={cn(
-                'text-[10px] uppercase text-white/40',
+                'text-[10px] uppercase text-white/40 hidden sm:inline',
                 isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
               )}>
                 {a.diagnosticProgress}
               </span>
-              <div className="flex-1 h-px bg-white/10 relative overflow-hidden">
-                <motion.div
-                  className={cn(
-                    'absolute inset-y-0 left-0',
-                    stateIdx >= 4 ? 'bg-red-500' : stateIdx >= 3 ? 'bg-ember' : 'bg-ember/80'
-                  )}
-                  animate={{ width: `${progress * 100}%` }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                />
+              <div className="flex-1 relative h-7">
+                <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible">
+                  <path d="M 0 6 Q 25 6, 50 20 T 100 6" fill="none" stroke="hsl(0 0% 100% / 0.12)" strokeWidth="0.5" />
+                  <path
+                    d="M 0 6 Q 25 6, 50 20 T 100 6"
+                    fill="none"
+                    stroke={stateIdx >= 4 ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)'}
+                    strokeWidth="0.6"
+                    strokeDasharray="100"
+                    strokeDashoffset={100 - t01 * 100}
+                    style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16,1,0.3,1)' }}
+                  />
+                  <circle cx={cx} cy={valleyY} r="3.5" fill={stateIdx >= 4 ? 'hsl(0 84% 60% / 0.18)' : 'hsl(18 92% 55% / 0.18)'} />
+                  <motion.circle
+                    cx={cx}
+                    cy={valleyY}
+                    r={1.6}
+                    fill={stateIdx >= 4 ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)'}
+                    animate={{ r: [1.4, 2.1, 1.4] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                </svg>
               </div>
               <span className={cn(
-                'text-[10px] uppercase',
+                'text-[10px] uppercase whitespace-nowrap',
                 stateIdx >= 4 ? 'text-red-400' : stateIdx >= 3 ? 'text-ember' : 'text-white/50',
                 isRTL ? 'font-arabic text-sm tracking-normal' : 'tracking-[0.3em]'
               )}>
