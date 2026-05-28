@@ -362,7 +362,7 @@ export function FounderAssessment() {
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               className={isRTL ? 'text-right' : undefined}
             >
-              <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
+              <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
                 <span className="h-px w-12 bg-ember" />
                 <span className={cn(
                   'text-xs uppercase text-ember font-medium',

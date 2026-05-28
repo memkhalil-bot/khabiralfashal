@@ -27,7 +27,7 @@ export default function ValleyOfDeath() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
+            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
               <span className="h-px w-12 bg-ember" />
               <span className={cn(
                 'text-xs uppercase text-ember font-medium',
@@ -66,7 +66,7 @@ export default function ValleyOfDeath() {
           transition={{ duration: 0.9 }}
           className={cn('relative max-w-3xl mx-auto', isRTL && 'text-right')}
         >
-          <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
+          <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
             <span className="h-px w-10 bg-ember" />
             <span className={cn(
               'text-[10px] uppercase text-ember font-medium',
