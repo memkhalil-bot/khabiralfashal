@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>وادي موت الشركات الناشئة | خبير الفشل</title>
+<!-- Google Fonts — requires internet -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+/* ================================================================
+   TOKENS
+================================================================ */
+:root {
+  --bg:          #060a10;
+  --bg-card:     #0c1220;
+  --bg-glass:    rgba(255,255,255,0.04);
+  --border:      rgba(255,255,255,0.08);
+  --border-s:    rgba(255,255,255,0.14);
+  --txt:         #f0f4f8;
+  --txt-2:       #8896aa;
+  --txt-m:       #3d4a5c;
+  --red:         #e63946;
+  --orange:      #f97316;
+  --ember:       #dc4e2b;
+  --warn:        #f59e0b;
+  --green:       #22c55e;
+  --blue:        #3b82f6;
+  --r-sm:  8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px;
+  --sh-md: 0 8px 24px rgba(0,0,0,.45);
+  --sh-lg: 0 20px 60px rgba(0,0,0,.55);
+  --sh-glow: 0 0 32px rgba(230,57,70,.2);
+  --ease: .35s cubic-bezier(.16,1,.3,1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+body[dir="rtl"] { font-family: 'Cairo', Tahoma, Arial, sans-serif; }
+body[dir="ltr"] { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+input, select, textarea, button { font-family: inherit; }
+
+/* ================================================================
+   TYPOGRAPHY
+================================================================ */
+.h-xl {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900; line-height: 1.15; letter-spacing: -.02em;
+}
+[dir="rtl"] .h-xl { letter-spacing: 0; }
+.h-lg { font-size: clamp(1.4rem,3.5vw,2.4rem); font-weight: 700; line-height: 1.2; }
+.h-md { font-size: clamp(1.1rem,2.5vw,1.55rem); font-weight: 700; }
+.eyebrow {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--red);
+}
+[dir="rtl"] .eyebrow { letter-spacing: 0; }
+
+/* ================================================================
+   LAYOUT
+================================================================ */
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+.section { display: none; min-height: 100vh; padding: 40px 0; }
+.section.active {
+  display: flex; flex-direction: column;
+  animation: fadeUp .45s var(--ease) both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================================
+   CARDS & GLASS
+================================================================ */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 28px; box-shadow: var(--sh-md);
+}
+.card-sm { padding: 20px; }
+
+/* ================================================================
+   BUTTONS
+================================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 13px 26px; border: none; border-radius: var(--r-md);
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: all var(--ease); text-decoration: none; white-space: nowrap;
+}
+.btn-primary {
+  background: var(--red); color: #fff;
+  box-shadow: 0 4px 20px rgba(230,57,70,.3);
+}
+.btn-primary:hover { background: #c1121f; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(230,57,70,.5); }
+.btn-outline { background: transparent; color: var(--txt); border: 1px solid var(--border-s); }
+.btn-outline:hover { border-color: var(--red); color: var(--red); }
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { background: #16a34a; transform: translateY(-2px); }
+.btn-lg { padding: 17px 38px; font-size: 1.08rem; }
+.btn-full { width: 100%; }
+
+/* ================================================================
+   FORM
+================================================================ */
+.fg { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.flabel {
+  font-size: .79rem; font-weight: 600; color: var(--txt-2);
+  text-transform: uppercase; letter-spacing: .07em;
+}
+[dir="rtl"] .flabel { letter-spacing: 0; }
+.finput {
+  background: rgba(255,255,255,.05); border: 1px solid var(--border-s);
+  border-radius: var(--r-sm); padding: 11px 15px; color: var(--txt);
+  font-size: .97rem; outline: none; width: 100%;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+.finput::placeholder { color: var(--txt-m); }
+.finput:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,.12); }
+.finput.err { border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,.12); }
+.ferr { font-size: .78rem; color: var(--red); margin-top: 3px; }
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 580px) { .fgrid { grid-template-columns: 1fr; } }
+
+.chk-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 15px; background: rgba(255,255,255,.03);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  cursor: pointer; margin-bottom: 10px;
+  transition: background var(--ease);
+}
+.chk-row:hover { background: rgba(255,255,255,.06); }
+.chk-row input[type="checkbox"] {
+  flex-shrink: 0; width: 17px; height: 17px;
+  margin-top: 3px; accent-color: var(--red); cursor: pointer;
+}
+.chk-txt { font-size: .85rem; color: var(--txt-2); line-height: 1.65; }
+
+/* ================================================================
+   LANGUAGE SWITCHER
+================================================================ */
+.lang-sw {
+  position: fixed; top: 14px; z-index: 200;
+  display: flex; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 3px; box-shadow: var(--sh-md);
+}
+[dir="rtl"] .lang-sw { left: 14px; }
+[dir="ltr"] .lang-sw { right: 14px; }
+.lbtn {
+  padding: 5px 15px; border: none; border-radius: 999px;
+  background: transparent; color: var(--txt-2);
+  font-size: .79rem; font-weight: 700; cursor: pointer; transition: all .2s;
+}
+.lbtn.on { background: var(--red); color: #fff; }
+
+/* ================================================================
+   VALLEY SVG WRAPPER
+================================================================ */
+.valley-wrap {
+  width: 100%; border-radius: var(--r-md);
+  border: 1px solid var(--border); overflow: hidden;
+  background: rgba(0,0,0,.5); position: relative;
+}
+.valley-svg { width: 100%; height: auto; display: block; }
+
+/* ================================================================
+   HEALTH BAR
+================================================================ */
+.hbar-wrap { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; }
+.hbar-lbl {
+  font-size: .74rem; font-weight: 700; color: var(--txt-2);
+  text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; min-width: 80px;
+}
+[dir="rtl"] .hbar-lbl { letter-spacing: 0; }
+.hbar-track { flex: 1; height: 7px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
+.hbar-fill {
+  height: 100%; border-radius: 999px;
+  transition: width .5s ease, background .5s ease;
+  background: var(--green);
+}
+.hbar-pct { font-size: .82rem; font-weight: 700; min-width: 40px; text-align: center; }
+
+/* ================================================================
+   PROGRESS DOTS
+================================================================ */
+.dots { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-s); transition: background .3s, transform .3s; }
+.dot.done { background: var(--red); }
+.dot.done.safe { background: var(--green); }
+.dot.cur { background: var(--orange); transform: scale(1.5); }
+
+/* ================================================================
+   QUESTION
+================================================================ */
+.q-chapter { font-size: .72rem; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+[dir="rtl"] .q-chapter { letter-spacing: 0; }
+.q-text { font-size: clamp(1.1rem,2.8vw,1.5rem); font-weight: 700; line-height: 1.55; margin-bottom: 28px; }
+.q-sub { font-size: .88rem; color: var(--txt-2); margin-top: 8px; font-style: italic; font-weight: 400; }
+[dir="rtl"] .q-sub { font-style: normal; }
+
+.ans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+@media (max-width: 440px) { .ans-grid { grid-template-columns: 1fr; } }
+.ans-btn {
+  padding: 20px 16px; border-radius: var(--r-md);
+  border: 2px solid var(--border-s);
+  background: rgba(255,255,255,.03); color: var(--txt);
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: all var(--ease); text-align: center;
+}
+.ans-btn:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
+.ans-yes:hover { border-color: var(--red); background: rgba(230,57,70,.1); color: var(--red); }
+.ans-no:hover  { border-color: var(--green); background: rgba(34,197,94,.1); color: var(--green); }
+.ans-btn:active { transform: scale(.97); }
+
+/* ================================================================
+   TENSION MESSAGE
+================================================================ */
+.tension-msg {
+  text-align: center; font-size: .82rem; font-weight: 600;
+  padding: 8px 16px; border-radius: var(--r-sm);
+  transition: all var(--ease); min-height: 36px;
+}
+
+/* ================================================================
+   ATMOSPHERE
+================================================================ */
+.atm {
+  pointer-events: none; position: fixed; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(230,57,70,.07), transparent 55%);
+  transition: background 1s ease, opacity .8s ease;
+}
+
+/* ================================================================
+   SCORE RING
+================================================================ */
+.score-ring { position: relative; width: 170px; height: 170px; margin: 0 auto 24px; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-num {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-val { font-size: 2.8rem; font-weight: 900; line-height: 1; }
+.score-tot { font-size: .75rem; color: var(--txt-m); margin-top: 4px; }
+
+/* ================================================================
+   RISK BADGE
+================================================================ */
+.rbadge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 18px; border-radius: 999px; font-size: .88rem; font-weight: 700;
+}
+.r-low     { background: rgba(34,197,94,.1); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+.r-med     { background: rgba(245,158,11,.1); color: var(--warn); border: 1px solid rgba(245,158,11,.3); }
+.r-high    { background: rgba(230,57,70,.1); color: var(--red); border: 1px solid rgba(230,57,70,.3); }
+.r-col     { background: rgba(220,30,30,.18); color: #ff4444; border: 1px solid rgba(220,30,30,.5); animation: redpulse 1.5s ease infinite; }
+@keyframes redpulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(230,57,70,.4); }
+  50%     { box-shadow: 0 0 0 8px rgba(230,57,70,0); }
+}
+
+/* ================================================================
+   RISK LIST
+================================================================ */
+.rlist { list-style: none; }
+.ritem {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 15px; border-bottom: 1px solid var(--border);
+  transition: background var(--ease);
+}
+.ritem:hover { background: rgba(255,255,255,.02); }
+.ritem:last-child { border-bottom: none; }
+.rico {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(230,57,70,.1); font-size: .9rem;
+}
+.rtxt { flex: 1; }
+.rtitle { font-weight: 700; font-size: .93rem; margin-bottom: 3px; }
+.rdesc { font-size: .8rem; color: var(--txt-2); }
+
+/* ================================================================
+   PRODUCTS
+================================================================ */
+.pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+.pcard {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 22px; position: relative;
+  cursor: pointer; transition: all var(--ease);
+}
+.pcard:hover { border-color: var(--red); transform: translateY(-4px); box-shadow: var(--sh-glow), var(--sh-lg); }
+.pcard.feat { border-color: var(--orange); background: linear-gradient(135deg, rgba(249,115,22,.06), var(--bg-card)); }
+.pbadge {
+  position: absolute; top: -11px; font-size: .7rem; font-weight: 700;
+  padding: 3px 13px; border-radius: 999px; background: var(--orange); color: #000;
+  text-transform: uppercase;
+}
+[dir="rtl"] .pbadge { right: 18px; } [dir="ltr"] .pbadge { left: 18px; }
+.picon { font-size: 1.9rem; margin-bottom: 10px; }
+.pname { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+.pdesc { font-size: .8rem; color: var(--txt-2); margin-bottom: 14px; line-height: 1.6; }
+.pprice { font-size: 1.75rem; font-weight: 900; color: var(--orange); margin-bottom: 14px; }
+.pprice .cur { font-size: .9rem; font-weight: 600; }
+.pfeats { list-style: none; margin-bottom: 18px; }
+.pfeats li {
+  font-size: .8rem; color: var(--txt-2); padding: 4px 0;
+  display: flex; align-items: flex-start; gap: 7px;
+}
+.pfeats li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+/* ================================================================
+   ADMIN
+================================================================ */
+.admin-wrap {
+  background: rgba(0,0,0,.6);
+  border: 1px solid rgba(255,165,0,.18); border-radius: var(--r-lg); padding: 22px;
+}
+.abadge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,165,0,.1); border: 1px solid rgba(255,165,0,.3);
+  border-radius: 999px; padding: 4px 13px; font-size: .72rem;
+  color: #ffa500; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; margin-bottom: 14px;
+}
+.json-box {
+  background: #070b14; border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 14px;
+  font-family: 'Courier New', monospace; font-size: .75rem; color: #7fff7f;
+  overflow: auto; max-height: 320px; white-space: pre; direction: ltr;
+}
+.astatus {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;
+}
+.astatus-btn {
+  padding: 7px 18px; border-radius: var(--r-sm); font-size: .82rem;
+  font-weight: 700; cursor: pointer; border: none; transition: all .2s;
+}
+.astatus-pending { background: rgba(245,158,11,.15); color: var(--warn); border: 1px solid rgba(245,158,11,.3); }
+.astatus-approve { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+.astatus-reject  { background: rgba(230,57,70,.15); color: var(--red);   border: 1px solid rgba(230,57,70,.3); }
+
+/* ================================================================
+   LANDING
+================================================================ */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 80px 20px; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% -5%, rgba(230,57,70,.11), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 85%, rgba(25,38,75,.5), transparent 50%),
+    linear-gradient(180deg, #06090f, #090e1c);
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-content { position: relative; z-index: 1; max-width: 760px; }
+.brand-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 16px; border: 1px solid rgba(230,57,70,.4);
+  border-radius: 999px; font-size: .78rem; color: var(--red);
+  font-weight: 700; margin-bottom: 26px; background: rgba(230,57,70,.06);
+}
+.stats-row {
+  display: flex; justify-content: center; gap: 36px;
+  margin-top: 40px; padding-top: 36px; border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.stat-num { font-size: 1.75rem; font-weight: 900; color: var(--red); }
+.stat-lbl { font-size: .76rem; color: var(--txt-2); margin-top: 3px; }
+
+/* ================================================================
+   MISC
+================================================================ */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+.tc { text-align: center; }
+.mt2 { margin-top: 8px; } .mt4 { margin-top: 16px; } .mt6 { margin-top: 24px; } .mt8 { margin-top: 32px; }
+.mb4 { margin-bottom: 16px; } .mb6 { margin-bottom: 24px; }
+.flex { display: flex; } .flex-col { flex-direction: column; }
+.aic { align-items: center; } .jcb { justify-content: space-between; } .jcc { justify-content: center; }
+.gap2 { gap: 8px; } .gap4 { gap: 16px; }
+.c2 { color: var(--txt-2); } .cred { color: var(--red); } .cgrn { color: var(--green); } .cwrn { color: var(--warn); }
+
+/* scroll */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
+
+/* ================================================================
+   RESPONSIVE
+================================================================ */
+@media (max-width: 680px) {
+  .card { padding: 18px; }
+  .pgrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 440px) {
+  .pgrid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body dir="rtl">
+
+<!-- atmosphere glow -->
+<div class="atm" id="atm"></div>
+
+<!-- language switcher -->
+<div class="lang-sw">
+  <button class="lbtn on" onclick="switchLang('ar')" id="lbtn-ar">عربي</button>
+  <button class="lbtn" onclick="switchLang('en')" id="lbtn-en">English</button>
+</div>
+
+<!-- ================================================================
+     STAGE 0: LANDING
+================================================================ -->
+<section class="section active" id="s-landing">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="brand-tag">
+        <span>⚡</span>
+        <span data-t="brandTag">خبير الفشل</span>
+      </div>
+      <h1 class="h-xl" data-t="heroH1">هل شركتك ستنجو من</h1>
+      <h1 class="h-xl" style="color:var(--red)" data-t="heroH2">وادي الموت؟</h1>
+      <p class="mt6" style="font-size:1.05rem;color:var(--txt-2);max-width:580px;margin:24px auto 0;line-height:1.85" data-t="heroDesc">
+        تشخيص مجاني وموثوق لمخاطر شركتك الناشئة. أجب على ١٢ سؤالاً واكتشف هل أنت على وشك الانهيار — أم لا تزال في أمان.
+      </p>
+      <button class="btn btn-primary btn-lg mt8" onclick="goTo('gate')" data-t="startBtn">
+        ابدأ التشخيص المجاني →
+      </button>
+      <div class="stats-row">
+        <div>
+          <div class="stat-num" data-t="stat1n">٩٠٪</div>
+          <div class="stat-lbl" data-t="stat1l">من الشركات تدخل الوادي</div>
+        </div>
+        <div>
+          <div class="stat-num" data-t="stat2n">١٢</div>
+          <div class="stat-lbl" data-t="stat2l">سؤالاً تكشف مصيرك</div>
+        </div>
+        <div>
+          <div class="stat-num" data-t="stat3n">٣ دقائق</div>
+          <div class="stat-lbl" data-t="stat3l">للحصول على النتيجة</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     STAGE 1: GATE (Lead Capture)
+================================================================ -->
+<section class="section" id="s-gate">
+  <div class="wrap" style="padding-top:60px;padding-bottom:60px">
+    <div class="card">
+      <p class="eyebrow mb4" data-t="step1Label">الخطوة ١ من ٥ · بيانات المؤسس</p>
+      <h2 class="h-lg mb4" data-t="gateH">قبل أن تدخل الوادي،<br>أخبرنا من أنت</h2>
+      <p class="c2 mb6" style="font-size:.93rem" data-t="gateDesc">
+        بياناتك محمية ولا تُباع. سنستخدمها فقط لإعطائك تشخيصاً مخصصاً.
+      </p>
+
+      <div class="fgrid">
+        <div class="fg">
+          <label class="flabel" data-t="fEmail">البريد الإلكتروني *</label>
+          <input class="finput" type="email" id="f-email" placeholder="founder@startup.com" dir="ltr" />
+          <span class="ferr" id="err-email"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel" data-t="fCompany">اسم الشركة (اختياري)</label>
+          <input class="finput" id="f-company" placeholder="" data-ph="fCompanyPh" />
+        </div>
+        <div class="fg">
+          <label class="flabel" data-t="fSector">القطاع *</label>
+          <select class="finput" id="f-sector">
+            <option value="" data-t="selectSector">اختر القطاع</option>
+          </select>
+          <span class="ferr" id="err-sector"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel" data-t="fStage">مرحلة الشركة (اختياري)</label>
+          <select class="finput" id="f-stage">
+            <option value="" data-t="selectStage">اختر المرحلة</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel" data-t="fCountry">الدولة *</label>
+          <select class="finput" id="f-country" onchange="loadCities()">
+            <option value="" data-t="selectCountry">اختر الدولة</option>
+          </select>
+          <span class="ferr" id="err-country"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel" data-t="fCity">المدينة / المحافظة *</label>
+          <select class="finput" id="f-city">
+            <option value="" data-t="selectCity">اختر أولاً الدولة</option>
+          </select>
+          <span class="ferr" id="err-city"></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <p class="eyebrow mb4" data-t="termsTitle">الشروط والأحكام</p>
+
+      <label class="chk-row">
+        <input type="checkbox" id="chk-data" />
+        <span class="chk-txt" data-t="termData">
+          أوافق على استخدام بياناتي لأغراض التحليل وتحسين التجربة فقط. لن تُباع بياناتي لأي طرف ثالث.
+        </span>
+      </label>
+      <label class="chk-row">
+        <input type="checkbox" id="chk-disc" />
+        <span class="chk-txt" data-t="termDisc">
+          أفهم أن هذا التشخيص أداة استرشادية أولية وليس استشارة قانونية أو مالية أو نفسية.
+        </span>
+      </label>
+      <label class="chk-row">
+        <input type="checkbox" id="chk-att" />
+        <span class="chk-txt" data-t="termAtt">
+          أعلم أن المستخدم المجاني يحصل على محاولة واحدة. المستخدم المدفوع يحصل على محاولتين إضافيتين.
+        </span>
+      </label>
+
+      <span class="ferr" id="err-terms" style="display:block;margin:8px 0"></span>
+
+      <button class="btn btn-primary btn-full btn-lg mt6" onclick="submitGate()" data-t="gateBtn">
+        ادخل وادي الموت →
+      </button>
+      <p class="tc c2 mt4" style="font-size:.77rem" data-t="gateNote">
+        🔒 بياناتك مشفرة وآمنة. يمكنك طلب حذف بياناتك في أي وقت.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     STAGE 2: GAME
+================================================================ -->
+<section class="section" id="s-game">
+  <!-- Sticky valley header -->
+  <div style="position:sticky;top:0;z-index:50;background:rgba(6,10,16,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 0" id="gameHeader">
+    <div class="wrap">
+      <div class="hbar-wrap">
+        <span class="hbar-lbl" id="hlbl" data-t="healthLabel">صحة الشركة</span>
+        <div class="hbar-track">
+          <div class="hbar-fill" id="hbar" style="width:100%"></div>
+        </div>
+        <span class="hbar-pct cgrn" id="hpct">100%</span>
+      </div>
+
+      <!-- Valley SVG -->
+      <div class="valley-wrap">
+        <svg class="valley-svg" viewBox="0 0 900 210" preserveAspectRatio="xMidYMid meet" id="valleySvg">
+          <defs>
+            <linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#22c55e" stop-opacity=".8"/>
+              <stop offset="45%"  stop-color="#f59e0b" stop-opacity=".7"/>
+              <stop offset="60%"  stop-color="#e63946" stop-opacity=".9"/>
+              <stop offset="80%"  stop-color="#f97316" stop-opacity=".7"/>
+              <stop offset="100%" stop-color="#22c55e" stop-opacity=".8"/>
+            </linearGradient>
+            <radialGradient id="markerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="#e63946" stop-opacity=".5"/>
+              <stop offset="100%" stop-color="#e63946" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- Sky gradient background -->
+          <rect width="900" height="210" fill="url(#skyBg)"/>
+          <defs>
+            <linearGradient id="skyBg" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stop-color="#0c1830" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#040810" stop-opacity="1"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Danger zone fill (valley floor) -->
+          <path d="M 310,105 C 370,155 430,175 500,178 C 570,175 630,155 690,105 L 690,210 L 310,210 Z"
+            fill="rgba(230,57,70,0.06)"/>
+          <!-- valley floor glow line -->
+          <path d="M 310,105 C 370,155 430,175 500,178 C 570,175 630,155 690,105"
+            fill="none" stroke="rgba(230,57,70,0.2)" stroke-width="1" stroke-dasharray="4 4"/>
+
+          <!-- Grid lines -->
+          <line x1="0" y1="105" x2="900" y2="105" stroke="rgba(255,255,255,.05)" stroke-dasharray="4 6"/>
+          <line x1="0" y1="175" x2="900" y2="175" stroke="rgba(230,57,70,.08)" stroke-dasharray="4 6"/>
+
+          <!-- Main valley path -->
+          <path id="valleyPath"
+            d="M 0,55 C 80,50 160,50 230,75 C 300,100 360,135 430,155 C 460,165 480,170 500,172 C 520,170 540,165 570,155 C 640,135 700,100 770,75 C 840,50 870,48 900,50"
+            fill="none" stroke="url(#pathGrad)" stroke-width="2.5" stroke-linecap="round"/>
+
+          <!-- Active trace overlay (draws in as user progresses) -->
+          <path id="activeTrace"
+            d="M 0,55 C 80,50 160,50 230,75 C 300,100 360,135 430,155 C 460,165 480,170 500,172 C 520,170 540,165 570,155 C 640,135 700,100 770,75 C 840,50 870,48 900,50"
+            fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"
+            stroke-dasharray="1000" stroke-dashoffset="1000"
+            id="trace" style="transition:stroke-dashoffset .7s ease"/>
+
+          <!-- Stage labels -->
+          <text x="30"  y="30" font-size="11" fill="rgba(255,255,255,.45)" font-family="inherit" id="sl-idea">IDEA</text>
+          <text x="175" y="30" font-size="11" fill="rgba(255,255,255,.45)" font-family="inherit" id="sl-mvp">MVP</text>
+          <text x="310" y="30" font-size="11" fill="rgba(255,255,255,.45)" font-family="inherit" id="sl-seed">SEED</text>
+          <text x="436" y="30" font-size="11" fill="rgba(230,57,70,.9)" font-family="inherit" id="sl-valley">VALLEY</text>
+          <text x="665" y="30" font-size="11" fill="rgba(255,255,255,.45)" font-family="inherit" id="sl-surv">SURVIVAL</text>
+          <text x="830" y="30" font-size="11" fill="rgba(34,197,94,.7)" font-family="inherit" id="sl-grow">GROWTH</text>
+
+          <!-- Stage dots on path -->
+          <circle cx="30"  cy="56" r="3" fill="rgba(255,255,255,.3)"/>
+          <circle cx="190" cy="52" r="3" fill="rgba(255,255,255,.3)"/>
+          <circle cx="310" cy="105" r="3" fill="rgba(255,200,0,.3)"/>
+          <circle cx="500" cy="172" r="4" fill="rgba(230,57,70,.5)"/>
+          <circle cx="690" cy="105" r="3" fill="rgba(249,115,22,.3)"/>
+          <circle cx="870" cy="50" r="3" fill="rgba(34,197,94,.4)"/>
+
+          <!-- Valley label at bottom -->
+          <text x="500" y="198" text-anchor="middle" font-size="9" fill="rgba(230,57,70,.55)" font-family="inherit" id="sl-danger">VALLEY OF DEATH</text>
+
+          <!-- Marker glow halo -->
+          <circle id="mHalo" cx="0" cy="56" r="16" fill="url(#markerGlow)" opacity=".6"/>
+          <!-- Founder marker -->
+          <circle id="marker" cx="0" cy="56" r="7" fill="#e63946" filter="url(#glow)" stroke="#fff" stroke-width="1.5"/>
+          <!-- Marker inner dot -->
+          <circle id="markerDot" cx="0" cy="56" r="2.5" fill="#fff"/>
+        </svg>
+      </div>
+
+      <!-- Tension message -->
+      <div class="tension-msg mt4" id="tensionMsg" style="color:var(--txt-2)"></div>
+    </div>
+  </div>
+
+  <!-- Question content -->
+  <div class="wrap" style="padding:32px 20px 60px">
+    <div class="dots" id="dotsRow"></div>
+    <div id="qCard" class="card" style="animation:fadeUp .35s ease both">
+      <p class="q-chapter" id="qChapter"></p>
+      <p class="q-text" id="qText"></p>
+      <p class="q-sub" id="qSub"></p>
+      <div class="ans-grid">
+        <button class="ans-btn ans-yes" id="btnYes" onclick="answer(true)">
+          <span id="yesLbl" data-t="yesBtn">✅ نعم</span>
+        </button>
+        <button class="ans-btn ans-no" id="btnNo" onclick="answer(false)">
+          <span id="noLbl" data-t="noBtn">❌ لا</span>
+        </button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:.78rem;color:var(--txt-m)" id="qCounter"></span>
+        <button class="btn btn-outline" style="padding:7px 16px;font-size:.8rem" onclick="goTo('landing')" data-t="exitBtn">خروج</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     STAGE 3: FREE RESULT
+================================================================ -->
+<section class="section" id="s-result">
+  <div class="wrap" style="padding:60px 20px">
+    <div class="card tc">
+      <p class="eyebrow mb4" data-t="resultLabel">Startup Risk Score™ | درجة مخاطر شركتك</p>
+
+      <div class="score-ring">
+        <svg viewBox="0 0 170 170" width="170" height="170">
+          <circle cx="85" cy="85" r="70" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="10"/>
+          <circle id="ringArc" cx="85" cy="85" r="70" fill="none" stroke="#e63946"
+            stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="439.8" stroke-dashoffset="439.8"
+            style="transition:stroke-dashoffset 1.5s ease, stroke .5s ease"/>
+        </svg>
+        <div class="score-num">
+          <div class="score-val" id="scoreVal" style="color:var(--red)">0</div>
+          <div class="score-tot">/100</div>
+        </div>
+      </div>
+
+      <div id="riskBadge" class="rbadge r-high" style="margin:0 auto 20px">🔴 خطر مرتفع</div>
+
+      <div class="divider"></div>
+
+      <!-- Health summary -->
+      <div style="max-width:360px;margin:0 auto 20px">
+        <div class="flex aic jcb mb4">
+          <span style="font-size:.82rem;color:var(--txt-2)" data-t="healthResultLabel">صحة الشركة</span>
+          <span id="healthResultPct" class="cgrn" style="font-weight:700">100%</span>
+        </div>
+        <div class="hbar-track" style="height:10px">
+          <div class="hbar-fill" id="hbarResult" style="width:100%"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Detected risks -->
+      <div style="text-align:start;max-width:540px;margin:0 auto">
+        <p class="eyebrow mb4" data-t="risksDetected">⚠️ المخاطر المكتشفة</p>
+        <ul class="rlist" id="riskList"></ul>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Interpretation -->
+      <div style="max-width:540px;margin:0 auto;text-align:start">
+        <p class="eyebrow mb4" data-t="interpretTitle">التفسير</p>
+        <p id="interpretText" class="c2" style="font-size:.93rem;line-height:1.8"></p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Next step -->
+      <div style="background:rgba(230,57,70,.06);border:1px solid rgba(230,57,70,.2);border-radius:var(--r-md);padding:20px;max-width:540px;margin:0 auto">
+        <p class="eyebrow mb4" data-t="nextStepTitle">الخطوة التالية الموصى بها</p>
+        <p id="nextStepText" class="c2" style="font-size:.9rem;line-height:1.8"></p>
+      </div>
+
+      <div class="mt8 flex gap4 jcc" style="flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" onclick="goTo('upsell')" data-t="upgradeBtn">
+          احصل على التقرير الكامل →
+        </button>
+        <button class="btn btn-outline" onclick="restartGame()" data-t="retryBtn">إعادة التشخيص</button>
+      </div>
+
+      <p class="tc c2 mt4" style="font-size:.77rem" data-t="shareNote">
+        شارك نتيجتك — ساعد مؤسساً آخر على تجنب الوادي.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     STAGE 4: PAID UPGRADES
+================================================================ -->
+<section class="section" id="s-upsell">
+  <div class="wrap" style="padding:60px 20px">
+    <div class="tc mb8">
+      <p class="eyebrow mb4" data-t="upsellLabel">حلول خبير الفشل</p>
+      <h2 class="h-lg" data-t="upsellH">اختر مستوى التدخل المناسب</h2>
+      <p class="c2 mt4" style="font-size:.92rem;max-width:500px;margin:12px auto 0" data-t="upsellDesc">
+        بناءً على نتيجتك، اختر الحل الأنسب لمرحلتك الآن.
+      </p>
+      <!-- Score reminder -->
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:8px 18px;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.2);border-radius:999px">
+        <span id="upsellScoreLbl" style="font-size:.85rem;color:var(--txt-2)" data-t="yourScore">نتيجتك:</span>
+        <span id="upsellScore" style="font-weight:900;font-size:1rem;color:var(--red)"></span>
+      </div>
+    </div>
+
+    <div class="pgrid" id="productGrid"></div>
+
+    <!-- Payment note -->
+    <div class="card card-sm mt8 tc" style="border-color:rgba(249,115,22,.2)">
+      <p style="font-size:.8rem;color:var(--txt-2)" data-t="paymentNote">
+        🔒 الدفع الآمن عبر Stripe · Paymob · PayTabs · Telr
+        <br><span style="font-size:.74rem;opacity:.6" data-t="paymentNote2">بعد الدفع سيراجع الفريق طلبك وسيتواصل معك خلال ٢٤ ساعة.</span>
+      </p>
+    </div>
+
+    <div class="tc mt6">
+      <button class="btn btn-outline" onclick="goTo('result')" data-t="backResultBtn">← العودة للنتيجة</button>
+      <span style="margin:0 12px;color:var(--txt-m)">·</span>
+      <button class="btn btn-outline" onclick="goTo('admin')" data-t="adminBtn" style="font-size:.8rem;opacity:.5">Admin Preview</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     STAGE 5: ADMIN PREVIEW
+================================================================ -->
+<section class="section" id="s-admin">
+  <div class="wrap" style="padding:60px 20px">
+    <div class="admin-wrap">
+      <div class="abadge">🔐 Admin Review Queue — Prototype Only</div>
+      <h2 class="h-md mb4" data-t="adminH">قائمة مراجعة الطلبات</h2>
+      <p class="c2 mb6" style="font-size:.85rem" data-t="adminDesc">
+        كل طلب مدفوع يصل هنا قبل إرسال التقرير. المراجعة اليدوية تضمن الجودة وتمنع أي إساءة استخدام.
+      </p>
+
+      <div class="json-box" id="adminJson">{ "status": "waiting for assessment data..." }</div>
+
+      <div class="astatus" id="adminStatus">
+        <button class="astatus-btn astatus-pending" data-t="pendingBtn">⏳ قيد المراجعة</button>
+        <button class="astatus-btn astatus-approve" onclick="this.textContent='✅ تمت الموافقة'" data-t="approveBtn">✅ موافقة وإرسال</button>
+        <button class="astatus-btn astatus-reject" onclick="this.textContent='❌ مرفوض'" data-t="rejectBtn">❌ رفض</button>
+      </div>
+
+      <div class="divider"></div>
+      <p style="font-size:.76rem;color:var(--txt-m)" data-t="adminNote">
+        📌 ملاحظة للمطور: اربط هذه الواجهة بـ Supabase / Airtable / Google Sheets لإدارة الطلبات لاحقاً.
+        <br>Placeholder for backend integration: POST /api/admin/submissions
+      </p>
+    </div>
+
+    <div class="tc mt8">
+      <button class="btn btn-outline" onclick="goTo('upsell')" data-t="backUpsellBtn">← العودة للمنتجات</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+/* ================================================================
+   TRANSLATIONS
+================================================================ */
+const T = {
+  ar: {
+    pageTitle:       'وادي موت الشركات الناشئة | خبير الفشل',
+    brandTag:        'خبير الفشل',
+    heroH1:          'هل شركتك ستنجو من',
+    heroH2:          'وادي الموت؟',
+    heroDesc:        'تشخيص مجاني وموثوق لمخاطر شركتك الناشئة. أجب على ١٢ سؤالاً واكتشف هل أنت على وشك الانهيار — أم لا تزال في أمان.',
+    startBtn:        'ابدأ التشخيص المجاني →',
+    stat1n:          '٩٠٪', stat1l: 'من الشركات تدخل الوادي',
+    stat2n:          '١٢',  stat2l: 'سؤالاً تكشف مصيرك',
+    stat3n:          '٣ دقائق', stat3l: 'للحصول على النتيجة',
+    step1Label:      'الخطوة ١ من ٥ · بيانات المؤسس',
+    gateH:           'قبل أن تدخل الوادي،<br>أخبرنا من أنت',
+    gateDesc:        'بياناتك محمية ولا تُباع. سنستخدمها فقط لإعطائك تشخيصاً مخصصاً.',
+    fEmail:          'البريد الإلكتروني *',
+    fCompany:        'اسم الشركة (اختياري)',
+    fCompanyPh:      'Acme Inc.',
+    fSector:         'القطاع *',
+    fStage:          'مرحلة الشركة (اختياري)',
+    fCountry:        'الدولة *',
+    fCity:           'المدينة / المحافظة *',
+    selectSector:    'اختر القطاع',
+    selectStage:     'اختر المرحلة',
+    selectCountry:   'اختر الدولة',
+    selectCity:      'اختر أولاً الدولة',
+    termData:        'أوافق على استخدام بياناتي لأغراض التحليل وتحسين التجربة فقط. لن تُباع بياناتي لأي طرف ثالث.',
+    termDisc:        'أفهم أن هذا التشخيص أداة استرشادية أولية وليس استشارة قانونية أو مالية أو نفسية.',
+    termAtt:         'أعلم أن المستخدم المجاني يحصل على محاولة واحدة. المستخدم المدفوع يحصل على محاولتين إضافيتين.',
+    gateBtn:         'ادخل وادي الموت →',
+    gateNote:        '🔒 بياناتك مشفرة وآمنة. يمكنك طلب حذف بياناتك في أي وقت.',
+    errRequired:     'هذا الحقل مطلوب',
+    errEmail:        'أدخل بريداً إلكترونياً صحيحاً',
+    errTerms:        'يجب الموافقة على جميع الشروط للمتابعة',
+    healthLabel:     'صحة الشركة',
+    yesBtn:          '✅ نعم',
+    noBtn:           '❌ لا',
+    exitBtn:         'خروج',
+    resultLabel:     'Startup Risk Score™ | درجة مخاطر شركتك',
+    healthResultLabel: 'صحة الشركة',
+    risksDetected:   '⚠️ المخاطر المكتشفة',
+    interpretTitle:  'التفسير',
+    nextStepTitle:   'الخطوة التالية الموصى بها',
+    upgradeBtn:      'احصل على التقرير الكامل →',
+    retryBtn:        'إعادة التشخيص',
+    shareNote:       'شارك نتيجتك — ساعد مؤسساً آخر على تجنب الوادي.',
+    upsellLabel:     'حلول خبير الفشل',
+    upsellH:         'اختر مستوى التدخل المناسب',
+    upsellDesc:      'بناءً على نتيجتك، اختر الحل الأنسب لمرحلتك الآن.',
+    yourScore:       'نتيجتك:',
+    paymentNote:     '🔒 الدفع الآمن عبر Stripe · Paymob · PayTabs · Telr',
+    paymentNote2:    'بعد الدفع سيراجع الفريق طلبك وسيتواصل معك خلال ٢٤ ساعة.',
+    backResultBtn:   '← العودة للنتيجة',
+    adminBtn:        'Admin Preview',
+    adminH:          'قائمة مراجعة الطلبات',
+    adminDesc:       'كل طلب مدفوع يصل هنا قبل إرسال التقرير. المراجعة اليدوية تضمن الجودة.',
+    pendingBtn:      '⏳ قيد المراجعة',
+    approveBtn:      '✅ موافقة وإرسال',
+    rejectBtn:       '❌ رفض',
+    adminNote:       '📌 اربط هذه الواجهة بـ Supabase / Airtable / Google Sheets لاحقاً.',
+    backUpsellBtn:   '← العودة للمنتجات',
+    tension0:        '',
+    tension1:        '⚡ مؤشرات أولية تستحق الانتباه',
+    tension2:        '⚠️ علامات تحذير حقيقية تتراكم',
+    tension3:        '🔴 تقترب من وادي الموت',
+    tension4:        '🚨 دخلت وادي الموت — الوقت ينفد',
+    tension5:        '💀 شركتك في خطر انهيار فوري',
+    riskLow:         '🟢 خطر منخفض',
+    riskMed:         '🟡 خطر متوسط',
+    riskHigh:        '🔴 خطر مرتفع',
+    riskCol:         '💀 انهيار قريب',
+    interpret0:      'شركتك في وضع جيد نسبياً. لكن تذكر — وادي الموت لا يحذّر قبل المجيء. حافظ على هذا المسار وابنِ نظام مقاييس قوياً قبل أن تحتاجه في الأزمة.',
+    interpret1:      'لديك مؤشرات خطر حقيقية. التجاهل الآن تكلفته أعلى بكثير من التصحيح. ابدأ بمعالجة المخاطر المكتشفة واحدة تلو الأخرى.',
+    interpret2:      'أنت على حافة وادي الموت. التدخل الآن ضرورة وليس خياراً. كل يوم تأخير يقرّبك من نقطة اللاعودة.',
+    interpret3:      'شركتك داخل وادي الموت. هذا ليس وقت التحليل — هذا وقت الإنقاذ. أولوياتك الآن: السيولة، الفريق، والقرار الذي تؤجله.',
+    next0:           'حافظ على هذا المسار، طوّر مقاييس أداء واضحة، واستعدّ للمراحل القادمة بخطة نمو مبنية على البيانات.',
+    next1:           'ابدأ بتشخيص المخاطر الثلاثة المكتشفة في نتيجتك المفصّلة، وضع خطة علاج خلال ٣٠ يوماً.',
+    next2:           'أولويتك القصوى: التدفق النقدي، استقرار الفريق، والقرار المؤجل. لا تبدأ شيئاً جديداً قبل معالجة الجذر.',
+    next3:           'اتصل بنا هذا الأسبوع. ليس عرضاً تسويقياً — هذا تحذير. جلسة طوارئ واحدة قد تنقذ ما بنيته.',
+    noRisksFound:    'لا مخاطر كبيرة مكتشفة — أداء قوي',
+    popBadge:        'الأكثر طلباً',
+    qOf:             'سؤال',
+    of:              'من',
+    sectors: ['SaaS / برمجيات','FinTech / تقنية مالية','HealthTech / صحة','EdTech / تعليم','تجارة إلكترونية','طعام وترفيه','عقارات','لوجستيات','إعلام','تجزئة','استشارات','زراعة وتقنية','طاقة نظيفة','ذكاء اصطناعي وبيانات','أخرى'],
+    stages: ['فكرة','ما قبل النموذج الأولي','نموذج أولي (MVP)','ما قبل البذرة','بذرة (Seed)','سلسلة A','نمو مبكر','وضع البقاء'],
+  },
+  en: {
+    pageTitle:       'Startup Valley of Death | Failure Expert',
+    brandTag:        'Failure Expert',
+    heroH1:          'Will your startup survive the',
+    heroH2:          'Valley of Death?',
+    heroDesc:        'A free, trusted diagnostic for your startup risk. Answer 12 questions and find out if you\'re heading toward collapse — or still safe.',
+    startBtn:        'Start Free Diagnosis →',
+    stat1n:          '90%', stat1l: 'of startups enter the valley',
+    stat2n:          '12',  stat2l: 'questions reveal your fate',
+    stat3n:          '3 min', stat3l: 'to get your result',
+    step1Label:      'Step 1 of 5 · Founder Profile',
+    gateH:           'Before you enter the valley,<br>tell us who you are',
+    gateDesc:        'Your data is protected and never sold. We use it only to give you a personalized diagnosis.',
+    fEmail:          'Email Address *',
+    fCompany:        'Company Name (optional)',
+    fCompanyPh:      'Acme Inc.',
+    fSector:         'Sector *',
+    fStage:          'Startup Stage (optional)',
+    fCountry:        'Country *',
+    fCity:           'City / Governorate *',
+    selectSector:    'Select sector',
+    selectStage:     'Select stage',
+    selectCountry:   'Select country',
+    selectCity:      'Select country first',
+    termData:        'I agree to my data being used for analytics and experience improvement only. My data will NOT be sold to third parties.',
+    termDisc:        'I understand this assessment is a preliminary diagnostic tool and NOT legal, financial, investment, or psychological advice.',
+    termAtt:         'I understand free users get ONE attempt. Paid users get TWO additional attempts.',
+    gateBtn:         'Enter the Valley of Death →',
+    gateNote:        '🔒 Your data is encrypted and secure. You can request deletion at any time.',
+    errRequired:     'This field is required',
+    errEmail:        'Enter a valid email address',
+    errTerms:        'You must agree to all terms to continue',
+    healthLabel:     'Company Health',
+    yesBtn:          '✅ Yes',
+    noBtn:           '❌ No',
+    exitBtn:         'Exit',
+    resultLabel:     'Startup Risk Score™',
+    healthResultLabel: 'Company Health',
+    risksDetected:   '⚠️ Detected Risk Factors',
+    interpretTitle:  'Interpretation',
+    nextStepTitle:   'Recommended Next Step',
+    upgradeBtn:      'Get the Full Report →',
+    retryBtn:        'Restart Diagnosis',
+    shareNote:       'Share your result — help another founder avoid the valley.',
+    upsellLabel:     'خبير الفشل Solutions',
+    upsellH:         'Choose your level of intervention',
+    upsellDesc:      'Based on your score, choose the most appropriate solution for your current stage.',
+    yourScore:       'Your Score:',
+    paymentNote:     '🔒 Secure payment via Stripe · Paymob · PayTabs · Telr',
+    paymentNote2:    'After payment, our team will review your request and contact you within 24 hours.',
+    backResultBtn:   '← Back to Result',
+    adminBtn:        'Admin Preview',
+    adminH:          'Submission Review Queue',
+    adminDesc:       'Every paid request arrives here before the report is sent. Manual review ensures quality.',
+    pendingBtn:      '⏳ Pending Review',
+    approveBtn:      '✅ Approve & Send',
+    rejectBtn:       '❌ Reject',
+    adminNote:       '📌 Connect this interface to Supabase / Airtable / Google Sheets later.',
+    backUpsellBtn:   '← Back to Products',
+    tension0:        '',
+    tension1:        '⚡ Early signals worth watching',
+    tension2:        '⚠️ Real warning signs accumulating',
+    tension3:        '🔴 Approaching the Valley of Death',
+    tension4:        '🚨 You\'ve entered the valley — time is running out',
+    tension5:        '💀 Your startup faces imminent collapse',
+    riskLow:         '🟢 Low Risk',
+    riskMed:         '🟡 Medium Risk',
+    riskHigh:        '🔴 High Risk',
+    riskCol:         '💀 Near Collapse',
+    interpret0:      'Your startup is in a relatively good position. But remember — the valley doesn\'t announce itself. Maintain this trajectory and build strong KPIs before you need them in a crisis.',
+    interpret1:      'You have real risk indicators. Ignoring them now costs far more than addressing them. Start tackling the detected risks one by one.',
+    interpret2:      'You are on the edge of the Valley of Death. Intervention is now a necessity, not an option. Every day of delay brings you closer to the point of no return.',
+    interpret3:      'Your startup is inside the Valley of Death. This isn\'t the time for analysis — it\'s time for rescue. Priorities: liquidity, team, and the decision you\'ve been deferring.',
+    next0:           'Maintain this trajectory. Develop clear performance metrics and prepare for future stages with a data-driven growth plan.',
+    next1:           'Start by diagnosing the top 3 detected risks in your detailed report and create a 30-day remediation plan.',
+    next2:           'Your top priority: cash flow, team stability, and the deferred decision. Don\'t start anything new before fixing the root issues.',
+    next3:           'Contact us this week. Not a sales pitch — a genuine warning. One emergency session could save what you\'ve built.',
+    noRisksFound:    'No major risks detected — strong performance',
+    popBadge:        'Most Popular',
+    qOf:             'Question',
+    of:              'of',
+    sectors: ['SaaS / Software','FinTech','HealthTech','EdTech','E-commerce','Food & Beverage','Real Estate','Logistics','Media & Entertainment','Retail','Consulting','AgriTech','CleanTech','AI & Data','Other'],
+    stages: ['Idea','Pre-MVP','MVP','Pre-Seed','Seed','Series A','Early Growth','Survival Mode'],
+  }
+};
+
+/* ================================================================
+   QUESTIONS  (12 questions, total weight = 100)
+================================================================ */
+const QS = [
+  {
+    w: 12, risk: 'cash_flow',
+    chapters: { ar: 'الفصل ١ · السيولة والمدرج', en: 'CHAPTER 1 · RUNWAY & LIQUIDITY' },
+    texts:    { ar: 'هل مدرج شركتك (Runway) أقل من ٦ أشهر وليس لديك خطة واضحة للتمويل؟', en: 'Is your runway less than 6 months with no clear funding plan?' },
+    subs:     { ar: 'المدرج = عدد الأشهر قبل نفاد السيولة بالمعدل الحالي للإنفاق', en: 'Runway = months before cash runs out at current burn rate' }
+  },
+  {
+    w: 10, risk: 'pmf',
+    chapters: { ar: 'الفصل ٢ · ملاءمة المنتج', en: 'CHAPTER 2 · PRODUCT-MARKET FIT' },
+    texts:    { ar: 'هل تبيع بدون Product-Market Fit واضح — أي عملاؤك لا يعودون أو لا يحيلون آخرين؟', en: 'Are you selling without clear Product-Market Fit — customers don\'t return or refer others?' },
+    subs:     { ar: 'PMF يعني: العملاء يدفعون، يعودون، ويُحيلون غيرهم دون أن تطلب', en: 'PMF means: customers pay, return, and refer others without prompting' }
+  },
+  {
+    w: 8, risk: 'concentration',
+    chapters: { ar: 'الفصل ٣ · تركز الإيرادات', en: 'CHAPTER 3 · REVENUE CONCENTRATION' },
+    texts:    { ar: 'هل يأتي أكثر من ٤٠٪ من إيراداتك من عميل واحد أو مصدر واحد؟', en: 'Does more than 40% of your revenue come from a single customer or source?' },
+    subs:     { ar: 'فقدان هذا العميل يعني فقدان ٤٠٪ من الإيراد فجأة', en: 'Losing this client means instantly losing 40% of revenue' }
+  },
+  {
+    w: 9, risk: 'conflicts',
+    chapters: { ar: 'الفصل ٤ · الفريق التأسيسي', en: 'CHAPTER 4 · FOUNDING TEAM' },
+    texts:    { ar: 'هل توجد نزاعات غير محسومة بين المؤسسين تؤثر على القرارات؟', en: 'Are there unresolved conflicts among founders affecting decision-making?' },
+    subs:     { ar: 'نزاعات المؤسسين هي السبب رقم ١ في وفاة الشركات المبكرة', en: 'Founder conflicts are the #1 cause of early startup death' }
+  },
+  {
+    w: 8, risk: 'burn',
+    chapters: { ar: 'الفصل ٥ · معدل الحرق', en: 'CHAPTER 5 · BURN RATE' },
+    texts:    { ar: 'هل معدل إنفاقك الشهري يرتفع بينما الإيرادات ثابتة أو تنخفض؟', en: 'Is your monthly burn rate increasing while revenue stays flat or declines?' },
+    subs:     { ar: 'الفجوة المتزايدة بين الإنفاق والإيراد علامة إنذار حمراء', en: 'A growing gap between spend and revenue is a red flag' }
+  },
+  {
+    w: 9, risk: 'churn',
+    chapters: { ar: 'الفصل ٦ · فقدان العملاء', en: 'CHAPTER 6 · CUSTOMER CHURN' },
+    texts:    { ar: 'هل تفقد عملاء بمعدل أسرع مما تكسب؟ أي الـ Churn مرتفع؟', en: 'Are you losing customers faster than you\'re acquiring them? High churn rate?' },
+    subs:     { ar: 'Churn مرتفع يعني أن المنتج لا يحل مشكلة حقيقية بما يكفي', en: 'High churn means your product isn\'t solving a real problem well enough' }
+  },
+  {
+    w: 7, risk: 'kpis',
+    chapters: { ar: 'الفصل ٧ · المقاييس والبيانات', en: 'CHAPTER 7 · METRICS & DATA' },
+    texts:    { ar: 'هل لا توجد مقاييس أداء (KPIs) تُراجعها أسبوعياً مع فريقك؟', en: 'Do you lack weekly KPIs reviewed with your team?' },
+    subs:     { ar: 'القرارات بدون بيانات = رهان أعمى بمستقبل شركتك', en: 'Decisions without data = blind gambling with your company\'s future' }
+  },
+  {
+    w: 6, risk: 'hiring',
+    chapters: { ar: 'الفصل ٨ · الكفاءات', en: 'CHAPTER 8 · TALENT & HIRING' },
+    texts:    { ar: 'هل التوظيف متوقف تماماً أو فوضوي وبدون خطة واضحة؟', en: 'Is hiring completely stalled or chaotic with no clear plan?' },
+    subs:     { ar: 'الفريق الخطأ أو غياب الكفاءات يُعطّل النمو بصمت', en: 'The wrong team or talent gaps silently block growth' }
+  },
+  {
+    w: 7, risk: 'channel',
+    chapters: { ar: 'الفصل ٩ · قنوات الاكتساب', en: 'CHAPTER 9 · ACQUISITION CHANNELS' },
+    texts:    { ar: 'هل تعتمد على قناة تسويق أو اكتساب واحدة فقط؟', en: 'Are you dependent on a single marketing or acquisition channel?' },
+    subs:     { ar: 'قناة واحدة = نقطة فشل واحدة قد توقف نمو الشركة بالكامل', en: 'Single channel = single point of failure that can stop all growth' }
+  },
+  {
+    w: 8, risk: 'fundraising',
+    chapters: { ar: 'الفصل ١٠ · التمويل', en: 'CHAPTER 10 · FUNDRAISING' },
+    texts:    { ar: 'هل ليس لديك Plan B لو فشلت جولة التمويل القادمة؟', en: 'Do you have no Plan B if the next fundraising round fails?' },
+    subs:     { ar: 'الاعتماد الكامل على التمويل الخارجي يجعلك رهينة لقرارات الآخرين', en: 'Total dependency on external funding makes you a hostage to others\' decisions' }
+  },
+  {
+    w: 8, risk: 'assumptions',
+    chapters: { ar: 'الفصل ١١ · التحقق', en: 'CHAPTER 11 · VALIDATION' },
+    texts:    { ar: 'هل تبني منتجك على افتراضات وليس على بيانات وتحقق حقيقي من العملاء؟', en: 'Are you building based on assumptions rather than real customer validation data?' },
+    subs:     { ar: 'بناء بدون تحقق = إنفاق لا نهاية له على منتج قد لا يريده أحد', en: 'Building without validation = endless spending on a product nobody wants' }
+  },
+  {
+    w: 8, risk: 'ego',
+    chapters: { ar: 'الفصل ١٢ · الوعي الذاتي', en: 'CHAPTER 12 · SELF-AWARENESS' },
+    texts:    { ar: 'هل غرورك أو خوفك يمنعك من سماع تغذية راجعة صادقة من فريقك وعملائك؟', en: 'Does your ego or fear prevent you from hearing honest feedback from your team and customers?' },
+    subs:     { ar: 'المؤسس الذي لا يسمع هو المؤسس الذي يبني جداراً بينه وبين الحقيقة', en: 'A founder who doesn\'t listen builds a wall between themselves and reality' }
+  }
+];
+
+const RISK_META = {
+  cash_flow:    { ico: '💸', ar: 'انعدام السيولة', en: 'Cash Flow Crisis',
+    arDesc: 'المدرج قصير جداً مع غياب خطة تمويل', enDesc: 'Runway critically short with no funding plan' },
+  pmf:          { ico: '🎯', ar: 'غياب ملاءمة المنتج', en: 'No Product-Market Fit',
+    arDesc: 'المنتج لا يُحل مشكلة بعمق كافٍ', enDesc: 'Product doesn\'t solve a problem deeply enough' },
+  concentration:{ ico: '⚡', ar: 'تركز الإيرادات', en: 'Revenue Concentration',
+    arDesc: 'اعتماد خطر على مصدر إيراد واحد', enDesc: 'Dangerous dependence on a single revenue source' },
+  conflicts:    { ico: '⚔️', ar: 'نزاعات المؤسسين', en: 'Founder Conflicts',
+    arDesc: 'خلافات داخلية تعطل القرار والتنفيذ', enDesc: 'Internal conflicts blocking decisions and execution' },
+  burn:         { ico: '🔥', ar: 'معدل حرق متصاعد', en: 'Unsustainable Burn Rate',
+    arDesc: 'الإنفاق يتسارع فيما الإيراد يتباطأ', enDesc: 'Spending accelerating while revenue stagnates' },
+  churn:        { ico: '📉', ar: 'نزيف العملاء', en: 'High Customer Churn',
+    arDesc: 'خسارة العملاء أسرع من اكتسابهم', enDesc: 'Losing customers faster than acquiring them' },
+  kpis:         { ico: '📊', ar: 'غياب المقاييس', en: 'Blind Decision-Making',
+    arDesc: 'لا بيانات ولا KPIs لقياس الأداء', enDesc: 'No data or KPIs to measure performance' },
+  hiring:       { ico: '👥', ar: 'أزمة التوظيف', en: 'Talent Acquisition Failure',
+    arDesc: 'توقف بناء الفريق يُعطّل النمو', enDesc: 'Team building halt blocking growth' },
+  channel:      { ico: '📡', ar: 'قناة اكتساب واحدة', en: 'Single-Channel Dependency',
+    arDesc: 'هشاشة مصادر الاكتساب', enDesc: 'Fragile acquisition source' },
+  fundraising:  { ico: '💰', ar: 'هشاشة التمويل', en: 'Fragile Funding Strategy',
+    arDesc: 'لا Plan B لو فشل التمويل', enDesc: 'No fallback if fundraising fails' },
+  assumptions:  { ico: '🔮', ar: 'بناء على توقعات', en: 'Assumption-Driven Development',
+    arDesc: 'لا تحقق حقيقي من السوق والعملاء', enDesc: 'No real market and customer validation' },
+  ego:          { ico: '🪞', ar: 'الغرور المؤسسي', en: 'Founder Ego Blindness',
+    arDesc: 'مقاومة التغذية الراجعة الصادقة', enDesc: 'Resistance to honest feedback' }
+};
+
+/* ================================================================
+   COUNTRIES + CITIES
+================================================================ */
+const COUNTRIES = {
+  SA:{ ar:'المملكة العربية السعودية', en:'Saudi Arabia',
+    ar_cities:['الرياض','جدة','مكة المكرمة','المدينة المنورة','الدمام','الخبر','أبها','تبوك','الطائف','نجران','حائل','الجبيل'],
+    en_cities:['Riyadh','Jeddah','Makkah','Madinah','Dammam','Khobar','Abha','Tabuk','Taif','Najran','Hail','Jubail']},
+  AE:{ ar:'الإمارات العربية المتحدة', en:'United Arab Emirates',
+    ar_cities:['دبي','أبوظبي','الشارقة','عجمان','رأس الخيمة','الفجيرة','أم القيوين'],
+    en_cities:['Dubai','Abu Dhabi','Sharjah','Ajman','Ras Al Khaimah','Fujairah','Umm Al Quwain']},
+  EG:{ ar:'مصر', en:'Egypt',
+    ar_cities:['القاهرة','الإسكندرية','الجيزة','الشرقية','المنوفية','القليوبية','الدقهلية','البحيرة','أسيوط','سوهاج','المنيا','الإسماعيلية'],
+    en_cities:['Cairo','Alexandria','Giza','Sharqia','Monufia','Qalyubia','Dakahlia','Beheira','Asyut','Sohag','Minya','Ismailia']},
+  KW:{ ar:'الكويت', en:'Kuwait',
+    ar_cities:['الكويت','حولي','الفروانية','الأحمدي','الجهراء','مبارك الكبير'],
+    en_cities:['Kuwait City','Hawalli','Farwaniya','Ahmadi','Jahra','Mubarak Al-Kabeer']},
+  QA:{ ar:'قطر', en:'Qatar',
+    ar_cities:['الدوحة','الريان','الوكرة','الخور','أم صلال'],
+    en_cities:['Doha','Al Rayyan','Al Wakra','Al Khor','Umm Salal']},
+  BH:{ ar:'البحرين', en:'Bahrain',
+    ar_cities:['المنامة','المحرق','الرفاع','مدينة حمد','مدينة عيسى'],
+    en_cities:['Manama','Muharraq','Riffa','Hamad Town','Isa Town']},
+  OM:{ ar:'عُمان', en:'Oman',
+    ar_cities:['مسقط','صلالة','نزوى','صحار','صور','البريمي'],
+    en_cities:['Muscat','Salalah','Nizwa','Sohar','Sur','Buraimi']},
+  JO:{ ar:'الأردن', en:'Jordan',
+    ar_cities:['عمان','الزرقاء','إربد','العقبة','السلط','مأدبا'],
+    en_cities:['Amman','Zarqa','Irbid','Aqaba','Salt','Madaba']},
+  LB:{ ar:'لبنان', en:'Lebanon',
+    ar_cities:['بيروت','طرابلس','صيدا','صور','زحلة','جونية'],
+    en_cities:['Beirut','Tripoli','Sidon','Tyre','Zahle','Jounieh']},
+  IQ:{ ar:'العراق', en:'Iraq',
+    ar_cities:['بغداد','البصرة','الموصل','أربيل','النجف','كربلاء'],
+    en_cities:['Baghdad','Basra','Mosul','Erbil','Najaf','Karbala']},
+  MA:{ ar:'المغرب', en:'Morocco',
+    ar_cities:['الرباط','الدار البيضاء','فاس','مراكش','طنجة','أكادير'],
+    en_cities:['Rabat','Casablanca','Fez','Marrakesh','Tangier','Agadir']},
+  TN:{ ar:'تونس', en:'Tunisia',
+    ar_cities:['تونس','صفاقس','سوسة','القيروان','بنزرت','قابس'],
+    en_cities:['Tunis','Sfax','Sousse','Kairouan','Bizerte','Gabes']},
+  DZ:{ ar:'الجزائر', en:'Algeria',
+    ar_cities:['الجزائر','وهران','عنابة','قسنطينة','باتنة','بليدة'],
+    en_cities:['Algiers','Oran','Annaba','Constantine','Batna','Blida']},
+  LY:{ ar:'ليبيا', en:'Libya',
+    ar_cities:['طرابلس','بنغازي','مصراتة','الزاوية','البيضاء','سبها'],
+    en_cities:['Tripoli','Benghazi','Misrata','Zawiya','Bayda','Sabha']},
+  SD:{ ar:'السودان', en:'Sudan',
+    ar_cities:['الخرطوم','أم درمان','بورتسودان','كسلا','الأبيض','مدني'],
+    en_cities:['Khartoum','Omdurman','Port Sudan','Kassala','El Obeid','Wad Madani']},
+  YE:{ ar:'اليمن', en:'Yemen',
+    ar_cities:['صنعاء','عدن','تعز','الحديدة','إب','مأرب'],
+    en_cities:['Sanaa','Aden','Taiz','Hudaydah','Ibb','Marib']},
+  PS:{ ar:'فلسطين', en:'Palestine',
+    ar_cities:['رام الله','نابلس','الخليل','القدس','غزة','جنين'],
+    en_cities:['Ramallah','Nablus','Hebron','Jerusalem','Gaza','Jenin']},
+  SY:{ ar:'سوريا', en:'Syria',
+    ar_cities:['دمشق','حلب','حمص','اللاذقية','دير الزور','الحسكة'],
+    en_cities:['Damascus','Aleppo','Homs','Latakia','Deir ez-Zor','Hasakah']}
+};
+
+/* ================================================================
+   PAID PRODUCTS
+================================================================ */
+const PRODUCTS_DATA = [
+  {
+    id: 'report', icon: '📊',
+    ar_name: 'التقرير التفصيلي',
+    en_name: 'Detailed Report',
+    ar_desc: 'تقرير PDF مرئي ومخصص يحلل أبرز ٣ مخاطر في شركتك مع توصيات قابلة للتنفيذ.',
+    en_desc: 'A visual, personalized PDF report analyzing your top 3 risks with actionable recommendations.',
+    price: '$5',
+    ar_feats: ['تحليل أعمق لأبرز ٣ مخاطر','مقارنة بمعايير القطاع','ملخص صحة الشركة','توصيات مخصصة'],
+    en_feats: ['Deep analysis of top 3 risks','Sector benchmarks comparison','Company health summary','Personalized recommendations'],
+    intent: 'report', featured: false
+  },
+  {
+    id: 'roadmap', icon: '🗺️',
+    ar_name: 'خارطة طريق الإنقاذ',
+    en_name: 'Recovery Roadmap',
+    ar_desc: 'خطة إنقاذ ١٤-٣٠ يوماً بأولويات واضحة ومهام قابلة للتنفيذ فوراً.',
+    en_desc: 'A 14-30 day rescue plan with clear priorities and immediately actionable tasks.',
+    price: '$19',
+    ar_feats: ['خطة عمل ١٤-٣٠ يوماً','أولويات التدخل الحرجة','إجراءات الإصلاح الفورية','مجالات تركيز المؤسس'],
+    en_feats: ['14-30 day action plan','Critical intervention priorities','Immediate fix actions','Founder focus areas'],
+    intent: 'roadmap', featured: true
+  },
+  {
+    id: 'session', icon: '🎯',
+    ar_name: 'جلسة تشخيص مباشرة',
+    en_name: 'Live Diagnosis Session',
+    ar_desc: 'جلسة فردية مع خبير الفشل لمراجعة درجتك وتحديد القرارات الأولوية.',
+    en_desc: 'A 1:1 session with Failure Expert to review your score and identify priority decisions.',
+    price: '$49',
+    ar_feats: ['جلسة مباشرة ١:١','مراجعة الدرجة والمخاطر','نقاش القرارات الأولوية','خطوات عمل فورية'],
+    en_feats: ['Live 1:1 session','Score & risk review','Priority decisions discussion','Immediate action steps'],
+    intent: 'session', featured: false
+  },
+  {
+    id: 'mentorship', icon: '🤝',
+    ar_name: 'إرشاد مؤسسي شهري',
+    en_name: 'Monthly Founder Mentorship',
+    ar_desc: 'دعم مستمر للمؤسس مع مراجعة قرارات شهرية وشبكة خبراء ومستشارين.',
+    en_desc: 'Ongoing founder support with monthly decision reviews and expert advisor network.',
+    price: '$199/mo',
+    ar_feats: ['دعم مستمر للمؤسس','مراجعات قرارات شهرية','شبكة مستشارين وخبراء','مطابقة مع مدرب متخصص (قريباً)'],
+    en_feats: ['Ongoing founder support','Monthly decision reviews','Expert advisor network','Coach matching (coming soon)'],
+    intent: 'mentorship', featured: false
+  }
+];
+
+/* ================================================================
+   APP STATE
+================================================================ */
+const S = {
+  lang:    'ar',
+  qIdx:    0,
+  answers: [],   // true/false per question
+  lead:    {},
+  score:   0,
+  health:  100,
+  topRisks:[],
+  paidRequests: []
+};
+
+/* ================================================================
+   HELPERS
+================================================================ */
+const t  = k => T[S.lang][k] || k;
+const $  = id => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if(cls) e.className = cls; if(html) e.innerHTML = html; return e; };
+
+function goTo(stage) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  $('s-'+stage).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ================================================================
+   TRANSLATIONS APPLY
+================================================================ */
+function applyT() {
+  const lang = S.lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir  = lang === 'ar' ? 'rtl' : 'ltr';
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.title = t('pageTitle');
+
+  // update lang buttons
+  $('lbtn-ar').classList.toggle('on', lang === 'ar');
+  $('lbtn-en').classList.toggle('on', lang === 'en');
+
+  // all data-t elements
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const k = el.dataset.t;
+    if(T[lang][k] !== undefined) el.innerHTML = T[lang][k];
+  });
+  // placeholders
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    const k = el.dataset.ph;
+    if(T[lang][k]) el.placeholder = T[lang][k];
+  });
+
+  // rebuild selects
+  buildSelects();
+  buildProducts();
+  if(S.qIdx < QS.length && $('s-game').classList.contains('active')) renderQ();
+}
+
+function switchLang(lang) {
+  S.lang = lang;
+  applyT();
+}
+
+/* ================================================================
+   BUILD FORM SELECTS
+================================================================ */
+function buildSelects() {
+  const lang = S.lang;
+  // Sector
+  const sec = $('f-sector');
+  sec.innerHTML = `<option value="">${t('selectSector')}</option>`;
+  T[lang].sectors.forEach((s,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = s; sec.appendChild(o);
+  });
+  // Stage
+  const stg = $('f-stage');
+  stg.innerHTML = `<option value="">${t('selectStage')}</option>`;
+  T[lang].stages.forEach((s,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = s; stg.appendChild(o);
+  });
+  // Country
+  const ctr = $('f-country');
+  ctr.innerHTML = `<option value="">${t('selectCountry')}</option>`;
+  Object.entries(COUNTRIES).forEach(([code,c]) => {
+    const o = document.createElement('option');
+    o.value = code; o.textContent = c[lang === 'ar' ? 'ar' : 'en']; ctr.appendChild(o);
+  });
+  // reset city
+  const cty = $('f-city');
+  cty.innerHTML = `<option value="">${t('selectCity')}</option>`;
+}
+
+function loadCities() {
+  const code = $('f-country').value;
+  const cty  = $('f-city');
+  cty.innerHTML = `<option value="">${t('selectCity')}</option>`;
+  if(!code || !COUNTRIES[code]) return;
+  const cities = COUNTRIES[code][S.lang === 'ar' ? 'ar_cities' : 'en_cities'];
+  cities.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c; cty.appendChild(o);
+  });
+}
+
+/* ================================================================
+   GATE SUBMIT
+================================================================ */
+function submitGate() {
+  let ok = true;
+  const clearErr = ids => ids.forEach(id => $(id).textContent = '');
+  clearErr(['err-email','err-sector','err-country','err-city','err-terms']);
+
+  const email   = $('f-email').value.trim();
+  const sector  = $('f-sector').value;
+  const country = $('f-country').value;
+  const city    = $('f-city').value;
+
+  const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!email || !emailRx.test(email)) { $('err-email').textContent = t('errEmail'); ok = false; }
+  if(!sector)  { $('err-sector').textContent = t('errRequired'); ok = false; }
+  if(!country) { $('err-country').textContent = t('errRequired'); ok = false; }
+  if(!city)    { $('err-city').textContent = t('errRequired'); ok = false; }
+
+  const chkd = $('chk-data').checked && $('chk-disc').checked && $('chk-att').checked;
+  if(!chkd) { $('err-terms').textContent = t('errTerms'); ok = false; }
+
+  if(!ok) return;
+
+  S.lead = {
+    email, sector, country, city,
+    company: $('f-company').value.trim(),
+    stage:   $('f-stage').value,
+    lang:    S.lang,
+    ts:      new Date().toISOString()
+  };
+
+  startGame();
+}
+
+/* ================================================================
+   GAME
+================================================================ */
+function startGame() {
+  S.qIdx    = 0;
+  S.answers = [];
+  S.score   = 0;
+  S.health  = 100;
+
+  // update valley stage labels language
+  updateValleyLabels();
+  updateTension(0);
+  buildDots();
+  renderQ();
+  goTo('game');
+}
+
+function updateValleyLabels() {
+  const isAr = S.lang === 'ar';
+  const labels = isAr
+    ? ['الفكرة','نموذج أولي','البذرة','الوادي','النجاة','النمو','وادي الموت']
+    : ['IDEA','MVP','SEED','VALLEY','SURVIVAL','GROWTH','VALLEY OF DEATH'];
+  $('sl-idea').textContent   = labels[0];
+  $('sl-mvp').textContent    = labels[1];
+  $('sl-seed').textContent   = labels[2];
+  $('sl-valley').textContent = labels[3];
+  $('sl-surv').textContent   = labels[4];
+  $('sl-grow').textContent   = labels[5];
+  $('sl-danger').textContent = labels[6];
+}
+
+function buildDots() {
+  const row = $('dotsRow'); row.innerHTML = '';
+  QS.forEach((_,i) => {
+    const d = el('div','dot'); d.id = 'dot-'+i; row.appendChild(d);
+  });
+  updateDots();
+}
+
+function updateDots() {
+  QS.forEach((_,i) => {
+    const d = $('dot-'+i); if(!d) return;
+    d.className = 'dot';
+    if(i < S.qIdx) {
+      d.classList.add('done');
+      if(!S.answers[i]) d.classList.add('safe');
+    }
+    if(i === S.qIdx) d.classList.add('cur');
+  });
+}
+
+function renderQ() {
+  const q    = QS[S.qIdx];
+  const lang = S.lang;
+  const card = $('qCard');
+  card.style.animation = 'none';
+  void card.offsetHeight;
+  card.style.animation = 'fadeUp .35s ease both';
+
+  $('qChapter').textContent = q.chapters[lang];
+  $('qText').textContent    = q.texts[lang];
+  $('qSub').textContent     = q.subs[lang];
+  $('qCounter').textContent = `${t('qOf')} ${S.qIdx+1} ${t('of')} ${QS.length}`;
+  $('yesLbl').textContent   = t('yesBtn');
+  $('noLbl').textContent    = t('noBtn');
+
+  updateDots();
+  updateMarker(S.qIdx, S.answers.filter(Boolean).length);
+}
+
+function answer(isYes) {
+  // disable buttons briefly
+  $('btnYes').disabled = $('btnNo').disabled = true;
+
+  S.answers[S.qIdx] = isYes;
+
+  if(isYes) {
+    S.score  += QS[S.qIdx].w;
+    S.health  = Math.max(0, 100 - S.score);
+  }
+
+  updateHealthBar();
+  updateDots();
+
+  const yesCount = S.answers.filter(Boolean).length;
+  updateTension(yesCount);
+  updateMarker(S.qIdx + 1, yesCount);
+
+  setTimeout(() => {
+    $('btnYes').disabled = $('btnNo').disabled = false;
+    S.qIdx++;
+    if(S.qIdx >= QS.length) {
+      finishGame();
+    } else {
+      renderQ();
+    }
+  }, 320);
+}
+
+function updateHealthBar() {
+  const pct   = S.health;
+  const bar   = $('hbar');
+  const label = $('hpct');
+  bar.style.width = pct + '%';
+  let color;
+  if(pct > 65) color = 'var(--green)';
+  else if(pct > 35) color = 'var(--warn)';
+  else color = 'var(--red)';
+  bar.style.background = color;
+  label.style.color    = color;
+  label.textContent    = pct + '%';
+}
+
+function updateTension(yesCount) {
+  const lvl  = Math.min(5, Math.floor(yesCount * 5 / 12));
+  const msg  = $('tensionMsg');
+  const atm  = $('atm');
+  const key  = 'tension' + lvl;
+  msg.textContent = t(key);
+
+  const cols = ['var(--txt-2)','var(--warn)','var(--orange)','var(--red)','var(--red)','#ff2222'];
+  msg.style.color = cols[lvl] || cols[0];
+
+  // Atmosphere reddening
+  const intensity = lvl / 5;
+  atm.style.background =
+    `radial-gradient(ellipse 80% 60% at 50% 100%, rgba(230,57,70,${.06 + intensity*.22}), transparent 60%)`;
+
+  // game header border
+  $('gameHeader').style.borderBottomColor = lvl >= 3 ? 'rgba(230,57,70,.3)' : 'var(--border)';
+}
+
+/* ================================================================
+   VALLEY MARKER ANIMATION
+================================================================ */
+function updateMarker(qIdx, yesCount) {
+  const pathEl = $('valleyPath');
+  const marker = $('marker');
+  const markerDot = $('markerDot');
+  const halo   = $('mHalo');
+  if(!pathEl || !marker) return;
+
+  const totalLen = pathEl.getTotalLength();
+  const progress = Math.min(1, qIdx / QS.length);
+  const pt = pathEl.getPointAtLength(totalLen * progress);
+
+  // Extra depth from risky answers (sink below the curve)
+  const riskDepth = yesCount * 5;
+
+  const finalX = pt.x;
+  const finalY = pt.y + riskDepth;
+
+  // Smooth CSS transition via cx/cy attributes
+  marker.style.transition    = 'cx .7s cubic-bezier(.16,1,.3,1), cy .9s cubic-bezier(.16,1,.3,1)';
+  markerDot.style.transition = 'cx .7s cubic-bezier(.16,1,.3,1), cy .9s cubic-bezier(.16,1,.3,1)';
+  halo.style.transition      = 'cx .7s cubic-bezier(.16,1,.3,1), cy .9s cubic-bezier(.16,1,.3,1), r .5s ease';
+
+  marker.setAttribute('cx', finalX);
+  marker.setAttribute('cy', finalY);
+  markerDot.setAttribute('cx', finalX);
+  markerDot.setAttribute('cy', finalY);
+  halo.setAttribute('cx', finalX);
+  halo.setAttribute('cy', finalY);
+  halo.setAttribute('r', 14 + yesCount * 2);
+
+  // Color: red gets more intense with risk
+  const redness = Math.min(1, yesCount / 8);
+  const r = Math.round(230);
+  const g = Math.round(57 * (1 - redness * .4));
+  const b = Math.round(70 * (1 - redness * .5));
+  marker.setAttribute('fill', `rgb(${r},${g},${b})`);
+
+  // Trace draw
+  const trace = $('trace');
+  if(trace) trace.style.strokeDashoffset = 1000 * (1 - progress);
+}
+
+/* ================================================================
+   FINISH GAME → RESULT
+================================================================ */
+function finishGame() {
+  // compute top risks
+  const yesQs = QS.map((q,i) => ({...q, answered: S.answers[i]===true}))
+                  .filter(q => q.answered)
+                  .sort((a,b) => b.w - a.w);
+  S.topRisks = yesQs.slice(0,3).map(q => q.risk);
+
+  renderResult();
+  goTo('result');
+}
+
+/* ================================================================
+   RESULT
+================================================================ */
+function renderResult() {
+  const score = S.score;
+  const lang  = S.lang;
+  const health = S.health;
+
+  // Ring
+  const circle = $('ringArc');
+  const circum = 439.8;
+  let color, badgeClass, badgeText, interpretKey, nextKey;
+
+  if(score <= 25) {
+    color = 'var(--green)'; badgeClass = 'r-low';  badgeText = t('riskLow');
+    interpretKey = 'interpret0'; nextKey = 'next0';
+  } else if(score <= 50) {
+    color = 'var(--warn)';  badgeClass = 'r-med';  badgeText = t('riskMed');
+    interpretKey = 'interpret1'; nextKey = 'next1';
+  } else if(score <= 75) {
+    color = 'var(--red)';   badgeClass = 'r-high'; badgeText = t('riskHigh');
+    interpretKey = 'interpret2'; nextKey = 'next2';
+  } else {
+    color = '#ff2222';      badgeClass = 'r-col';  badgeText = t('riskCol');
+    interpretKey = 'interpret3'; nextKey = 'next3';
+  }
+
+  // Animate score count
+  let cur = 0;
+  const step = () => {
+    cur = Math.min(score, cur + Math.ceil((score - cur) / 6 + 1));
+    $('scoreVal').textContent = cur;
+    const offset = circum - (cur / 100) * circum;
+    circle.style.strokeDashoffset = offset;
+    circle.style.stroke = color;
+    $('scoreVal').style.color = color;
+    if(cur < score) requestAnimationFrame(step);
+  };
+  setTimeout(() => requestAnimationFrame(step), 300);
+
+  // Badge
+  const badge = $('riskBadge');
+  badge.className = 'rbadge ' + badgeClass;
+  badge.textContent = badgeText;
+
+  // Health bar
+  const hp = $('hbarResult');
+  hp.style.width = health + '%';
+  hp.style.background = health > 65 ? 'var(--green)' : health > 35 ? 'var(--warn)' : 'var(--red)';
+  $('healthResultPct').textContent = health + '%';
+  $('healthResultPct').style.color = health > 65 ? 'var(--green)' : health > 35 ? 'var(--warn)' : 'var(--red)';
+
+  // Risk list
+  const list = $('riskList');
+  list.innerHTML = '';
+  if(S.topRisks.length === 0) {
+    list.innerHTML = `<li class="ritem"><div class="rico">✅</div><div class="rtxt"><div class="rtitle cgrn">${t('noRisksFound')}</div></div></li>`;
+  } else {
+    S.topRisks.forEach((rk,i) => {
+      const m = RISK_META[rk];
+      if(!m) return;
+      const li = document.createElement('li');
+      li.className = 'ritem';
+      li.innerHTML = `
+        <div class="rico">${m.ico}</div>
+        <div class="rtxt">
+          <div class="rtitle">${lang==='ar'?m.ar:m.en}</div>
+          <div class="rdesc">${lang==='ar'?m.arDesc:m.enDesc}</div>
+        </div>
+        <span style="font-size:.75rem;color:var(--txt-m);font-weight:700">#${i+1}</span>`;
+      list.appendChild(li);
+    });
+  }
+
+  $('interpretText').textContent = t(interpretKey);
+  $('nextStepText').textContent  = t(nextKey);
+
+  // score reminder on upsell
+  $('upsellScore').textContent = score + '/100';
+}
+
+/* ================================================================
+   PRODUCTS
+================================================================ */
+function buildProducts() {
+  const grid = $('productGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  PRODUCTS_DATA.forEach(p => {
+    const lang = S.lang;
+    const card = el('div', 'pcard' + (p.featured ? ' feat' : ''));
+    if(p.featured) {
+      const badge = el('div','pbadge');
+      badge.textContent = t('popBadge');
+      card.appendChild(badge);
+    }
+    const feats = lang==='ar' ? p.ar_feats : p.en_feats;
+    card.innerHTML += `
+      <div class="picon">${p.icon}</div>
+      <div class="pname">${lang==='ar'?p.ar_name:p.en_name}</div>
+      <div class="pdesc">${lang==='ar'?p.ar_desc:p.en_desc}</div>
+      <div class="pprice">${p.price}</div>
+      <ul class="pfeats">${feats.map(f=>`<li>${f}</li>`).join('')}</ul>
+      <button class="btn btn-primary btn-full" onclick="requestProduct('${p.id}')">
+        ${lang==='ar'?'احصل عليه الآن →':'Get it now →'}
+      </button>
+      <!-- PAYMENT INTEGRATION PLACEHOLDER
+           Replace onclick above with your Stripe/Paymob link:
+           href="https://buy.stripe.com/YOUR_LINK"
+      -->`;
+    grid.appendChild(card);
+  });
+}
+
+function requestProduct(pid) {
+  const product = PRODUCTS_DATA.find(p => p.id === pid);
+  const req = {
+    id:        'REQ-' + Date.now(),
+    product:   pid,
+    price:     product?.price,
+    lead:      S.lead,
+    score:     S.score,
+    health:    S.health,
+    topRisks:  S.topRisks,
+    answers:   S.answers,
+    status:    'pending',
+    createdAt: new Date().toISOString()
+  };
+  S.paidRequests.push(req);
+  localStorage.setItem('vod_requests', JSON.stringify(S.paidRequests));
+
+  // Update admin view
+  $('adminJson').textContent = JSON.stringify(req, null, 2);
+
+  // Simulate redirect to payment
+  alert(S.lang === 'ar'
+    ? `✅ طلبك للـ "${product?.[S.lang==='ar'?'ar_name':'en_name']}" تم تسجيله!\n\nسيتم توجيهك لصفحة الدفع.\n\n[مكان تكامل Stripe / Paymob]\n\nID: ${req.id}`
+    : `✅ Request for "${product?.en_name}" recorded!\n\nYou'll be redirected to payment.\n\n[Stripe / Paymob integration point]\n\nID: ${req.id}`
+  );
+}
+
+/* ================================================================
+   ADMIN
+================================================================ */
+function renderAdmin() {
+  const data = {
+    queue: S.paidRequests,
+    totalSubmissions: S.paidRequests.length,
+    pendingReview:    S.paidRequests.filter(r => r.status === 'pending').length,
+    latestLead:       S.lead,
+    latestScore:      S.score,
+    latestRisks:      S.topRisks,
+    // BACKEND INTEGRATION PLACEHOLDER
+    // POST to: /api/admin/submissions
+    // GET  from: /api/admin/submissions?status=pending
+    // Auth: Bearer token required
+    // Webhook: POST /api/webhooks/payment-success
+    note: 'Connect to Supabase / Airtable / Google Sheets'
+  };
+  $('adminJson').textContent = JSON.stringify(data, null, 2);
+}
+
+/* ================================================================
+   RESTART
+================================================================ */
+function restartGame() {
+  const attempts = parseInt(localStorage.getItem('vod_attempts') || '0') + 1;
+  localStorage.setItem('vod_attempts', attempts);
+  goTo('landing');
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+(function init() {
+  buildSelects();
+  buildProducts();
+  applyT();
+
+  // Pre-position marker at start of path
+  const pathEl = $('valleyPath');
+  if(pathEl) {
+    const pt = pathEl.getPointAtLength(0);
+    ['marker','markerDot','mHalo'].forEach(id => {
+      const el = $(id);
+      if(el) { el.setAttribute('cx', pt.x); el.setAttribute('cy', pt.y); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
