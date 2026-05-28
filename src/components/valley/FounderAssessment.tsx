@@ -149,6 +149,7 @@ export function FounderAssessment() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [flashKey, setFlashKey] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const total = ACTIVE_QUESTIONS.length;
@@ -211,11 +212,13 @@ export function FounderAssessment() {
       else delete next[q.id];
       return next;
     });
+    if (weight >= 4) setFlashKey(k => k + 1);
     advance();
   };
   const pickScale = (value: number) => {
     const q = ACTIVE_QUESTIONS[idx];
     setAnswers((a) => ({ ...a, [q.id]: value }));
+    if (value >= 4) setFlashKey(k => k + 1);
     advance();
   };
   const advance = () => {
@@ -378,27 +381,47 @@ export function FounderAssessment() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.10),transparent_60%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-      {/* Atmospheric tension overlay — reddens as the founder descends */}
+      {/* Darkness grows as founder descends — scene deepens toward black */}
       {(stage === 'quiz' || stage === 'submitting') && (
         <motion.div
-          className="pointer-events-none absolute inset-0 mix-blend-screen"
+          className="pointer-events-none absolute inset-0"
           initial={false}
-          animate={{
-            opacity: 0.15 + tension * 0.55,
-            background: `radial-gradient(ellipse at 50% 80%, hsl(${stateIdx >= 4 ? '0' : '14'} ${60 + tension * 30}% ${20 + tension * 10}% / ${0.25 + tension * 0.45}), transparent 70%)`,
-          }}
+          animate={{ opacity: tension * 0.32 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          style={{ background: 'hsl(0 0% 0%)' }}
         />
       )}
-      {/* Vignette that tightens at high tension */}
+      {/* Danger upwelling — ember/red glow rises from the valley floor */}
       {(stage === 'quiz' || stage === 'submitting') && (
         <motion.div
           className="pointer-events-none absolute inset-0"
           initial={false}
           animate={{
-            boxShadow: `inset 0 0 ${120 + tension * 220}px ${40 + tension * 80}px hsl(0 0% 0% / ${0.4 + tension * 0.4})`,
+            background: `radial-gradient(ellipse at 50% 95%, hsl(${stateIdx >= 4 ? '0' : '18'} 100% 35% / ${0.10 + tension * 0.55}), transparent 58%)`,
+          }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        />
+      )}
+      {/* Vignette crushes edges as tension climbs */}
+      {(stage === 'quiz' || stage === 'submitting') && (
+        <motion.div
+          className="pointer-events-none absolute inset-0"
+          initial={false}
+          animate={{
+            boxShadow: `inset 0 0 ${80 + tension * 260}px ${20 + tension * 130}px hsl(0 0% 0% / ${0.45 + tension * 0.45})`,
           }}
           transition={{ duration: 0.9 }}
+        />
+      )}
+      {/* Risky answer flash — brief red/amber pulse on high-weight selections */}
+      {stage === 'quiz' && flashKey > 0 && (
+        <motion.div
+          key={`flash-${flashKey}`}
+          className="pointer-events-none absolute inset-0 z-10"
+          initial={{ opacity: 0.32 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.75, ease: 'easeOut' }}
+          style={{ background: `radial-gradient(ellipse at 50% 55%, hsl(${stateIdx >= 4 ? '0' : '8'} 95% 52% / 0.42), transparent 65%)` }}
         />
       )}
 
@@ -504,6 +527,16 @@ export function FounderAssessment() {
                       stroke="hsl(0 0% 100% / 0.05)" strokeWidth="0.3" strokeDasharray="1.5 2" />
                   ))}
 
+                  {/* Rising danger pool — fills from valley floor as tension increases */}
+                  <rect
+                    x="0"
+                    y={58 - tension * 20}
+                    width="100"
+                    height={tension * 20}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.05 + tension * 0.26})`}
+                    style={{ transition: 'all 0.9s cubic-bezier(0.16,1,0.3,1)' }}
+                  />
+
                   {/* Ghost curve — reference valley (the curve without risk) */}
                   <path
                     d="M 0 8 C 20 8, 40 46, 50 46 C 60 46, 80 8, 100 8"
@@ -537,12 +570,21 @@ export function FounderAssessment() {
                     />
                   )}
 
+                  {/* Outer danger halo — expands dramatically at high tension */}
+                  <circle
+                    cx={cx}
+                    cy={valleyY}
+                    r={5 + tension * 12}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${tension * 0.10})`}
+                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
+                  />
+
                   {/* Marker halo — expands as founder descends into danger */}
                   <circle
                     cx={cx}
                     cy={valleyY}
                     r={3 + tension * 3.5}
-                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.18})`}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.22})`}
                     style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.55s ease' }}
                   />
 
