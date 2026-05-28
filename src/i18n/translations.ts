@@ -978,7 +978,7 @@ const ar: LangStrings = {
   },
 
   assessment: {
-    diagnosticLabel: 'التشخيص الجنائي للمؤسس',
+    diagnosticLabel: '​',
     introHeading1: 'عشرة أسئلة.',
     introHeading2: 'لا إجابات مريحة.',
     introDesc:
