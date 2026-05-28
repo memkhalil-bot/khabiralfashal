@@ -391,15 +391,44 @@ const en: LangStrings = {
   },
 
   valley: {
-    metaTitle: 'Valley of Death — The Founder Test | خبير الفشل',
+    metaTitle: 'Valley of Death — The Founder Test',
     metaDesc:
-      'A brutal self-diagnostic for founders. No motivation. Just the truth about how close your company is to the edge.',
-    eyebrow: 'The Founder Test · اختبار المؤسس',
+      'A psychological descent diagnostic for founders. No motivation. Just the truth about how close your company is to the edge.',
+    eyebrow: 'The Founder Test',
     heroHeading1: 'Valley',
     heroHeading2: 'of Death.',
     heroSub:
       'No motivation. No coaching. Answer honestly — the only person you can lie to here is yourself.',
-    heroArabicSub: 'اختبار صريح يكشف لك أين أنت فعلاً.',
+    lore: {
+      eyebrow: 'Before you descend',
+      heading1: 'Most founders never see',
+      heading2: 'the valley until they are inside it.',
+      p1: 'The Valley of Death is the silent window between burning the last of your conviction and earning the first dollar of real revenue. It is where the cash is shrinking, the team is reading your face, and the spreadsheet has stopped lying.',
+      p2: 'Most companies do not die from the market. They die in the valley — because the founder kept performing certainty while the ground gave way underneath.',
+      p3: 'This diagnostic was built from analyzing hundreds of startup failure post-mortems and the cognitive patterns founders show in the months before collapse. There is no right answer. There is only what you finally admit.',
+    },
+    curve: {
+      eyebrow: 'The Curve',
+      heading1: 'Every company walks',
+      heading2: 'the same descent.',
+      sub: 'The only difference is who reaches the other side, and who disappears at the bottom.',
+      stages: [
+        { label: 'PRE-SEED' },
+        { label: 'SEED' },
+        { label: 'FUNDING GAP', danger: true },
+        { label: 'EARLY' },
+        { label: 'GROWTH' },
+      ],
+      milestones: ['Research', 'Development', 'Product launch', 'Product success', 'Business success'],
+      axisY: 'CUMULATIVE P/L',
+      axisX: 'TIME',
+      valleyLabel: 'VALLEY OF DEATH',
+      captions: [
+        { t: 'The descent', b: 'You burn cash before the product earns. Every month brings you closer to the floor.' },
+        { t: 'The floor', b: 'Most companies die here. No capital, no traction, no time, no honest mirror.' },
+        { t: 'The climb', b: 'If you make it here, revenue starts covering burn. The company finally exists.' },
+      ],
+    },
     testimonialsEyebrow: 'After the Session',
     testimonialsHeading: "What they said\nwhen the room got quiet.",
   },
