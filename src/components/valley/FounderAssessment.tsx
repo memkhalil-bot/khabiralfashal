@@ -300,51 +300,206 @@ export function FounderAssessment() {
         />
       )}
 
-      {/* Descent bar with mini valley curve + avatar — no visible question count */}
+      {/* Descent bar — valley depth driven by progress + risk accumulation */}
       {(stage === 'quiz' || stage === 'submitting') && (() => {
         const stateLabel = a.emotionalStates[stateIdx] ?? '';
         const t01 = progress;
-        const cx = 4 + t01 * 92;
-        const valleyY = 6 + 14 * Math.sin(Math.PI * Math.min(1, t01));
+
+        // ── On-curve bezier position ────────────────────────────────────────
+        // Path: M 0 8  C 20 8, 40 46, 50 46  C 60 46, 80 8, 100 8
+        // Two cubic segments forming a deep symmetric U-valley.
+        // Segment 1 (t01: 0→0.5): P0=(0,8)  P1=(20,8)  P2=(40,46) P3=(50,46)
+        // Segment 2 (t01: 0.5→1): P0=(50,46) P1=(60,46) P2=(80,8)  P3=(100,8)
+        const { cx, onCurveY } = (() => {
+          if (t01 <= 0.5) {
+            const t = t01 * 2, mt = 1 - t;
+            return {
+              cx:       mt*mt*mt*0  + 3*mt*mt*t*20 + 3*mt*t*t*40 + t*t*t*50,
+              onCurveY: mt*mt*mt*8  + 3*mt*mt*t*8  + 3*mt*t*t*46 + t*t*t*46,
+            };
+          }
+          const t = (t01 - 0.5) * 2, mt = 1 - t;
+          return {
+            cx:       mt*mt*mt*50 + 3*mt*mt*t*60 + 3*mt*t*t*80 + t*t*t*100,
+            onCurveY: mt*mt*mt*46 + 3*mt*mt*t*46 + 3*mt*t*t*8  + t*t*t*8,
+          };
+        })();
+
+        // Risky answers sink the marker BELOW the reference curve — visible depth
+        const riskSink  = tension * 10;
+        const valleyY   = Math.min(54, onCurveY + riskSink);
+        const sinkDepth = valleyY - onCurveY; // 0 → up to 10
+
+        const healthPct   = Math.round((1 - tension) * 100);
+        const healthColor = healthPct > 65 ? '#34d399' : healthPct > 35 ? '#fbbf24' : '#f87171';
+        const accent      = stateIdx >= 4 ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)';
+
+        const borderColor =
+          stateIdx >= 4 ? 'hsl(0 84% 60% / 0.35)'
+          : stateIdx >= 3 ? 'hsl(18 92% 55% / 0.30)'
+          : stateIdx >= 2 ? 'hsl(38 92% 55% / 0.18)'
+          : 'hsl(0 0% 100% / 0.07)';
+
+        // Zone based on actual marker depth (0=SAFE … 3=CRIT)
+        const zoneIdx =
+          valleyY < 18 ? 0
+          : valleyY < 30 ? 1
+          : valleyY < 44 ? 2
+          : 3;
+
         return (
-          <div className="sticky top-0 z-20 backdrop-blur-md bg-black/70 border-b border-white/10">
-            <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-4">
-              <span className={cn(
-                'text-[10px] uppercase text-white/40 hidden sm:inline',
-                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-              )}>
-                {a.diagnosticProgress}
-              </span>
-              <div className="flex-1 relative h-7">
-                <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible">
-                  <path d="M 0 6 Q 25 6, 50 20 T 100 6" fill="none" stroke="hsl(0 0% 100% / 0.12)" strokeWidth="0.5" />
-                  <path
-                    d="M 0 6 Q 25 6, 50 20 T 100 6"
-                    fill="none"
-                    stroke={stateIdx >= 4 ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)'}
-                    strokeWidth="0.6"
-                    strokeDasharray="100"
-                    strokeDashoffset={100 - t01 * 100}
-                    style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16,1,0.3,1)' }}
+          <div
+            className="sticky top-0 z-20 backdrop-blur-md"
+            style={{
+              backgroundColor: `hsl(0 0% 0% / ${0.72 + tension * 0.18})`,
+              borderBottom: `1px solid ${borderColor}`,
+            }}
+          >
+            <div className="max-w-3xl mx-auto px-6 pt-3 pb-2">
+
+              {/* Top row: label + health readout */}
+              <div className={cn('flex items-center justify-between mb-2', isRTL && 'flex-row-reverse')}>
+                <span className={cn(
+                  'text-[9px] text-white/30',
+                  isRTL ? 'font-arabic tracking-normal text-xs' : 'uppercase tracking-[0.4em]',
+                )}>
+                  {a.diagnosticProgress}
+                </span>
+                <span
+                  className={cn('text-[9px] tabular-nums', isRTL ? 'font-arabic text-xs' : 'uppercase tracking-[0.3em]')}
+                  style={{ color: healthColor }}
+                >
+                  {isRTL ? `${healthPct}٪ صحة` : `${healthPct}% health`}
+                </span>
+              </div>
+
+              {/* Valley SVG — deep U-valley, marker visibly descends with risk */}
+              <div className="relative h-[72px]" style={{ overflow: 'visible' }}>
+                <svg
+                  viewBox="0 0 100 58"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 w-full h-full"
+                  style={{ overflow: 'visible' }}
+                >
+                  {/* Valley floor — the abyss below the curve, reddens with tension */}
+                  <rect x="0" y="42" width="100" height="16"
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.04 + tension * 0.10})`}
                   />
-                  <circle cx={cx} cy={valleyY} r="3.5" fill={stateIdx >= 4 ? 'hsl(0 84% 60% / 0.18)' : 'hsl(18 92% 55% / 0.18)'} />
-                  <motion.circle
+                  <line x1="0" y1="42" x2="100" y2="42"
+                    stroke={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.14})`}
+                    strokeWidth="0.3"
+                  />
+
+                  {/* Zone bands */}
+                  <rect x="0"  y="0" width="25" height="42" fill="hsl(142 76% 50% / 0.04)" />
+                  <rect x="25" y="0" width="25" height="42" fill="hsl(38 92% 55%  / 0.04)" />
+                  <rect x="50" y="0" width="25" height="42" fill="hsl(18 92% 55%  / 0.07)" />
+                  <rect x="75" y="0" width="25" height="42" fill="hsl(0 0% 100%   / 0.02)" />
+
+                  {/* Zone dividers */}
+                  {[25, 50, 75].map((x) => (
+                    <line key={x} x1={x} y1="0" x2={x} y2="52"
+                      stroke="hsl(0 0% 100% / 0.05)" strokeWidth="0.3" strokeDasharray="1.5 2" />
+                  ))}
+
+                  {/* Ghost curve — reference valley (the curve without risk) */}
+                  <path
+                    d="M 0 8 C 20 8, 40 46, 50 46 C 60 46, 80 8, 100 8"
+                    fill="none"
+                    stroke="hsl(0 0% 100% / 0.09)"
+                    strokeWidth="0.6"
+                  />
+
+                  {/* Active trace — draws in as founder progresses through questions */}
+                  <path
+                    d="M 0 8 C 20 8, 40 46, 50 46 C 60 46, 80 8, 100 8"
+                    fill="none"
+                    stroke={accent}
+                    strokeWidth="0.9"
+                    pathLength={100}
+                    strokeDasharray={100}
+                    strokeDashoffset={100 - t01 * 100}
+                    style={{ transition: 'stroke-dashoffset 0.65s cubic-bezier(0.16,1,0.3,1)' }}
+                  />
+
+                  {/* Depth indicator — dashed line shows how far BELOW the curve */}
+                  {sinkDepth > 1.5 && (
+                    <line
+                      x1={cx} y1={onCurveY + 1.5}
+                      x2={cx} y2={valleyY - 1.5}
+                      stroke={accent}
+                      strokeWidth="0.45"
+                      strokeDasharray="1.2 1"
+                      opacity={Math.min(0.9, sinkDepth / 8)}
+                      style={{ transition: 'all 0.9s cubic-bezier(0.16,1,0.3,1)' }}
+                    />
+                  )}
+
+                  {/* Marker halo — expands as founder descends into danger */}
+                  <circle
                     cx={cx}
                     cy={valleyY}
-                    r={1.6}
-                    fill={stateIdx >= 4 ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)'}
-                    animate={{ r: [1.4, 2.1, 1.4] }}
-                    transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                    r={3 + tension * 3.5}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.18})`}
+                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.55s ease' }}
                   />
+
+                  {/* Founder marker — moves right (progress) + sinks with risk */}
+                  <motion.circle
+                    initial={{ cx: 0, cy: 8 }}
+                    animate={{ cx, cy: valleyY, r: [2, 2.7, 2] }}
+                    transition={{
+                      cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                      cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
+                      r:  { duration: 1.8, repeat: Infinity, ease: 'easeInOut' },
+                    }}
+                    fill={accent}
+                  />
+
+                  {/* Zone labels */}
+                  {(['SAFE', 'EXP.', 'VALLEY', 'CRIT.'] as const).map((label, i) => (
+                    <text
+                      key={label}
+                      x={i * 25 + 12.5}
+                      y={57}
+                      textAnchor="middle"
+                      fontSize="3"
+                      letterSpacing="0.4"
+                      fontFamily="ui-sans-serif, system-ui, sans-serif"
+                      fill={
+                        zoneIdx === i
+                          ? (i >= 3 ? 'hsl(0 84% 65%)' : i >= 2 ? 'hsl(18 92% 60%)' : i === 1 ? 'hsl(38 92% 60%)' : 'hsl(142 76% 55%)')
+                          : 'hsl(0 0% 100% / 0.22)'
+                      }
+                    >
+                      {label}
+                    </text>
+                  ))}
                 </svg>
               </div>
-              <span className={cn(
-                'text-[10px] uppercase whitespace-nowrap',
-                stateIdx >= 4 ? 'text-red-400' : stateIdx >= 3 ? 'text-ember' : 'text-white/50',
-                isRTL ? 'font-arabic text-sm tracking-normal' : 'tracking-[0.3em]'
-              )}>
-                {stateLabel}
-              </span>
+
+              {/* Health strip + state label */}
+              <div className={cn('mt-2 flex items-center gap-3 mb-1', isRTL && 'flex-row-reverse')}>
+                {/* Degrading health bar — visual strip that shrinks and reddens */}
+                <div className="flex-1 h-px bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${healthPct}%`,
+                      backgroundColor: healthColor,
+                      boxShadow: `0 0 6px ${healthColor}55`,
+                    }}
+                  />
+                </div>
+                <span className={cn(
+                  'text-[9px] whitespace-nowrap flex-shrink-0 transition-colors duration-500',
+                  stateIdx >= 4 ? 'text-red-400' : stateIdx >= 3 ? 'text-ember' : stateIdx >= 2 ? 'text-amber-400/70' : 'text-white/35',
+                  isRTL ? 'font-arabic tracking-normal text-xs' : 'uppercase tracking-[0.32em]',
+                )}>
+                  {stateLabel}
+                </span>
+              </div>
+
             </div>
           </div>
         );
