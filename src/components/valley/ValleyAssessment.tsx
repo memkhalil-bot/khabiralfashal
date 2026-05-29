@@ -102,29 +102,46 @@ function classify(score: number, max: number, verdicts: Record<string, { title: 
   return { level: 'COLLAPSE PROXIMITY', title: verdicts['COLLAPSE PROXIMITY']?.title ?? '', tone: 'text-red-500', insight: verdicts['COLLAPSE PROXIMITY']?.insight ?? '' };
 }
 
-// ── Bezier / Marker math ──────────────────────────────────────────────────────
-// Path calibrated to valley-bg image (viewBox 1456×816):
-// M 155 295 C 380 290, 570 720, 730 720 C 730 400, 1100 355, 1250 355
-// Seg1 t01 0→0.5: P0=(155,295) P1=(380,290) P2=(570,720) P3=(730,720)
-// Seg2 t01 0.5→1: P0=(730,720) P1=(730,400) P2=(1100,355) P3=(1250,355)
+// ── Image-calibrated path waypoints (1456×816 coordinate space) ──────────────
+// Each waypoint is measured from the orange glowing path in valley-bg-ar.png.
+// pathAt() smoothstep-interpolates between waypoints so the marker sits on
+// the exact visible path in the image at all times.
 
-function bez(p0: number, p1: number, p2: number, p3: number, t: number) {
-  const mt = 1 - t;
-  return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
-}
+interface PathPt { t01: number; cx: number; cy: number }
+const PATH_KEYFRAMES: PathPt[] = [
+  { t01: 0.00, cx: 140, cy: 282 },  // path start (left plateau)
+  { t01: 0.10, cx: 175, cy: 296 },  // Stage 1 — Pre-Startup
+  { t01: 0.30, cx: 395, cy: 378 },  // Stage 2 — Foundation
+  { t01: 0.45, cx: 565, cy: 492 },  // Stage 3 — Funding Gap (lower descent)
+  { t01: 0.50, cx: 728, cy: 710 },  // Valley Floor — deepest point
+  { t01: 0.70, cx: 955, cy: 448 },  // Stage 4 — Early Growth
+  { t01: 0.90, cx: 1245, cy: 355 }, // Stage 5 — Expansion
+  { t01: 1.00, cx: 1250, cy: 348 }, // path end (right plateau)
+];
 
-function curveAt(t01: number): { cx: number; cy: number } {
-  if (t01 <= 0.5) {
-    const t = t01 * 2;
-    return { cx: bez(155, 380, 570, 730, t), cy: bez(295, 290, 720, 720, t) };
+function pathAt(t01: number): { cx: number; cy: number } {
+  const ct = Math.max(0, Math.min(1, t01));
+  for (let i = 0; i < PATH_KEYFRAMES.length - 1; i++) {
+    const k0 = PATH_KEYFRAMES[i], k1 = PATH_KEYFRAMES[i + 1];
+    if (ct <= k1.t01) {
+      const raw = (ct - k0.t01) / (k1.t01 - k0.t01);
+      const s = raw * raw * (3 - 2 * raw); // smoothstep easing
+      return { cx: k0.cx + (k1.cx - k0.cx) * s, cy: k0.cy + (k1.cy - k0.cy) * s };
+    }
   }
-  const t = (t01 - 0.5) * 2;
-  return { cx: bez(730, 730, 1100, 1250, t), cy: bez(720, 400, 355, 355, t) };
+  const last = PATH_KEYFRAMES[PATH_KEYFRAMES.length - 1];
+  return { cx: last.cx, cy: last.cy };
 }
 
-// Final marker position based on risk %
-function finalT01(pct: number) { return pct < 30 ? 0.85 : pct < 55 ? 0.65 : 0.5; }
-function finalSink(pct: number) { return pct < 30 ? 0 : pct < 55 ? 40 : pct < 78 ? 100 : 150; }
+// Risk level → final marker position on the path
+function finalT01(pct: number): number {
+  if (pct < 30) return 0.90; // STABLE → Expansion zone (upper-right ascent)
+  if (pct < 55) return 0.75; // EXPOSED → between Growth and Expansion
+  return 0.50;                // INSIDE VALLEY / COLLAPSE PROXIMITY → floor
+}
+function finalSink(pct: number): number {
+  return pct >= 78 ? 35 : 0; // extra depth for collapse proximity
+}
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
 
@@ -306,14 +323,21 @@ function ValleyVisual({
   const dangerHue = isDanger ? '0' : '18';
 
   return (
-    <div className="relative w-full" style={{ paddingBottom: '56.02%' }}>
+    // Aspect-ratio container: maintains 1456:816 ratio, capped at 52vh on large screens.
+    // overflow-hidden prevents any stray SVG elements from expanding the container.
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        paddingBottom: 'min(56.02%, 52vh)',
+        minHeight: '180px',
+      }}
+    >
       <div className="absolute inset-0">
         {/* Hero image — Arabic uses the uploaded image, English uses the SVG replica */}
         <img
           src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
           alt=""
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: 'fill' }}
+          className="absolute inset-0 w-full h-full object-cover"
           draggable={false}
         />
 
@@ -415,9 +439,9 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const isDone = stage === 'analyzing' || stage === 'result';
   const quizT01 = total === 0 ? 0 : idx / total;
   const dispT01 = isDone ? finalT01(finalPct) : quizT01;
-  const dispSink = isDone ? finalSink(finalPct) : tension * 95;
-  const { cx: baseCx, cy: baseCy } = curveAt(dispT01);
-  const markerY = Math.min(800, baseCy + dispSink);
+  const { cx: baseCx, cy: baseCy } = pathAt(dispT01);
+  const dispSink = isDone ? finalSink(finalPct) : tension * 60;
+  const markerY = Math.min(790, baseCy + dispSink);
 
   const verdict = useMemo(() => {
     const s = isDone ? finalScore : partialScore;
@@ -534,7 +558,8 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const isActive = stage === 'quiz' || stage === 'analyzing';
+  // Marker is visible on all stages except the gate form
+  const isActive = stage !== 'gate';
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
