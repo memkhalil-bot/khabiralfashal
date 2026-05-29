@@ -102,21 +102,22 @@ function classify(score: number, max: number, verdicts: Record<string, { title: 
   return { level: 'COLLAPSE PROXIMITY', title: verdicts['COLLAPSE PROXIMITY']?.title ?? '', tone: 'text-red-500', insight: verdicts['COLLAPSE PROXIMITY']?.insight ?? '' };
 }
 
-// ── Image-calibrated path waypoints (1456×816 coordinate space) ──────────────
-// Each waypoint is measured from the orange glowing path in valley-bg-ar.png.
+// ── Image-calibrated path waypoints (1672×941 coordinate space) ──────────────
+// Each waypoint is measured from the orange glowing path in valley-bg-ar.png
+// (actual image dimensions: 1672×941 px).
 // pathAt() smoothstep-interpolates between waypoints so the marker sits on
 // the exact visible path in the image at all times.
 
 interface PathPt { t01: number; cx: number; cy: number }
 const PATH_KEYFRAMES: PathPt[] = [
-  { t01: 0.00, cx: 140, cy: 282 },  // path start (left plateau)
-  { t01: 0.10, cx: 175, cy: 296 },  // Stage 1 — Pre-Startup
-  { t01: 0.30, cx: 395, cy: 378 },  // Stage 2 — Foundation
-  { t01: 0.45, cx: 565, cy: 492 },  // Stage 3 — Funding Gap (lower descent)
-  { t01: 0.50, cx: 728, cy: 710 },  // Valley Floor — deepest point
-  { t01: 0.70, cx: 955, cy: 448 },  // Stage 4 — Early Growth
-  { t01: 0.90, cx: 1245, cy: 355 }, // Stage 5 — Expansion
-  { t01: 1.00, cx: 1250, cy: 348 }, // path end (right plateau)
+  { t01: 0.00, cx: 161, cy: 325 },  // path start (left plateau)
+  { t01: 0.10, cx: 201, cy: 341 },  // Stage 1 — Pre-Startup
+  { t01: 0.30, cx: 454, cy: 436 },  // Stage 2 — Foundation
+  { t01: 0.45, cx: 649, cy: 567 },  // Stage 3 — Funding Gap (lower descent)
+  { t01: 0.50, cx: 836, cy: 820 },  // Valley Floor — deepest point
+  { t01: 0.70, cx: 1097, cy: 517 }, // Stage 4 — Early Growth
+  { t01: 0.90, cx: 1430, cy: 409 }, // Stage 5 — Expansion
+  { t01: 1.00, cx: 1436, cy: 401 }, // path end (right plateau)
 ];
 
 function pathAt(t01: number): { cx: number; cy: number } {
@@ -140,7 +141,7 @@ function finalT01(pct: number): number {
   return 0.50;                // INSIDE VALLEY / COLLAPSE PROXIMITY → floor
 }
 function finalSink(pct: number): number {
-  return pct >= 78 ? 35 : 0; // extra depth for collapse proximity
+  return pct >= 78 ? 40 : 0; // extra depth for collapse proximity
 }
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
@@ -323,12 +324,13 @@ function ValleyVisual({
   const dangerHue = isDanger ? '0' : '18';
 
   return (
-    // Aspect-ratio container: maintains 1456:816 ratio, capped at 52vh on large screens.
+    // Aspect-ratio container: matches valley-bg-ar.png (1672×941 = 56.28%).
+    // Capped at 52vh so the image never fills the full screen on large monitors.
     // overflow-hidden prevents any stray SVG elements from expanding the container.
     <div
       className="relative w-full overflow-hidden"
       style={{
-        paddingBottom: 'min(56.02%, 52vh)',
+        paddingBottom: 'min(56.28%, 52vh)',
         minHeight: '180px',
       }}
     >
@@ -344,7 +346,7 @@ function ValleyVisual({
         {/* Interactive SVG overlay — transparent; only the animated founder marker */}
         {isActive && (
           <svg
-            viewBox="0 0 1456 816"
+            viewBox="0 0 1672 941"
             className="absolute inset-0 w-full h-full"
             style={{ overflow: 'visible' }}
           >
@@ -440,8 +442,8 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const quizT01 = total === 0 ? 0 : idx / total;
   const dispT01 = isDone ? finalT01(finalPct) : quizT01;
   const { cx: baseCx, cy: baseCy } = pathAt(dispT01);
-  const dispSink = isDone ? finalSink(finalPct) : tension * 60;
-  const markerY = Math.min(790, baseCy + dispSink);
+  const dispSink = isDone ? finalSink(finalPct) : tension * 70;
+  const markerY = Math.min(910, baseCy + dispSink);
 
   const verdict = useMemo(() => {
     const s = isDone ? finalScore : partialScore;
