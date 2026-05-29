@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { FounderAssessment } from '@/components/valley/FounderAssessment';
+import { ValleyAssessment } from '@/components/valley/ValleyAssessment';
 import { ValleyCurve } from '@/components/valley/ValleyCurve';
 import { FounderTestimonials } from '@/components/testimonials/FounderTestimonials';
 import { useT } from '@/hooks/useT';
@@ -23,13 +23,9 @@ export default function ValleyOfDeath() {
   const isRTL = lang === 'ar';
 
   const [assessmentActive, setAssessmentActive] = useState(false);
-  const assessmentRef = useRef<HTMLDivElement>(null);
 
   const handleStartDiagnosis = () => {
     setAssessmentActive(true);
-    setTimeout(() => {
-      assessmentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 120);
   };
 
   return (
@@ -278,11 +274,9 @@ export default function ValleyOfDeath() {
         </div>
       </section>
 
-      {/* ── INTERACTIVE ASSESSMENT — revealed on CTA click ──────────────── */}
+      {/* ── INTERACTIVE ASSESSMENT — full-screen overlay, revealed on CTA click */}
       {assessmentActive && (
-        <div ref={assessmentRef}>
-          <FounderAssessment autoStart />
-        </div>
+        <ValleyAssessment onClose={() => setAssessmentActive(false)} />
       )}
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────── */}
