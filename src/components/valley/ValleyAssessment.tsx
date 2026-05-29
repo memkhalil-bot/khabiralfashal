@@ -1,11 +1,14 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { AssessmentResult } from './AssessmentResult';
+import { COUNTRIES_SORTED } from '@/data/valleyCountries';
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type Stage = 'gate' | 'quiz' | 'analyzing' | 'result';
 
@@ -13,146 +16,516 @@ interface BinaryQ {
   id: string;
   en: string;
   ar: string;
-  /** If true: Yes = risky (weight 5), No = safe (weight 1). Reversed otherwise. */
-  yesRisky: boolean;
+  yesRisky: boolean; // true → Yes=5 No=1; false → Yes=1 No=5
   blindSpot?: string;
 }
 
+// ── 12 Bilingual Yes/No Questions ─────────────────────────────────────────────
+
 const QUESTIONS: BinaryQ[] = [
-  {
-    id: 'q01',
-    en: 'Is your cash runway less than 3 months?',
-    ar: 'هل مدة بقاء نقدك أقل من 3 أشهر؟',
-    yesRisky: true,
-    blindSpot: 'Financial denial',
-  },
-  {
-    id: 'q02',
-    en: 'Do you avoid opening your cash flow sheet?',
-    ar: 'هل تتجنّب فتح جدول التدفق النقدي؟',
-    yesRisky: true,
-    blindSpot: 'Financial denial',
-  },
-  {
-    id: 'q03',
-    en: 'Has your team stopped giving you honest feedback?',
-    ar: 'هل توقّف فريقك عن إعطائك تغذية راجعة صادقة؟',
-    yesRisky: true,
-    blindSpot: 'Leadership isolation',
-  },
-  {
-    id: 'q04',
-    en: 'Is there a hard decision you have been avoiding for months?',
-    ar: 'هل هناك قرار صعب أجّلتَه لأشهر؟',
-    yesRisky: true,
-    blindSpot: 'Decision paralysis',
-  },
-  {
-    id: 'q05',
-    en: 'Does losing one client or investor mean collapse?',
-    ar: 'هل فقدان عميل واحد أو مستثمر يعني الانهيار؟',
-    yesRisky: true,
-    blindSpot: 'Concentration risk',
-  },
-  {
-    id: 'q06',
-    en: 'Has your sleep deteriorated significantly in the last month?',
-    ar: 'هل تدهور نومك بشكل ملحوظ خلال الشهر الماضي؟',
-    yesRisky: true,
-    blindSpot: 'Burnout proximity',
-  },
-  {
-    id: 'q07',
-    en: 'Do you feel the company has become your entire identity?',
-    ar: 'هل تشعر أن الشركة أصبحت هويتك بالكامل؟',
-    yesRisky: true,
-    blindSpot: 'Identity fusion',
-  },
-  {
-    id: 'q08',
-    en: 'Is the company burning more than it earns with no path to break-even in 6 months?',
-    ar: 'هل تحرق الشركة أكثر مما تكسب دون مسار واضح للتعادل خلال 6 أشهر؟',
-    yesRisky: true,
-    blindSpot: 'Financial denial',
-  },
-  {
-    id: 'q09',
-    en: 'Has a co-founder or key team member left in the last 3 months?',
-    ar: 'هل غادر شريك مؤسس أو عضو فريق أساسي خلال الأشهر الثلاثة الماضية؟',
-    yesRisky: true,
-    blindSpot: 'Leadership isolation',
-  },
-  {
-    id: 'q10',
-    en: 'Have honest conversations about the company\'s problems become rare?',
-    ar: 'هل أصبحت المحادثات الصادقة حول مشاكل الشركة نادرة؟',
-    yesRisky: true,
-    blindSpot: 'Leadership isolation',
-  },
-  {
-    id: 'q11',
-    en: 'When someone warns you about the company, do you get defensive?',
-    ar: 'حين يحذّرك أحد بشأن الشركة، هل تدافع فوراً؟',
-    yesRisky: true,
-    blindSpot: 'Founder denial',
-  },
-  {
-    id: 'q12',
-    en: 'Do you have a real written Plan B if the company fails?',
-    ar: 'هل لديك خطة بديلة مكتوبة حقيقية إن فشلت الشركة؟',
-    yesRisky: false,
-    blindSpot: 'No exit plan',
-  },
+  { id: 'q01', en: 'Is your cash runway less than 3 months?',                              ar: 'هل مدة بقاء نقدك أقل من 3 أشهر؟',                                           yesRisky: true,  blindSpot: 'Financial denial' },
+  { id: 'q02', en: 'Do you avoid opening your cash flow sheet?',                            ar: 'هل تتجنّب فتح جدول التدفق النقدي؟',                                          yesRisky: true,  blindSpot: 'Financial denial' },
+  { id: 'q03', en: 'Has your team stopped giving you honest feedback?',                     ar: 'هل توقّف فريقك عن إعطائك تغذية راجعة صادقة؟',                               yesRisky: true,  blindSpot: 'Leadership isolation' },
+  { id: 'q04', en: 'Is there a hard decision you have been avoiding for months?',           ar: 'هل هناك قرار صعب أجّلتَه لأشهر؟',                                           yesRisky: true,  blindSpot: 'Decision paralysis' },
+  { id: 'q05', en: 'Does losing one client or investor mean collapse?',                     ar: 'هل فقدان عميل واحد أو مستثمر يعني الانهيار؟',                               yesRisky: true,  blindSpot: 'Concentration risk' },
+  { id: 'q06', en: 'Has your sleep deteriorated significantly in the last month?',          ar: 'هل تدهور نومك بشكل ملحوظ خلال الشهر الماضي؟',                              yesRisky: true,  blindSpot: 'Burnout proximity' },
+  { id: 'q07', en: 'Do you feel the company has become your entire identity?',              ar: 'هل تشعر أن الشركة أصبحت هويتك بالكامل؟',                                    yesRisky: true,  blindSpot: 'Identity fusion' },
+  { id: 'q08', en: 'Is the company burning more than it earns with no break-even in sight?', ar: 'هل تحرق الشركة أكثر مما تكسب دون مسار واضح للتعادل؟',                    yesRisky: true,  blindSpot: 'Financial denial' },
+  { id: 'q09', en: 'Has a co-founder or key person left in the last 3 months?',             ar: 'هل غادر شريك مؤسس أو عضو فريق أساسي خلال الأشهر الثلاثة الماضية؟',        yesRisky: true,  blindSpot: 'Leadership isolation' },
+  { id: 'q10', en: 'Have honest conversations about the company\'s problems become rare?',  ar: 'هل أصبحت المحادثات الصادقة حول مشاكل الشركة نادرة؟',                        yesRisky: true,  blindSpot: 'Leadership isolation' },
+  { id: 'q11', en: 'When someone warns you about the company, do you get defensive?',       ar: 'حين يحذّرك أحد بشأن الشركة، هل تدافع فوراً؟',                               yesRisky: true,  blindSpot: 'Founder denial' },
+  { id: 'q12', en: 'Do you have a real written Plan B if the company fails?',               ar: 'هل لديك خطة بديلة مكتوبة حقيقية إن فشلت الشركة؟',                           yesRisky: false, blindSpot: 'No exit plan' },
 ];
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Dropdown data ─────────────────────────────────────────────────────────────
 
-function classify(
-  score: number,
-  max: number,
-  verdicts: Record<string, { title: string; insight: string }>,
-) {
+const SECTORS = {
+  en: ['Technology','SaaS','Fintech','E-commerce','Healthcare','Education',
+       'Manufacturing','Retail','Food & Beverage','Logistics','Construction',
+       'Marketing','Media','Other'],
+  ar: ['التكنولوجيا','برمجيات كخدمة (SaaS)','التكنولوجيا المالية',
+       'التجارة الإلكترونية','الرعاية الصحية','التعليم','التصنيع',
+       'التجزئة','الأغذية والمشروبات','اللوجستيات','البناء والتشييد',
+       'التسويق','الإعلام','أخرى'],
+};
+
+const STAGES = {
+  en: ['Pre-Idea','Idea','MVP','Pre-Seed','Seed','Early Revenue','Growth','Scale'],
+  ar: ['ما قبل الفكرة','فكرة','النموذج الأولي','ما قبل التمويل الأولي',
+       'التمويل الأولي','إيرادات مبكرة','نمو','توسع'],
+};
+
+const EMPLOYEES = {
+  en: ['Founder Only','2–5','6–10','11–25','26–50','51+'],
+  ar: ['المؤسس فقط','٢–٥','٦–١٠','١١–٢٥','٢٦–٥٠','٥١ فأكثر'],
+};
+
+// ── Validation ────────────────────────────────────────────────────────────────
+
+const FAKE_NAMES = new Set(['test','admin','user','name','anon','fake','null',
+  'undefined','hello','asdf','qwer','zxcv','abc','xyz','aaa','bbb','xxx','yyy',
+  'zzz','123','000','مستخدم','اسم','اختبار','مجهول']);
+
+const DISPOSABLE = new Set(['test.com','example.com','mailinator.com',
+  'guerrillamail.com','yopmail.com','tempmail.com','throwaway.email',
+  'fakeinbox.com','trashmail.com','10minutemail.com','temp-mail.org',
+  'maildrop.cc','spamgourmet.com','dispostable.com']);
+
+function validateName(name: string, ar: boolean): string | null {
+  const n = name.trim();
+  if (n.length < 2) return ar ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
+  if (!/[a-zA-Z؀-ۿ]/.test(n)) return ar ? 'يجب أن يحتوي الاسم على أحرف' : 'Name must contain letters';
+  if (/(.)\1{3,}/.test(n.toLowerCase())) return ar ? 'الاسم يبدو غير حقيقي' : 'Name does not look real';
+  if (new Set(n.toLowerCase().replace(/\s/g, '')).size < 2) return ar ? 'الاسم يبدو غير حقيقي' : 'Name does not look real';
+  if (FAKE_NAMES.has(n.toLowerCase().replace(/\s/g, ''))) return ar ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
+  return null;
+}
+
+function validateEmail(email: string, ar: boolean): string | null {
+  const e = email.trim().toLowerCase();
+  if (!e) return ar ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) return ar ? 'أدخل بريداً إلكترونياً صحيحاً' : 'Enter a valid email';
+  const [local, domain] = e.split('@');
+  if (DISPOSABLE.has(domain)) return ar ? 'الرجاء استخدام بريد إلكتروني حقيقي' : 'Please use a real email';
+  if (local.length < 3) return ar ? 'البريد الإلكتروني يبدو غير صحيح' : 'Email looks invalid';
+  if (/(.)\1{4,}/.test(local)) return ar ? 'البريد الإلكتروني يبدو غير حقيقي' : 'Email does not look real';
+  return null;
+}
+
+// ── Score / Classify ──────────────────────────────────────────────────────────
+
+function classify(score: number, max: number, verdicts: Record<string, { title: string; insight: string }>) {
   const pct = Math.round((score / max) * 100);
-  if (pct < 30)
-    return { level: 'STABLE', title: verdicts['STABLE']?.title ?? '', tone: 'text-emerald-400', insight: verdicts['STABLE']?.insight ?? '' };
-  if (pct < 55)
-    return { level: 'EXPOSED', title: verdicts['EXPOSED']?.title ?? '', tone: 'text-amber-400', insight: verdicts['EXPOSED']?.insight ?? '' };
-  if (pct < 78)
-    return { level: 'INSIDE THE VALLEY', title: verdicts['INSIDE THE VALLEY']?.title ?? '', tone: 'text-ember', insight: verdicts['INSIDE THE VALLEY']?.insight ?? '' };
+  if (pct < 30) return { level: 'STABLE', title: verdicts['STABLE']?.title ?? '', tone: 'text-emerald-400', insight: verdicts['STABLE']?.insight ?? '' };
+  if (pct < 55) return { level: 'EXPOSED', title: verdicts['EXPOSED']?.title ?? '', tone: 'text-amber-400', insight: verdicts['EXPOSED']?.insight ?? '' };
+  if (pct < 78) return { level: 'INSIDE THE VALLEY', title: verdicts['INSIDE THE VALLEY']?.title ?? '', tone: 'text-ember', insight: verdicts['INSIDE THE VALLEY']?.insight ?? '' };
   return { level: 'COLLAPSE PROXIMITY', title: verdicts['COLLAPSE PROXIMITY']?.title ?? '', tone: 'text-red-500', insight: verdicts['COLLAPSE PROXIMITY']?.insight ?? '' };
 }
 
-function bezier(p0: number, p1: number, p2: number, p3: number, t: number) {
+// ── Bezier / Marker math ──────────────────────────────────────────────────────
+// Path: M 0 80 C 280 80, 460 325, 600 335 C 700 335, 870 80, 1200 70
+// Seg1 t01 0→0.5: P0=(0,80) P1=(280,80) P2=(460,325) P3=(600,335)
+// Seg2 t01 0.5→1: P0=(600,335) P1=(700,335) P2=(870,80) P3=(1200,70)
+
+function bez(p0: number, p1: number, p2: number, p3: number, t: number) {
   const mt = 1 - t;
   return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
 }
 
-// Curve: M 0 45 C 160 45, 350 240, 450 240 C 550 240, 740 45, 900 45
-// viewBox 900×285. Floor at y=240, safe zone at y=45.
-function curvePoint(t01: number): { cx: number; cy: number } {
+function curveAt(t01: number): { cx: number; cy: number } {
   if (t01 <= 0.5) {
     const t = t01 * 2;
-    return { cx: bezier(0, 160, 350, 450, t), cy: bezier(45, 45, 240, 240, t) };
+    return { cx: bez(0, 280, 460, 600, t), cy: bez(80, 80, 325, 335, t) };
   }
   const t = (t01 - 0.5) * 2;
-  return { cx: bezier(450, 550, 740, 900, t), cy: bezier(240, 240, 45, 45, t) };
+  return { cx: bez(600, 700, 870, 1200, t), cy: bez(335, 335, 80, 70, t) };
 }
 
-// Maps final risk % to a stable resting position on the curve.
-// High risk → floor (t01=0.50). Low risk → recovery (t01=0.85).
-function finalMarkerT01(scorePct: number): number {
-  if (scorePct < 30) return 0.85;
-  if (scorePct < 55) return 0.62;
-  return 0.50;
-}
-function finalMarkerSink(scorePct: number): number {
-  if (scorePct < 30) return 0;
-  if (scorePct < 55) return 18;
-  if (scorePct < 78) return 45;
-  return 70;
+// Final marker position based on risk %
+function finalT01(pct: number) { return pct < 30 ? 0.85 : pct < 55 ? 0.65 : 0.5; }
+function finalSink(pct: number) { return pct < 30 ? 0 : pct < 55 ? 18 : pct < 78 ? 45 : 68; }
+
+// Pre-computed stage marker positions
+const STAGE_PTS = [0.10, 0.30, 0.50, 0.70, 0.90].map(curveAt);
+const STAGE_LABELS = {
+  en: ['PRE-IDEA', 'SEED', 'VALLEY FLOOR', 'EARLY REVENUE', 'GROWTH'],
+  ar: ['ما قبل التأسيس', 'التأسيس', 'فجوة التمويل', 'النمو المبكر', 'التوسع'],
+};
+const STAGE_SUBS = {
+  en: ['Idea & Research', 'Build & Test', 'Most Dangerous', 'Revenue Begins', 'Scale'],
+  ar: ['فكرة وبحث', 'بناء وتطوير', 'أخطر مرحلة', 'بداية الإيرادات', 'نمو واستقرار'],
+};
+
+// ── Searchable Country Combobox ───────────────────────────────────────────────
+
+function CountryCombobox({ value, onChange, isRTL, error }: {
+  value: string;
+  onChange: (v: string) => void;
+  isRTL: boolean;
+  error?: string;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selected = COUNTRIES_SORTED.find(c => c.en === value);
+  const display = selected ? (isRTL ? selected.ar : selected.en) : '';
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return COUNTRIES_SORTED.filter(c =>
+      c.en.toLowerCase().includes(q) || c.ar.includes(query)
+    );
+  }, [query]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        setOpen(false); setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div
+        className={cn(
+          'cinematic-input flex items-center gap-2 cursor-pointer',
+          isRTL && 'flex-row-reverse',
+        )}
+        onClick={() => { setOpen(o => !o); if (!open) { setQuery(''); setTimeout(() => inputRef.current?.focus(), 50); } }}
+      >
+        <input
+          ref={inputRef}
+          value={open ? query : display}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          placeholder={isRTL ? 'ابحث عن الدولة…' : 'Search country…'}
+          className={cn('flex-1 bg-transparent outline-none text-white/85 placeholder-white/28', isRTL && 'text-right')}
+          readOnly={!open}
+          onFocus={() => { setQuery(''); setOpen(true); }}
+        />
+        <ChevronDown className={cn('size-3.5 text-white/30 flex-shrink-0 transition-transform', open && 'rotate-180')} />
+      </div>
+      {error && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{error}</p>}
+      {open && (
+        <ul className="absolute top-full mt-1 left-0 right-0 z-[80] bg-zinc-950 border border-white/10 max-h-52 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <li className={cn('px-4 py-3 text-white/38 text-sm', isRTL && 'text-right font-arabic')}>
+              {isRTL ? 'لا توجد نتائج' : 'No results'}
+            </li>
+          ) : filtered.map(c => (
+            <li
+              key={c.en}
+              onMouseDown={e => { e.preventDefault(); onChange(c.en); setOpen(false); setQuery(''); }}
+              className={cn(
+                'px-4 py-2.5 text-sm text-white/70 hover:bg-white/[0.06] hover:text-white cursor-pointer transition-colors',
+                value === c.en && 'text-ember',
+                isRTL && 'text-right font-arabic',
+              )}
+            >
+              {isRTL ? c.ar : c.en}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── City Dropdown ─────────────────────────────────────────────────────────────
+
+function CitySelect({ countryKey, value, onChange, isRTL, error }: {
+  countryKey: string;
+  value: string;
+  onChange: (v: string) => void;
+  isRTL: boolean;
+  error?: string;
+}) {
+  const country = COUNTRIES_SORTED.find(c => c.en === countryKey);
+  const cities = country?.cities ?? [];
+
+  useEffect(() => { if (countryKey) onChange(''); }, [countryKey]); // eslint-disable-line
+
+  return (
+    <div>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          disabled={!countryKey}
+          className={cn(
+            'cinematic-input appearance-none w-full pr-8 disabled:opacity-35 disabled:cursor-not-allowed',
+            isRTL && 'text-right pl-8 pr-4',
+            !value && 'text-white/38',
+          )}
+        >
+          <option value="">{isRTL ? 'اختر المدينة' : 'Select city'}</option>
+          {cities.map(city => (
+            <option key={city.en} value={city.en}>{isRTL ? city.ar : city.en}</option>
+          ))}
+        </select>
+        <ChevronDown className={cn('pointer-events-none absolute top-1/2 -translate-y-1/2 size-3.5 text-white/30', isRTL ? 'left-3' : 'right-3')} />
+      </div>
+      {error && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{error}</p>}
+    </div>
+  );
+}
+
+// ── Generic Dropdown ──────────────────────────────────────────────────────────
+
+function DropSelect({ options, value, onChange, placeholder, isRTL, error }: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  isRTL: boolean;
+  error?: string;
+}) {
+  return (
+    <div>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className={cn(
+            'cinematic-input appearance-none w-full pr-8',
+            isRTL && 'text-right pl-8 pr-4',
+            !value && 'text-white/38',
+          )}
+        >
+          <option value="">{placeholder}</option>
+          {options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown className={cn('pointer-events-none absolute top-1/2 -translate-y-1/2 size-3.5 text-white/30', isRTL ? 'left-3' : 'right-3')} />
+      </div>
+      {error && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{error}</p>}
+    </div>
+  );
+}
+
+// ── Form field wrapper ────────────────────────────────────────────────────────
+
+function Field({ label, required, isRTL, children }: {
+  label: string; required?: boolean; isRTL: boolean; children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className={cn(
+        'block text-white/38 mb-2',
+        isRTL ? 'font-arabic text-sm text-right' : 'text-[10px] uppercase tracking-[0.3em]',
+      )}>
+        {label}{required && <span className="text-ember ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+// ── Cinematic Valley Visual ───────────────────────────────────────────────────
+
+function ValleyVisual({
+  dispT01, markerY, markerCx, tension, isDanger, isActive, isRTL, lang,
+}: {
+  dispT01: number; markerY: number; markerCx: number;
+  tension: number; isDanger: boolean; isActive: boolean;
+  isRTL: boolean; lang: string;
+}) {
+  const CURVE = 'M 0 80 C 280 80, 460 325, 600 335 C 700 335, 870 80, 1200 70';
+  const markerFill = isDanger ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)';
+  const dangerHue = isDanger ? '0' : '18';
+  const labels = lang === 'ar' ? STAGE_LABELS.ar : STAGE_LABELS.en;
+  const subs = lang === 'ar' ? STAGE_SUBS.ar : STAGE_SUBS.en;
+
+  return (
+    <div className="relative w-full" style={{ paddingBottom: '31.25%' }}>
+      <div className="absolute inset-0">
+        <svg
+          viewBox="0 0 1200 375"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full"
+          style={{ overflow: 'visible' }}
+        >
+          <defs>
+            {/* Atmospheric background */}
+            <linearGradient id="vaBg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#020101" />
+              <stop offset="45%"  stopColor="#070402" />
+              <stop offset="100%" stopColor="#030200" />
+            </linearGradient>
+            {/* Ground (below path) */}
+            <linearGradient id="vaGround" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#0d0804" />
+              <stop offset="60%"  stopColor="#090603" />
+              <stop offset="100%" stopColor="#040300" />
+            </linearGradient>
+            {/* Path gradient: orange → dark gray → green */}
+            <linearGradient id="vaPathGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"    stopColor="hsl(18 92% 55%)" />
+              <stop offset="40%"   stopColor="hsl(18 92% 55%)" />
+              <stop offset="40.01%" stopColor="hsl(0 0% 28%)" />
+              <stop offset="60%"   stopColor="hsl(0 0% 28%)" />
+              <stop offset="60.01%" stopColor="#7ed957" />
+              <stop offset="100%"  stopColor="#7ed957" />
+            </linearGradient>
+            <linearGradient id="vaGhostGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"    stopColor="hsl(18 92% 55%)" stopOpacity="0.18" />
+              <stop offset="40%"   stopColor="hsl(18 92% 55%)" stopOpacity="0.18" />
+              <stop offset="40.01%" stopColor="hsl(0 0% 40%)" stopOpacity="0.10" />
+              <stop offset="60%"   stopColor="hsl(0 0% 40%)" stopOpacity="0.10" />
+              <stop offset="60.01%" stopColor="#7ed957" stopOpacity="0.18" />
+              <stop offset="100%"  stopColor="#7ed957" stopOpacity="0.18" />
+            </linearGradient>
+            {/* City/recovery glow on right */}
+            <radialGradient id="vaRightGlow" cx="88%" cy="25%" r="28%">
+              <stop offset="0%"   stopColor="hsl(38 85% 60% / 0.14)" />
+              <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+            {/* Valley danger glow bottom center */}
+            <radialGradient id="vaFloorGlow" cx="50%" cy="92%" r="28%">
+              <stop offset="0%"   stopColor={`hsl(${dangerHue} 92% 45% / ${0.12 + tension * 0.22})`} />
+              <stop offset="100%" stopColor="transparent" />
+            </radialGradient>
+            {/* Glow filter for path */}
+            <filter id="vaPathGlow" x="-5%" y="-150%" width="110%" height="400%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+            {/* Softer glow for halos */}
+            <filter id="vaHaloGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="8" />
+            </filter>
+          </defs>
+
+          {/* Background */}
+          <rect width="1200" height="375" fill="url(#vaBg)" />
+
+          {/* Ground mass below the valley path */}
+          <path
+            d={`${CURVE} L 1200 375 L 0 375 Z`}
+            fill="url(#vaGround)"
+          />
+
+          {/* Left cliff face (darker stratum) */}
+          <path
+            d="M 0 375 L 0 72 C 60 70, 125 80, 190 110 C 235 130, 270 160, 300 200 C 320 225, 335 255, 345 280 L 345 375 Z"
+            fill="hsl(20 18% 4%)"
+          />
+          <path
+            d="M 0 375 L 0 68 C 50 66, 105 74, 160 100 C 200 118, 235 145, 265 175 C 285 198, 295 222, 300 248 L 300 375 Z"
+            fill="hsl(20 18% 3%)"
+          />
+          {/* Subtle rock strata lines on left cliff */}
+          <path d="M 0 140 C 55 136, 100 145, 140 165 L 140 170 C 100 150, 55 141, 0 145 Z" fill="hsl(20 14% 7%)" />
+          <path d="M 0 195 C 45 190, 85 200, 118 218 L 118 223 C 85 205, 45 195, 0 200 Z" fill="hsl(20 14% 6%)" />
+
+          {/* Right cliff face */}
+          <path
+            d="M 1200 375 L 1200 62 C 1140 60, 1075 70, 1010 100 C 965 122, 930 150, 905 185 C 885 210, 870 240, 862 268 L 862 375 Z"
+            fill="hsl(20 18% 4%)"
+          />
+          <path
+            d="M 1200 375 L 1200 58 C 1150 56, 1090 66, 1030 95 C 990 115, 958 142, 935 170 C 916 193, 903 218, 898 242 L 898 375 Z"
+            fill="hsl(20 18% 3%)"
+          />
+          {/* Right cliff strata */}
+          <path d="M 1200 135 C 1145 131, 1100 140, 1062 158 L 1062 163 C 1100 145, 1145 136, 1200 140 Z" fill="hsl(20 14% 7%)" />
+          <path d="M 1200 188 C 1150 183, 1110 192, 1076 208 L 1076 213 C 1110 197, 1150 188, 1200 193 Z" fill="hsl(20 14% 6%)" />
+
+          {/* Valley floor atmosphere glow */}
+          <rect width="1200" height="375" fill="url(#vaFloorGlow)" />
+
+          {/* Recovery/city glow on right side */}
+          <rect width="1200" height="375" fill="url(#vaRightGlow)" />
+
+          {/* Zone dividers */}
+          <line x1="480" y1="22" x2="480" y2="360" stroke="hsl(0 0% 100% / 0.06)" strokeWidth="1" strokeDasharray="5 8" />
+          <line x1="720" y1="22" x2="720" y2="360" stroke="hsl(0 0% 100% / 0.06)" strokeWidth="1" strokeDasharray="5 8" />
+
+          {/* Zone labels */}
+          <text x="240" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            fill="hsl(18 92% 60%)" opacity="0.72">
+            {isRTL ? 'النزول' : 'DESCENT'}
+          </text>
+          <text x="600" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            fill="hsl(0 0% 54%)" opacity="0.72">
+            {isRTL ? 'القاع' : 'FLOOR'}
+          </text>
+          <text x="960" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
+            fill="#7ed957" opacity="0.72">
+            {isRTL ? 'الصعود' : 'ASCENT'}
+          </text>
+
+          {/* Ghost path — always visible, faint */}
+          <path d={CURVE} fill="none" stroke="url(#vaGhostGrad)" strokeWidth="2.5" />
+
+          {/* Active trace — draws in left-to-right */}
+          <path
+            d={CURVE}
+            fill="none"
+            stroke="url(#vaPathGrad)"
+            strokeWidth="4.5"
+            pathLength={100}
+            strokeDasharray={100}
+            strokeDashoffset={100 - (isActive ? dispT01 : 0) * 100}
+            filter="url(#vaPathGlow)"
+            style={{ transition: 'stroke-dashoffset 0.65s cubic-bezier(0.16,1,0.3,1)' }}
+          />
+
+          {/* Stage markers: 5 circles + labels */}
+          {STAGE_PTS.map((pt, i) => (
+            <g key={i}>
+              {/* Halo behind circle */}
+              <circle cx={pt.cx} cy={pt.cy} r={14} fill="hsl(0 0% 100% / 0.06)" />
+              {/* White circle */}
+              <circle cx={pt.cx} cy={pt.cy} r={7} fill="white" opacity="0.82" />
+              {/* Stage name above */}
+              <text
+                x={pt.cx}
+                y={pt.cy - (i === 2 ? 25 : 20)}
+                textAnchor="middle"
+                fontSize={isRTL ? '12' : '11'}
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                fill="white" opacity="0.72"
+              >
+                {labels[i]}
+              </text>
+              {/* Subtitle below */}
+              <text
+                x={pt.cx}
+                y={pt.cy + (i === 2 ? 25 : 20)}
+                textAnchor="middle"
+                fontSize={isRTL ? '10' : '9.5'}
+                fontFamily="ui-sans-serif, system-ui, sans-serif"
+                fill="white" opacity="0.35"
+              >
+                {subs[i]}
+              </text>
+            </g>
+          ))}
+
+          {/* Founder marker — only during active stages */}
+          {isActive && (
+            <>
+              {/* Outer glow halo */}
+              <circle
+                cx={markerCx} cy={markerY}
+                r={16 + tension * 20}
+                fill={`hsl(${dangerHue} 92% 55% / ${tension * 0.10})`}
+                filter="url(#vaHaloGlow)"
+                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
+              />
+              {/* Inner halo */}
+              <circle
+                cx={markerCx} cy={markerY}
+                r={8 + tension * 10}
+                fill={`hsl(${dangerHue} 92% 55% / ${0.14 + tension * 0.18})`}
+                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
+              />
+              {/* Main marker dot */}
+              <motion.circle
+                animate={{ cx: markerCx, cy: markerY, r: [7, 9.5, 7] }}
+                transition={{
+                  cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                  cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
+                  r:  { duration: 2.2,  repeat: Infinity, ease: 'easeInOut' },
+                }}
+                fill={markerFill}
+              />
+            </>
+          )}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const t = useT();
@@ -164,64 +537,62 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [finalAnswers, setFinalAnswers] = useState<Record<string, number>>({});
-  const [gateForm, setGateForm] = useState({ name: '', email: '' });
-  const [gateErrors, setGateErrors] = useState<{ name?: string; email?: string }>({});
+  const [flashKey, setFlashKey] = useState(0);
+
+  // Gate form
+  const [form, setForm] = useState({
+    name: '', email: '', company: '',
+    country: '', city: '', sector: '', stageField: '', employees: '',
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [founderName, setFounderName] = useState<string | null>(null);
   const [founderEmail, setFounderEmail] = useState('');
-  const [flashKey, setFlashKey] = useState(0);
+
   const rootRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const total = QUESTIONS.length;
-  const MAX_SCORE = total * 5; // 60
+  const MAX = total * 5;
 
-  // Lock body scroll while overlay is open
+  // Lock body scroll
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  // ── Derived values ──────────────────────────────────────────────────────────
+  // Scroll to content top when question changes
+  useEffect(() => {
+    if (stage === 'quiz') contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [idx, stage]);
+
+  // ── Derived values ─────────────────────────────────────────────────────────
 
   const answered = Object.keys(answers).length;
-  const partialScore = useMemo(
-    () => Object.values(answers).reduce((s, v) => s + v, 0),
-    [answers],
-  );
+  const partialScore = useMemo(() => Object.values(answers).reduce((s, v) => s + v, 0), [answers]);
   const tension = answered === 0 ? 0 : partialScore / (answered * 5);
+  const isDanger = tension > 0.62;
 
-  const finalScore = useMemo(
-    () => Object.values(finalAnswers).reduce((s, v) => s + v, 0),
-    [finalAnswers],
-  );
-  const finalScorePct = Math.round((finalScore / MAX_SCORE) * 100);
+  const finalScore = useMemo(() => Object.values(finalAnswers).reduce((s, v) => s + v, 0), [finalAnswers]);
+  const finalPct = Math.round((finalScore / MAX) * 100);
 
   const isDone = stage === 'analyzing' || stage === 'result';
-
-  // During quiz: marker moves left-to-right with progress + risk sink
-  // During analyzing/result: marker rests at risk-based position
   const quizT01 = total === 0 ? 0 : idx / total;
-  const dispT01 = isDone ? finalMarkerT01(finalScorePct) : quizT01;
-  const dispSink = isDone ? finalMarkerSink(finalScorePct) : tension * 40;
-
-  const { cx: baseCx, cy: baseCy } = curvePoint(dispT01);
-  const markerY = Math.min(275, baseCy + dispSink);
-  const isDanger = tension > 0.62 || finalScorePct >= 78;
-  const markerColor = isDanger ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)';
+  const dispT01 = isDone ? finalT01(finalPct) : quizT01;
+  const dispSink = isDone ? finalSink(finalPct) : tension * 42;
+  const { cx: baseCx, cy: baseCy } = curveAt(dispT01);
+  const markerY = Math.min(368, baseCy + dispSink);
 
   const verdict = useMemo(() => {
     const s = isDone ? finalScore : partialScore;
-    const m = isDone ? MAX_SCORE : MAX_SCORE;
-    return classify(s, m, a.verdicts);
-  }, [isDone, finalScore, partialScore, MAX_SCORE, a.verdicts]);
+    return classify(s, MAX, a.verdicts);
+  }, [isDone, finalScore, partialScore, MAX, a.verdicts]);
 
-  const scorePct = isDone ? finalScorePct : Math.round((partialScore / MAX_SCORE) * 100);
+  const scorePct = isDone ? finalPct : Math.round((partialScore / MAX) * 100);
 
   const blindSpots = useMemo(() => {
     const src = isDone ? finalAnswers : answers;
     const set = new Set<string>();
-    QUESTIONS.forEach(q => {
-      if ((src[q.id] ?? 0) >= 4 && q.blindSpot) set.add(q.blindSpot);
-    });
+    QUESTIONS.forEach(q => { if ((src[q.id] ?? 0) >= 4 && q.blindSpot) set.add(q.blindSpot); });
     return Array.from(set).slice(0, 4);
   }, [isDone, finalAnswers, answers]);
 
@@ -230,7 +601,7 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     : verdict.level === 'INSIDE THE VALLEY' ? 'medium'
     : 'low';
 
-  // ── Keyboard — Y/N to answer ─────────────────────────────────────────────
+  // ── Keyboard Y/N ───────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (stage !== 'quiz') return;
@@ -244,497 +615,354 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, idx]);
 
-  // ── Actions ──────────────────────────────────────────────────────────────
+  // ── Gate submit ────────────────────────────────────────────────────────────
 
   const submitGate = () => {
-    const errs: typeof gateErrors = {};
-    const name = gateForm.name.trim();
-    const email = gateForm.email.trim();
-    if (name.length < 2)
-      errs.name = isRTL ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
-      errs.email = isRTL ? 'أدخل بريداً إلكترونياً صحيحاً' : 'Enter a valid email';
-    if (Object.keys(errs).length) { setGateErrors(errs); return; }
-    setFounderName(name);
-    setFounderEmail(email);
-    setGateErrors({});
+    const errs: Record<string, string> = {};
+    const ar = isRTL;
+
+    const nameErr = validateName(form.name, ar);
+    if (nameErr) errs.name = nameErr;
+
+    const emailErr = validateEmail(form.email, ar);
+    if (emailErr) errs.email = emailErr;
+
+    if (!form.country) errs.country = ar ? 'اختر الدولة' : 'Select a country';
+    if (!form.city)    errs.city    = ar ? 'اختر المدينة' : 'Select a city';
+    if (!form.sector)  errs.sector  = ar ? 'اختر القطاع' : 'Select a sector';
+    if (!form.stageField) errs.stage = ar ? 'اختر المرحلة' : 'Select a stage';
+    if (!form.employees) errs.employees = ar ? 'اختر عدد الموظفين' : 'Select employee count';
+
+    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+
+    setFormErrors({});
+    setFounderName(form.name.trim());
+    setFounderEmail(form.email.trim());
     setStage('quiz');
     setIdx(0);
     setAnswers({});
   };
 
-  const pickAnswer = (userSaysYes: boolean, q: BinaryQ) => {
+  // ── Quiz answer ────────────────────────────────────────────────────────────
+
+  const pickAnswer = useCallback((userSaysYes: boolean, q: BinaryQ) => {
     const risky = userSaysYes === q.yesRisky;
     const weight = risky ? 5 : 1;
     if (risky) setFlashKey(k => k + 1);
     const newAnswers = { ...answers, [q.id]: weight };
     setAnswers(newAnswers);
     setTimeout(() => {
-      if (idx + 1 >= total) {
-        doFinalize(newAnswers);
-      } else {
-        setIdx(i => i + 1);
-        rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      if (idx + 1 >= total) doFinalize(newAnswers);
+      else setIdx(i => i + 1);
     }, 220);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, idx, total]);
+
+  // ── Finalize ───────────────────────────────────────────────────────────────
 
   const doFinalize = async (fa: Record<string, number>) => {
     setFinalAnswers(fa);
     setStage('analyzing');
-    await new Promise(r => setTimeout(r, 2800));
-    // Submit to Supabase
+    await new Promise(r => setTimeout(r, 3000));
     try {
       const fs = Object.values(fa).reduce((s, v) => s + v, 0);
-      const v = classify(fs, MAX_SCORE, a.verdicts);
+      const v = classify(fs, MAX, a.verdicts);
       const bs = Array.from(new Set(
         QUESTIONS.filter(q => (fa[q.id] ?? 0) >= 4 && q.blindSpot).map(q => q.blindSpot!),
       ));
       await supabase.from('founder_assessments').insert({
         email: founderEmail,
         name: founderName,
-        answers: { responses: fa },
+        company: form.company || null,
+        country: form.country || null,
+        sector: form.sector || null,
+        stage: form.stageField || null,
+        answers: { responses: fa, city: form.city, employees: form.employees },
         risk_score: fs,
         risk_level: v.level,
         blind_spots: bs,
         insight: v.insight,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       } as never);
-    } catch (err) {
-      console.error('Valley assessment submit failed', err);
-    }
+    } catch (err) { console.error('submission failed', err); }
     setStage('result');
     rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const reset = () => {
     setStage('gate');
-    setIdx(0);
-    setAnswers({});
-    setFinalAnswers({});
-    setGateForm({ name: '', email: '' });
-    setFounderName(null);
-    setFounderEmail('');
-    setFlashKey(0);
+    setIdx(0); setAnswers({}); setFinalAnswers({}); setFlashKey(0);
+    setForm({ name: '', email: '', company: '', country: '', city: '', sector: '', stageField: '', employees: '' });
+    setFounderName(null); setFounderEmail('');
     rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // ── SVG ──────────────────────────────────────────────────────────────────
-
-  const CURVE = 'M 0 45 C 160 45, 350 240, 450 240 C 550 240, 740 45, 900 45';
   const isActive = stage === 'quiz' || stage === 'analyzing';
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-50 bg-black text-white overflow-y-auto">
 
-      {/* ── Atmospheric overlays ──────────────────────────────────────── */}
+      {/* Atmospheric overlays */}
       {isActive && (
         <>
-          <motion.div
-            className="pointer-events-none fixed inset-0"
+          <motion.div className="pointer-events-none fixed inset-0"
             style={{ background: 'hsl(0 0% 0%)' }}
-            animate={{ opacity: tension * 0.35 }}
-            transition={{ duration: 0.9 }}
-          />
-          <motion.div
-            className="pointer-events-none fixed inset-0"
-            animate={{
-              background: `radial-gradient(ellipse at 50% 100%, hsl(${isDanger ? '0' : '18'} 100% 35% / ${0.07 + tension * 0.42}), transparent 55%)`,
-            }}
-            transition={{ duration: 0.9 }}
-          />
-          <motion.div
-            className="pointer-events-none fixed inset-0"
-            animate={{
-              boxShadow: `inset 0 0 ${80 + tension * 220}px ${20 + tension * 100}px hsl(0 0% 0% / ${0.4 + tension * 0.4})`,
-            }}
-            transition={{ duration: 0.9 }}
-          />
+            animate={{ opacity: tension * 0.32 }}
+            transition={{ duration: 0.9 }} />
+          <motion.div className="pointer-events-none fixed inset-0"
+            animate={{ background: `radial-gradient(ellipse at 50% 100%, hsl(${isDanger ? '0' : '18'} 100% 35% / ${0.07 + tension * 0.40}), transparent 55%)` }}
+            transition={{ duration: 0.9 }} />
+          <motion.div className="pointer-events-none fixed inset-0"
+            animate={{ boxShadow: `inset 0 0 ${80 + tension * 200}px ${20 + tension * 100}px hsl(0 0% 0% / ${0.38 + tension * 0.40})` }}
+            transition={{ duration: 0.9 }} />
           {flashKey > 0 && (
-            <motion.div
-              key={`flash-${flashKey}`}
-              className="pointer-events-none fixed inset-0 z-10"
-              initial={{ opacity: 0.28 }}
-              animate={{ opacity: 0 }}
-              transition={{ duration: 0.75, ease: 'easeOut' }}
-              style={{
-                background: `radial-gradient(ellipse at 50% 55%, hsl(${isDanger ? '0' : '8'} 95% 52% / 0.38), transparent 65%)`,
-              }}
-            />
+            <motion.div key={`f-${flashKey}`} className="pointer-events-none fixed inset-0 z-10"
+              initial={{ opacity: 0.28 }} animate={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              style={{ background: `radial-gradient(ellipse at 50% 55%, hsl(${isDanger ? '0' : '8'} 95% 52% / 0.36), transparent 65%)` }} />
           )}
         </>
       )}
 
-      {/* ── Close button ─────────────────────────────────────────────── */}
+      {/* Close */}
       {onClose && (
-        <button
-          onClick={onClose}
+        <button onClick={onClose}
           className="fixed top-5 right-5 z-[60] p-2 text-white/22 hover:text-white/55 transition-colors"
-          aria-label="Close"
-        >
+          aria-label="Close">
           <X className="size-5" />
         </button>
       )}
 
-      {/* ── Valley SVG — sticky header ────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-black/95 backdrop-blur-md border-b border-white/[0.06]">
-        <div className="max-w-4xl mx-auto px-6 pt-4 pb-3">
+      {/* Valley Visual — always at top */}
+      <div className="relative z-10 w-full">
+        <ValleyVisual
+          dispT01={dispT01}
+          markerY={markerY}
+          markerCx={baseCx}
+          tension={tension}
+          isDanger={isDanger}
+          isActive={isActive}
+          isRTL={isRTL}
+          lang={lang}
+        />
 
-          {isActive && (
-            <div className={cn('flex items-center justify-between mb-2', isRTL && 'flex-row-reverse')}>
-              <span className={cn(
-                'text-white/28',
-                isRTL ? 'font-arabic text-xs' : 'text-[9px] uppercase tracking-[0.42em]',
-              )}>
-                {isRTL ? 'النزول' : 'Descent'}
-              </span>
-              <span className={cn(
-                'tabular-nums transition-colors duration-500',
-                isRTL ? 'font-arabic text-xs' : 'text-[9px] uppercase tracking-[0.32em]',
-                isDanger ? 'text-red-400' : tension > 0.35 ? 'text-ember' : 'text-white/28',
-              )}>
-                {idx}/{total}
-              </span>
-            </div>
-          )}
-
-          <div className="relative h-[140px]" style={{ overflow: 'visible' }}>
-            <svg
-              viewBox="0 0 900 285"
-              preserveAspectRatio="none"
-              className="absolute inset-0 w-full h-full"
-              style={{ overflow: 'visible' }}
-            >
-              <defs>
-                {/* 3-zone gradient: orange (descent) → dark gray (floor) → green (ascent) */}
-                <linearGradient id="vaGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%"    stopColor="hsl(18 92% 55%)" />
-                  <stop offset="40%"   stopColor="hsl(18 92% 55%)" />
-                  <stop offset="40.01%" stopColor="hsl(0 0% 28%)" />
-                  <stop offset="60%"   stopColor="hsl(0 0% 28%)" />
-                  <stop offset="60.01%" stopColor="#7ed957" />
-                  <stop offset="100%"  stopColor="#7ed957" />
-                </linearGradient>
-                <linearGradient id="vaGhostGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%"    stopColor="hsl(18 92% 55%)" stopOpacity="0.16" />
-                  <stop offset="40%"   stopColor="hsl(18 92% 55%)" stopOpacity="0.16" />
-                  <stop offset="40.01%" stopColor="hsl(0 0% 40%)" stopOpacity="0.12" />
-                  <stop offset="60%"   stopColor="hsl(0 0% 40%)" stopOpacity="0.12" />
-                  <stop offset="60.01%" stopColor="#7ed957" stopOpacity="0.16" />
-                  <stop offset="100%"  stopColor="#7ed957" stopOpacity="0.16" />
-                </linearGradient>
-              </defs>
-
-              {/* Zone labels */}
-              {[
-                { x: 180, label: isRTL ? 'نزول' : 'DESCENT', color: 'hsl(18 92% 60%)' },
-                { x: 450, label: isRTL ? 'القاع'  : 'FLOOR',   color: 'hsl(0 0% 52%)' },
-                { x: 720, label: isRTL ? 'صعود'  : 'ASCENT',  color: '#7ed957' },
-              ].map(({ x, label, color }) => (
-                <text
-                  key={label}
-                  x={x} y={16}
-                  textAnchor="middle"
-                  fontSize="16"
-                  letterSpacing="1.5"
-                  fontFamily="ui-sans-serif, system-ui, sans-serif"
-                  fill={color}
-                  opacity="0.62"
-                >
-                  {label}
-                </text>
-              ))}
-
-              {/* Phase dividers */}
-              <line x1="360" y1="22" x2="360" y2="278"
-                stroke="hsl(0 0% 100% / 0.07)" strokeWidth="1" strokeDasharray="4 7" />
-              <line x1="540" y1="22" x2="540" y2="278"
-                stroke="hsl(0 0% 100% / 0.07)" strokeWidth="1" strokeDasharray="4 7" />
-
-              {/* Ghost path — always visible, faint gradient */}
-              <path d={CURVE} fill="none" stroke="url(#vaGhostGrad)" strokeWidth="2.5" />
-
-              {/* Active trace — draws in progressively, colored by zone */}
-              {isActive && (
-                <path
-                  d={CURVE}
-                  fill="none"
-                  stroke="url(#vaGrad)"
-                  strokeWidth="3.2"
-                  pathLength={100}
-                  strokeDasharray={100}
-                  strokeDashoffset={100 - dispT01 * 100}
-                  style={{ transition: 'stroke-dashoffset 0.65s cubic-bezier(0.16,1,0.3,1)' }}
-                />
-              )}
-
-              {/* Marker halos — expand with tension */}
-              {isActive && (
-                <>
-                  <circle
-                    cx={baseCx} cy={markerY}
-                    r={14 + tension * 22}
-                    fill={`hsl(${isDanger ? '0' : '18'} 92% 55% / ${tension * 0.09})`}
-                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
-                  />
-                  <circle
-                    cx={baseCx} cy={markerY}
-                    r={7 + tension * 10}
-                    fill={`hsl(${isDanger ? '0' : '18'} 92% 55% / ${0.11 + tension * 0.20})`}
-                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
-                  />
-                  <motion.circle
-                    animate={{ cx: baseCx, cy: markerY, r: [7, 9, 7] }}
-                    transition={{
-                      cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
-                      cy: { duration: stage === 'analyzing' ? 1.8 : 0.9, ease: [0.16, 1, 0.3, 1] },
-                      r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
-                    }}
-                    fill={markerColor}
-                  />
-                </>
-              )}
-            </svg>
+        {/* Progress strip during quiz */}
+        {stage === 'quiz' && (
+          <div className={cn('flex gap-1.5 px-4 pt-2 pb-1', isRTL && 'flex-row-reverse')}>
+            {QUESTIONS.map((q, i) => (
+              <div key={q.id} className="h-px flex-1 transition-all duration-400"
+                style={{
+                  backgroundColor:
+                    i < idx ? (answers[q.id] >= 4 ? 'hsl(18 92% 55%)' : 'hsl(0 0% 36%)')
+                    : i === idx ? 'hsl(0 0% 65%)'
+                    : 'hsl(0 0% 100% / 0.08)',
+                }} />
+            ))}
           </div>
-
-          {/* Progress strip (quiz only) */}
-          {stage === 'quiz' && (
-            <div className={cn('mt-2 flex gap-1.5', isRTL && 'flex-row-reverse')}>
-              {QUESTIONS.map((q, i) => (
-                <div
-                  key={q.id}
-                  className="h-px flex-1 transition-all duration-400"
-                  style={{
-                    backgroundColor:
-                      i < idx
-                        ? (answers[q.id] >= 4 ? 'hsl(18 92% 55%)' : 'hsl(0 0% 38%)')
-                        : i === idx
-                        ? 'hsl(0 0% 68%)'
-                        : 'hsl(0 0% 100% / 0.08)',
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-        </div>
+        )}
       </div>
 
-      {/* ── Content ──────────────────────────────────────────────────────── */}
-      <div className="relative z-10 max-w-2xl mx-auto px-6 lg:px-10 py-20 min-h-[72vh] flex flex-col justify-center">
+      {/* Content */}
+      <div ref={contentRef} className="relative z-10 max-w-2xl mx-auto px-6 lg:px-10 py-16 md:py-24 min-h-[55vh] flex flex-col justify-center">
         <AnimatePresence mode="wait">
 
-          {/* ─── GATE ─────────────────────────────────────────────────── */}
+          {/* ─── GATE ────────────────────────────────────────────────── */}
           {stage === 'gate' && (
-            <motion.div
-              key="gate"
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
+            <motion.div key="gate"
+              initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className={isRTL ? 'text-right' : undefined}
-            >
-              <p className={cn(
-                'text-ember mb-6',
-                isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.42em]',
-              )}>
+              className={isRTL ? 'text-right' : undefined}>
+
+              <p className={cn('text-ember mb-5', isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.42em]')}>
                 {isRTL ? 'قبل أن تبدأ' : 'Before you begin'}
               </p>
-
-              <h2 className={cn(
-                'tracking-tight mb-2',
-                isRTL
-                  ? 'font-arabic font-bold text-3xl md:text-5xl leading-[1.4]'
-                  : 'font-serif-display text-3xl md:text-5xl leading-tight',
-              )}>
-                {isRTL ? 'من نقوم' : 'Who are'}
-                <br />
-                <span className={cn('text-white/60', !isRTL && 'italic')}>
-                  {isRTL ? 'بتشخيصه؟' : 'we diagnosing?'}
-                </span>
+              <h2 className={cn('tracking-tight mb-2', isRTL ? 'font-arabic font-bold text-3xl md:text-4xl leading-[1.45]' : 'font-serif-display text-3xl md:text-4xl leading-tight')}>
+                {isRTL ? 'من نقوم بتشخيصه؟' : 'Who are we diagnosing?'}
               </h2>
-
-              <p className={cn(
-                'text-white/35 mb-10',
-                isRTL ? 'font-arabic text-sm leading-[2]' : 'text-[10px] uppercase tracking-[0.28em]',
-              )}>
-                {isRTL ? 'إجاباتك سرية.' : 'Your answers are private.'}
+              <p className={cn('text-white/32 mb-10', isRTL ? 'font-arabic text-sm leading-[2]' : 'text-[10px] uppercase tracking-[0.28em]')}>
+                {isRTL ? 'إجاباتك سرية تماماً.' : 'Your answers are completely private.'}
               </p>
 
-              <div className="space-y-5 max-w-sm">
-                <div>
-                  <label className={cn(
-                    'block text-white/38 mb-2',
-                    isRTL ? 'font-arabic text-sm text-right' : 'text-[10px] uppercase tracking-[0.32em]',
-                  )}>
-                    {isRTL ? 'الاسم الكامل *' : 'Full name *'}
-                  </label>
+              <div className="grid md:grid-cols-2 gap-5">
+                {/* Name */}
+                <Field label={isRTL ? 'الاسم الكامل' : 'Full name'} required isRTL={isRTL}>
                   <input
                     autoFocus
-                    value={gateForm.name}
-                    onChange={e => setGateForm(f => ({ ...f, name: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && submitGate()}
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     className={cn('cinematic-input', isRTL && 'text-right')}
-                    placeholder={isRTL ? 'محمد خليل' : 'Your name'}
+                    placeholder={isRTL ? 'محمد خليل' : 'Your full name'}
                   />
-                  {gateErrors.name && (
-                    <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>
-                      {gateErrors.name}
-                    </p>
-                  )}
-                </div>
+                  {formErrors.name && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{formErrors.name}</p>}
+                </Field>
 
-                <div>
-                  <label className={cn(
-                    'block text-white/38 mb-2',
-                    isRTL ? 'font-arabic text-sm text-right' : 'text-[10px] uppercase tracking-[0.32em]',
-                  )}>
-                    {isRTL ? 'البريد الإلكتروني *' : 'Email *'}
-                  </label>
+                {/* Email */}
+                <Field label={isRTL ? 'البريد الإلكتروني' : 'Email'} required isRTL={isRTL}>
                   <input
-                    type="email"
-                    value={gateForm.email}
-                    onChange={e => setGateForm(f => ({ ...f, email: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && submitGate()}
+                    type="email" dir="ltr"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     className="cinematic-input"
                     placeholder="founder@company.com"
-                    dir="ltr"
                   />
-                  {gateErrors.email && (
-                    <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>
-                      {gateErrors.email}
-                    </p>
-                  )}
-                </div>
+                  {formErrors.email && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{formErrors.email}</p>}
+                </Field>
+
+                {/* Company (optional) */}
+                <Field label={isRTL ? 'اسم الشركة' : 'Company name'} isRTL={isRTL}>
+                  <input
+                    value={form.company}
+                    onChange={e => setForm(f => ({ ...f, company: e.target.value }))}
+                    className={cn('cinematic-input', isRTL && 'text-right')}
+                    placeholder={isRTL ? 'اختياري' : 'Optional'}
+                  />
+                </Field>
+
+                {/* Country (searchable) */}
+                <Field label={isRTL ? 'الدولة' : 'Country'} required isRTL={isRTL}>
+                  <CountryCombobox
+                    value={form.country}
+                    onChange={v => setForm(f => ({ ...f, country: v, city: '' }))}
+                    isRTL={isRTL}
+                    error={formErrors.country}
+                  />
+                </Field>
+
+                {/* City (dynamic) */}
+                <Field label={isRTL ? 'المدينة' : 'City'} required isRTL={isRTL}>
+                  <CitySelect
+                    countryKey={form.country}
+                    value={form.city}
+                    onChange={v => setForm(f => ({ ...f, city: v }))}
+                    isRTL={isRTL}
+                    error={formErrors.city}
+                  />
+                </Field>
+
+                {/* Sector */}
+                <Field label={isRTL ? 'القطاع' : 'Sector'} required isRTL={isRTL}>
+                  <DropSelect
+                    options={isRTL ? SECTORS.ar : SECTORS.en}
+                    value={form.sector}
+                    onChange={v => setForm(f => ({ ...f, sector: v }))}
+                    placeholder={isRTL ? 'اختر القطاع' : 'Select sector'}
+                    isRTL={isRTL}
+                    error={formErrors.sector}
+                  />
+                </Field>
+
+                {/* Startup Stage */}
+                <Field label={isRTL ? 'مرحلة الشركة' : 'Startup stage'} required isRTL={isRTL}>
+                  <DropSelect
+                    options={isRTL ? STAGES.ar : STAGES.en}
+                    value={form.stageField}
+                    onChange={v => setForm(f => ({ ...f, stageField: v }))}
+                    placeholder={isRTL ? 'اختر المرحلة' : 'Select stage'}
+                    isRTL={isRTL}
+                    error={formErrors.stage}
+                  />
+                </Field>
+
+                {/* Employee Count */}
+                <Field label={isRTL ? 'عدد الموظفين' : 'Employee count'} required isRTL={isRTL}>
+                  <DropSelect
+                    options={isRTL ? EMPLOYEES.ar : EMPLOYEES.en}
+                    value={form.employees}
+                    onChange={v => setForm(f => ({ ...f, employees: v }))}
+                    placeholder={isRTL ? 'اختر العدد' : 'Select count'}
+                    isRTL={isRTL}
+                    error={formErrors.employees}
+                  />
+                </Field>
               </div>
 
-              <button
-                onClick={submitGate}
-                className={cn(
-                  'mt-10 group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500',
-                  isRTL && 'flex-row-reverse',
-                )}
-              >
-                <span className={cn(
-                  'text-sm font-semibold',
-                  isRTL ? 'font-arabic' : 'uppercase tracking-[0.25em]',
-                )}>
-                  {isRTL ? 'ادخل التشخيص' : 'Enter the Diagnostic'}
-                </span>
-                <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
-              </button>
+              <div className={cn('mt-10 flex items-center gap-5', isRTL && 'flex-row-reverse')}>
+                <button
+                  onClick={submitGate}
+                  className={cn('group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500', isRTL && 'flex-row-reverse')}>
+                  <span className={cn('text-sm font-semibold', isRTL ? 'font-arabic' : 'uppercase tracking-[0.25em]')}>
+                    {isRTL ? 'ادخل التشخيص' : 'Enter the Diagnostic'}
+                  </span>
+                  <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
+                </button>
+                <p className={cn('text-white/28', isRTL ? 'font-arabic text-xs leading-[2]' : 'text-[10px] uppercase tracking-[0.22em]')}>
+                  {isRTL ? 'إجاباتك سرية.' : 'Your answers are private.'}
+                </p>
+              </div>
             </motion.div>
           )}
 
-          {/* ─── QUIZ ─────────────────────────────────────────────────── */}
+          {/* ─── QUIZ ────────────────────────────────────────────────── */}
           {stage === 'quiz' && (
             <motion.div
               key={`q-${idx}`}
-              initial={{ opacity: 0, y: 26 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -26 }}
-              transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
-              className={isRTL ? 'text-right' : undefined}
-            >
-              {/* Counter */}
-              <p className={cn(
-                'text-ember mb-8',
-                isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.4em]',
-              )}>
+              initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -28 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className={isRTL ? 'text-right' : undefined}>
+
+              <p className={cn('text-ember mb-8', isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.4em]')}>
                 {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
               </p>
 
-              {/* Question text */}
-              <h2 className={cn(
-                'tracking-tight mb-14',
-                isRTL
-                  ? 'font-arabic font-bold text-2xl md:text-4xl leading-[1.6]'
-                  : 'font-serif-display text-3xl md:text-5xl leading-[1.12]',
-              )}>
+              <h2 className={cn('tracking-tight mb-14', isRTL ? 'font-arabic font-bold text-2xl md:text-4xl leading-[1.6]' : 'font-serif-display text-3xl md:text-5xl leading-[1.12]')}>
                 {isRTL ? QUESTIONS[idx].ar : QUESTIONS[idx].en}
               </h2>
 
-              {/* Yes / No buttons */}
+              {/* Yes / No */}
               <div className={cn('flex gap-4', isRTL && 'flex-row-reverse')}>
                 <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08, duration: 0.4 }}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.07, duration: 0.4 }}
                   onClick={() => pickAnswer(true, QUESTIONS[idx])}
-                  className="group flex-1 py-7 border border-white/10 hover:border-ember hover:bg-ember/[0.05] transition-all duration-300"
-                >
-                  <span className={cn(
-                    'text-white/80 text-xl md:text-2xl group-hover:text-white transition-colors',
-                    isRTL ? 'font-arabic' : 'font-serif-display',
-                  )}>
+                  className="group flex-1 py-7 border border-white/10 hover:border-ember hover:bg-ember/[0.05] transition-all duration-300">
+                  <span className={cn('text-white/80 text-xl md:text-2xl group-hover:text-white transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
                     {isRTL ? 'نعم' : 'Yes'}
                   </span>
                 </motion.button>
-
                 <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.14, duration: 0.4 }}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.13, duration: 0.4 }}
                   onClick={() => pickAnswer(false, QUESTIONS[idx])}
-                  className="group flex-1 py-7 border border-white/10 hover:border-white/35 hover:bg-white/[0.03] transition-all duration-300"
-                >
-                  <span className={cn(
-                    'text-white/48 text-xl md:text-2xl group-hover:text-white/75 transition-colors',
-                    isRTL ? 'font-arabic' : 'font-serif-display',
-                  )}>
+                  className="group flex-1 py-7 border border-white/10 hover:border-white/35 hover:bg-white/[0.03] transition-all duration-300">
+                  <span className={cn('text-white/48 text-xl md:text-2xl group-hover:text-white/78 transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
                     {isRTL ? 'لا' : 'No'}
                   </span>
                 </motion.button>
               </div>
 
-              {/* Keyboard hint */}
-              <p className={cn(
-                'mt-6 text-white/20',
-                isRTL ? 'font-arabic text-xs' : 'text-[9px] uppercase tracking-[0.32em]',
-              )}>
+              <p className={cn('mt-5 text-white/18', isRTL ? 'font-arabic text-xs' : 'text-[9px] uppercase tracking-[0.32em]')}>
                 {isRTL ? 'اضغط Y أو N للإجابة' : 'Press Y or N to answer'}
               </p>
             </motion.div>
           )}
 
-          {/* ─── ANALYZING ────────────────────────────────────────────── */}
+          {/* ─── ANALYZING ───────────────────────────────────────────── */}
           {stage === 'analyzing' && (
-            <motion.div
-              key="analyzing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.div key="analyzing"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.55 }}
-              className="text-center py-20"
-            >
+              className="text-center py-20">
               <motion.p
                 animate={{ opacity: [0.38, 1, 0.38] }}
                 transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                className={cn(
-                  'text-ember mb-6',
-                  isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.45em]',
-                )}
-              >
+                className={cn('text-ember mb-6', isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.45em]')}>
                 {isRTL ? 'تحليل الإجابات' : 'Analyzing responses'}
               </motion.p>
-              <p className={cn(
-                'text-2xl md:text-4xl text-white/80',
-                isRTL ? 'font-arabic font-bold leading-[1.7]' : 'font-serif-display italic',
-              )}>
+              <p className={cn('text-2xl md:text-4xl text-white/80', isRTL ? 'font-arabic font-bold leading-[1.7]' : 'font-serif-display italic')}>
                 {isRTL ? 'جاري تجميع تشخيصك…' : 'Compiling your diagnosis…'}
               </p>
             </motion.div>
           )}
 
-          {/* ─── RESULT ───────────────────────────────────────────────── */}
+          {/* ─── RESULT ──────────────────────────────────────────────── */}
           {stage === 'result' && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            >
+            <motion.div key="result"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}>
               <AssessmentResult
                 verdict={verdict}
                 scorePct={scorePct}
@@ -747,14 +975,14 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
                 isRTL={isRTL}
                 contactPath={getPath('/contact')}
                 labels={{
-                  diagnosisLabel:        a.diagnosisLabel,
-                  shockEyebrow:          a.shockEyebrow,
-                  riskScoreLabel:        a.riskScoreLabel,
-                  riskLevelLabel:        a.riskLevelLabel,
-                  blindSpotsSection:     a.blindSpotsSection,
-                  consequencesSection:   a.consequencesSection,
-                  recoverySection:       a.recoverySection,
-                  nextMoveSection:       a.nextMoveSection,
+                  diagnosisLabel: a.diagnosisLabel,
+                  shockEyebrow: a.shockEyebrow,
+                  riskScoreLabel: a.riskScoreLabel,
+                  riskLevelLabel: a.riskLevelLabel,
+                  blindSpotsSection: a.blindSpotsSection,
+                  consequencesSection: a.consequencesSection,
+                  recoverySection: a.recoverySection,
+                  nextMoveSection: a.nextMoveSection,
                   restartDiagnosticLabel: a.restartDiagnosticLabel,
                 }}
                 onReset={reset}
