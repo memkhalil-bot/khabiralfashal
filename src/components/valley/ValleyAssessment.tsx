@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronDown, X } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -369,25 +369,23 @@ function ValleyVisual({
   const FLOOR_END   = 0.55;
 
   return (
-    <div
-      className="relative w-full overflow-hidden"
-      style={{ paddingBottom: 'min(56.28%, 52vh)', minHeight: '180px' }}
-    >
-      <div className="absolute inset-0">
-        {/* Hero image */}
-        <img
-          src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          draggable={false}
-        />
+    // Natural aspect-ratio — image drives its own height via h-auto.
+    // No paddingBottom trick, no object-cover, no cropping ever.
+    <div className="relative w-full">
+      {/* Hero image — full image, zero crop */}
+      <img
+        src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
+        alt=""
+        className="w-full h-auto block"
+        draggable={false}
+      />
 
-        {/* SVG overlay — always rendered when image is visible */}
-        <svg
-          viewBox="0 0 1672 941"
-          className="absolute inset-0 w-full h-full"
-          style={{ overflow: 'visible' }}
-        >
+      {/* SVG overlay — absolutely covers the exact image bounds */}
+      <svg
+        viewBox="0 0 1672 941"
+        className="absolute inset-0 w-full h-full"
+        style={{ overflow: 'visible' }}
+      >
           {/* Watermark — low opacity, bottom-right */}
           <text
             x="1648" y="928"
@@ -481,14 +479,13 @@ function ValleyVisual({
             </>
           )}
         </svg>
-      </div>
     </div>
   );
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
+export function ValleyAssessment() {
   const t = useT();
   const a = t.assessment;
   const { getPath, lang } = useLanguage();
@@ -765,15 +762,6 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
             )}
           </AnimatePresence>
         </>
-      )}
-
-      {/* Close */}
-      {onClose && (
-        <button onClick={onClose}
-          className="fixed top-5 right-5 z-[60] p-2 text-white/22 hover:text-white/55 transition-colors"
-          aria-label="Close">
-          <X className="size-5" />
-        </button>
       )}
 
       {/* Valley Visual — hidden during gate form */}

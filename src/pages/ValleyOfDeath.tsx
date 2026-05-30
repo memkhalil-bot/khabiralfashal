@@ -278,7 +278,7 @@ export default function ValleyOfDeath() {
 
       {/* ── INTERACTIVE ASSESSMENT — full-screen overlay, revealed on CTA click */}
       {assessmentActive && (
-        <ValleyAssessment onClose={() => setAssessmentActive(false)} />
+        <ValleyAssessment />
       )}
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────── */}
