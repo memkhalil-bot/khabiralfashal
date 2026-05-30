@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronDown, X } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -488,7 +488,7 @@ function ValleyVisual({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
+export function ValleyAssessment() {
   const t = useT();
   const a = t.assessment;
   const { getPath, lang } = useLanguage();
@@ -765,15 +765,6 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
             )}
           </AnimatePresence>
         </>
-      )}
-
-      {/* Close */}
-      {onClose && (
-        <button onClick={onClose}
-          className="fixed top-5 right-5 z-[60] p-2 text-white/22 hover:text-white/55 transition-colors"
-          aria-label="Close">
-          <X className="size-5" />
-        </button>
       )}
 
       {/* Valley Visual — hidden during gate form */}
