@@ -374,7 +374,7 @@ function ValleyVisual({
     <div className="relative w-full">
       {/* Hero image — full image, zero crop */}
       <img
-        src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
+        src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.png'}
         alt=""
         className="w-full h-auto block"
         draggable={false}
