@@ -1,0 +1,304 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1456 816" width="1456" height="816">
+  <defs>
+    <!-- Sky background gradient -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#08060a"/>
+      <stop offset="40%"  stop-color="#0c0905"/>
+      <stop offset="100%" stop-color="#030200"/>
+    </linearGradient>
+
+    <!-- Ground fill below the valley -->
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#120c04"/>
+      <stop offset="60%"  stop-color="#0a0702"/>
+      <stop offset="100%" stop-color="#050300"/>
+    </linearGradient>
+
+    <!-- Left cliff gradient -->
+    <linearGradient id="cliffL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#1a1209"/>
+      <stop offset="100%" stop-color="#0c0904"/>
+    </linearGradient>
+
+    <!-- Right cliff gradient -->
+    <linearGradient id="cliffR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%"   stop-color="#1a1209"/>
+      <stop offset="100%" stop-color="#0c0904"/>
+    </linearGradient>
+
+    <!-- City glow on the right -->
+    <radialGradient id="cityGlow" cx="90%" cy="30%" r="28%">
+      <stop offset="0%"   stop-color="#e8892a" stop-opacity="0.55"/>
+      <stop offset="40%"  stop-color="#c4610a" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+
+    <!-- Valley floor danger glow -->
+    <radialGradient id="floorGlow" cx="50%" cy="95%" r="30%">
+      <stop offset="0%"   stop-color="#e85a0a" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+
+    <!-- Orange path glow filter -->
+    <filter id="pathGlow" x="-8%" y="-200%" width="116%" height="500%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Marker halo filter -->
+    <filter id="halo" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+
+    <!-- Subtle vignette -->
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="60%"  stop-color="transparent"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.65"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── BACKGROUND ───────────────────────────────────────────────────────── -->
+  <rect width="1456" height="816" fill="url(#sky)"/>
+
+  <!-- ── LEFT ROCKY CLIFF ─────────────────────────────────────────────────── -->
+  <!-- Main cliff body -->
+  <path d="M 0 816 L 0 60
+            C 70 55, 145 68, 215 100
+            C 275 128, 320 165, 355 210
+            C 385 248, 400 285, 408 320
+            C 415 355, 418 390, 415 425
+            L 415 816 Z"
+        fill="url(#cliffL)"/>
+  <!-- Cliff face darker layer -->
+  <path d="M 0 816 L 0 55
+            C 55 52, 118 62, 178 90
+            C 230 115, 270 148, 300 185
+            C 325 216, 340 250, 348 285
+            C 355 318, 357 352, 354 386
+            L 354 816 Z"
+        fill="#0e0a04"/>
+  <!-- Cliff edge shadow -->
+  <path d="M 0 816 L 0 52
+            C 40 50, 90 58, 138 80
+            C 178 100, 210 128, 235 162
+            C 255 190, 265 220, 270 252
+            L 270 816 Z"
+        fill="#080602"/>
+  <!-- Rock strata lines left -->
+  <path d="M 0 148 C 65 142, 118 155, 158 175 L 158 182 C 118 162, 65 149, 0 155 Z" fill="#1e1509" opacity="0.7"/>
+  <path d="M 0 210 C 52 204, 98 215, 132 232 L 132 239 C 98 222, 52 211, 0 217 Z" fill="#1a1207" opacity="0.6"/>
+  <path d="M 0 275 C 40 269, 78 278, 105 292 L 105 299 C 78 285, 40 276, 0 282 Z" fill="#161006" opacity="0.5"/>
+
+  <!-- ── RIGHT ROCKY CLIFF + CITY ─────────────────────────────────────────── -->
+  <!-- City glow atmospheric bloom -->
+  <rect width="1456" height="816" fill="url(#cityGlow)"/>
+  <!-- Main cliff body right -->
+  <path d="M 1456 816 L 1456 55
+            C 1386 50, 1311 63, 1241 95
+            C 1181 123, 1136 160, 1101 205
+            C 1071 243, 1056 280, 1048 315
+            C 1041 350, 1038 385, 1041 420
+            L 1041 816 Z"
+        fill="url(#cliffR)"/>
+  <path d="M 1456 816 L 1456 50
+            C 1401 47, 1338 58, 1278 85
+            C 1226 110, 1186 143, 1156 180
+            C 1131 211, 1116 245, 1108 280
+            C 1101 313, 1099 347, 1102 381
+            L 1102 816 Z"
+        fill="#0e0a04"/>
+  <path d="M 1456 816 L 1456 47
+            C 1416 45, 1362 53, 1310 75
+            C 1262 95, 1228 122, 1204 155
+            C 1184 183, 1172 213, 1166 245
+            L 1166 816 Z"
+        fill="#080602"/>
+  <!-- Rock strata lines right -->
+  <path d="M 1456 143 C 1391 137, 1338 150, 1298 170 L 1298 177 C 1338 157, 1391 144, 1456 150 Z" fill="#1e1509" opacity="0.7"/>
+  <path d="M 1456 205 C 1404 199, 1358 210, 1322 227 L 1322 234 C 1358 217, 1404 206, 1456 212 Z" fill="#1a1207" opacity="0.6"/>
+  <path d="M 1456 268 C 1416 262, 1378 271, 1348 285 L 1348 292 C 1378 278, 1416 269, 1456 275 Z" fill="#161006" opacity="0.5"/>
+
+  <!-- City skyline silhouette (right side) -->
+  <g opacity="0.38">
+    <rect x="1360" y="82"  width="18" height="45" fill="#c4610a"/>
+    <rect x="1382" y="68"  width="22" height="59" fill="#c4610a"/>
+    <rect x="1408" y="75"  width="16" height="52" fill="#c4610a"/>
+    <rect x="1428" y="60"  width="20" height="67" fill="#c4610a"/>
+    <rect x="1338" y="95"  width="14" height="32" fill="#a35008"/>
+    <rect x="1318" y="100" width="12" height="27" fill="#a35008"/>
+    <!-- Building windows -->
+    <rect x="1385" y="72"  width="4"  height="3"  fill="#ffe8a0" opacity="0.7"/>
+    <rect x="1385" y="80"  width="4"  height="3"  fill="#ffe8a0" opacity="0.5"/>
+    <rect x="1432" y="65"  width="4"  height="3"  fill="#ffe8a0" opacity="0.7"/>
+    <rect x="1432" y="73"  width="4"  height="3"  fill="#ffe8a0" opacity="0.5"/>
+    <rect x="1411" y="79"  width="3"  height="3"  fill="#ffe8a0" opacity="0.6"/>
+  </g>
+
+  <!-- Ground mass below the valley path -->
+  <path d="M 155 295 C 380 290, 570 720, 730 720 C 730 400, 1100 355, 1250 355 L 1250 816 L 155 816 Z"
+        fill="url(#ground)"/>
+
+  <!-- Valley floor glow -->
+  <rect width="1456" height="816" fill="url(#floorGlow)"/>
+
+  <!-- Scattered debris at valley floor -->
+  <g opacity="0.35" transform="translate(580, 680)">
+    <rect x="0"   y="0"  width="28" height="20" rx="2" fill="#2a1e08" transform="rotate(-18)"/>
+    <rect x="40"  y="10" width="22" height="16" rx="2" fill="#2a1e08" transform="rotate(12)"/>
+    <rect x="80"  y="-5" width="25" height="18" rx="2" fill="#2a1e08" transform="rotate(-8)"/>
+    <rect x="130" y="15" width="20" height="15" rx="2" fill="#2a1e08" transform="rotate(22)"/>
+    <rect x="170" y="-8" width="24" height="17" rx="2" fill="#2a1e08" transform="rotate(-15)"/>
+    <rect x="210" y="8"  width="18" height="14" rx="2" fill="#2a1e08" transform="rotate(7)"/>
+    <rect x="-40" y="12" width="22" height="16" rx="2" fill="#2a1e08" transform="rotate(28)"/>
+  </g>
+
+  <!-- Tent hint on far left -->
+  <g opacity="0.45" transform="translate(22, 258)">
+    <polygon points="0,38 22,0 44,38" fill="#2a1e08"/>
+    <polygon points="4,38 22,6 40,38" fill="#1e1508"/>
+    <polygon points="9,38 9,25 35,25 35,38" fill="#16100a"/>
+    <rect x="18" y="25" width="8" height="13" fill="#0a0802"/>
+  </g>
+
+  <!-- ── ORANGE U-PATH ────────────────────────────────────────────────────── -->
+  <!-- Ghost path (faint, always visible) -->
+  <path d="M 155 295 C 380 290, 570 720, 730 720 C 730 400, 1100 355, 1250 355"
+        fill="none" stroke="#e85a0a" stroke-width="2" stroke-opacity="0.18"/>
+  <!-- Main glowing path -->
+  <path d="M 155 295 C 380 290, 570 720, 730 720 C 730 400, 1100 355, 1250 355"
+        fill="none" stroke="#e85a0a" stroke-width="5"
+        filter="url(#pathGlow)"/>
+
+  <!-- ── STAGE MARKERS ────────────────────────────────────────────────────── -->
+  <!-- Marker 1: PRE-STARTUP (~286, 337) -->
+  <g>
+    <circle cx="286" cy="337" r="18" fill="#e85a0a" fill-opacity="0.12"/>
+    <circle cx="286" cy="337" r="9"  fill="white"   fill-opacity="0.88"/>
+    <!-- Vertical connector line to label -->
+    <line x1="286" y1="318" x2="286" y2="158" stroke="white" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 5"/>
+    <!-- Icon area -->
+    <circle cx="286" cy="140" r="20" fill="white" fill-opacity="0.06"/>
+    <!-- Lightbulb icon (simplified) -->
+    <circle cx="286" cy="138" r="7"  fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.75"/>
+    <line   x1="283" y1="145" x2="289" y2="145" stroke="white" stroke-width="1.5" stroke-opacity="0.75"/>
+    <line   x1="284" y1="148" x2="288" y2="148" stroke="white" stroke-width="1.2" stroke-opacity="0.65"/>
+    <!-- Label text -->
+    <text x="286" y="108" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="15" font-weight="600" fill="white" fill-opacity="0.90" letter-spacing="0.5">PRE-STARTUP</text>
+    <text x="286" y="124" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="11" fill="white" fill-opacity="0.45">Idea &amp; Research</text>
+  </g>
+
+  <!-- Marker 2: FOUNDATION (~524, 570) -->
+  <g>
+    <circle cx="524" cy="570" r="18" fill="#e85a0a" fill-opacity="0.12"/>
+    <circle cx="524" cy="570" r="9"  fill="white"   fill-opacity="0.88"/>
+    <line x1="524" y1="551" x2="524" y2="158" stroke="white" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 5"/>
+    <circle cx="524" cy="140" r="20" fill="white" fill-opacity="0.06"/>
+    <!-- Rocket icon (simplified) -->
+    <line x1="524" y1="130" x2="524" y2="148" stroke="white" stroke-width="2" stroke-opacity="0.75"/>
+    <polygon points="524,126 520,132 528,132" fill="white" fill-opacity="0.75"/>
+    <line x1="520" y1="145" x2="517" y2="150" stroke="white" stroke-width="1.2" stroke-opacity="0.6"/>
+    <line x1="528" y1="145" x2="531" y2="150" stroke="white" stroke-width="1.2" stroke-opacity="0.6"/>
+    <text x="524" y="108" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="15" font-weight="600" fill="white" fill-opacity="0.90" letter-spacing="0.5">FOUNDATION</text>
+    <text x="524" y="124" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="11" fill="white" fill-opacity="0.45">Build &amp; Test</text>
+  </g>
+
+  <!-- Marker 3: FUNDING GAP (730, 720) — valley floor, label above -->
+  <g>
+    <circle cx="730" cy="720" r="20" fill="#e85a0a" fill-opacity="0.18"/>
+    <circle cx="730" cy="720" r="10" fill="white"   fill-opacity="0.92"/>
+    <line x1="730" y1="700" x2="730" y2="158" stroke="white" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 5"/>
+    <circle cx="730" cy="140" r="22" fill="white" fill-opacity="0.06"/>
+    <!-- Chart/candle icon -->
+    <rect x="721" y="132" width="3" height="12" rx="1" fill="white" fill-opacity="0.75"/>
+    <rect x="727" y="128" width="3" height="16" rx="1" fill="white" fill-opacity="0.75"/>
+    <rect x="733" y="135" width="3" height="9"  rx="1" fill="white" fill-opacity="0.75"/>
+    <text x="730" y="105" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="15" font-weight="700" fill="#e85a0a" fill-opacity="0.95" letter-spacing="0.5">FUNDING GAP</text>
+    <text x="730" y="121" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="11" fill="white" fill-opacity="0.50">Most Dangerous</text>
+  </g>
+
+  <!-- Marker 4: EARLY GROWTH (~870, 453) -->
+  <g>
+    <circle cx="870" cy="453" r="18" fill="#e85a0a" fill-opacity="0.12"/>
+    <circle cx="870" cy="453" r="9"  fill="white"   fill-opacity="0.88"/>
+    <line x1="870" y1="434" x2="870" y2="158" stroke="white" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 5"/>
+    <circle cx="870" cy="140" r="20" fill="white" fill-opacity="0.06"/>
+    <!-- Bar chart icon -->
+    <rect x="861" y="140" width="4" height="8"  rx="1" fill="white" fill-opacity="0.6"/>
+    <rect x="867" y="134" width="4" height="14" rx="1" fill="white" fill-opacity="0.75"/>
+    <rect x="873" y="130" width="4" height="18" rx="1" fill="white" fill-opacity="0.75"/>
+    <text x="870" y="108" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="15" font-weight="600" fill="white" fill-opacity="0.90" letter-spacing="0.5">EARLY GROWTH</text>
+    <text x="870" y="124" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="11" fill="white" fill-opacity="0.45">Revenue Begins</text>
+  </g>
+
+  <!-- Marker 5: EXPANSION (~1138, 362) -->
+  <g>
+    <circle cx="1138" cy="362" r="18" fill="#e85a0a" fill-opacity="0.12"/>
+    <circle cx="1138" cy="362" r="9"  fill="white"   fill-opacity="0.88"/>
+    <line x1="1138" y1="343" x2="1138" y2="158" stroke="white" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 5"/>
+    <circle cx="1138" cy="140" r="20" fill="white" fill-opacity="0.06"/>
+    <!-- Target/bullseye icon -->
+    <circle cx="1138" cy="139" r="9"  fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.75"/>
+    <circle cx="1138" cy="139" r="5"  fill="none" stroke="white" stroke-width="1.2" stroke-opacity="0.65"/>
+    <circle cx="1138" cy="139" r="2"  fill="white" fill-opacity="0.75"/>
+    <text x="1138" y="108" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="15" font-weight="600" fill="white" fill-opacity="0.90" letter-spacing="0.5">EXPANSION</text>
+    <text x="1138" y="124" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+          font-size="11" fill="white" fill-opacity="0.45">Scale</text>
+  </g>
+
+  <!-- ── ZONE DIVIDER LINES ────────────────────────────────────────────────── -->
+  <line x1="490" y1="165" x2="490" y2="790" stroke="white" stroke-width="1" stroke-opacity="0.07" stroke-dasharray="5 9"/>
+  <line x1="750" y1="165" x2="750" y2="790" stroke="white" stroke-width="1" stroke-opacity="0.07" stroke-dasharray="5 9"/>
+
+  <!-- ── ZONE LABELS (inside valley) ──────────────────────────────────────── -->
+  <!-- DESCENT zone -->
+  <text x="330" y="495" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="22" font-weight="700" fill="#e85a0a" fill-opacity="0.85" letter-spacing="2">Descent</text>
+  <text x="330" y="518" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.42">Cash burns before you sell.</text>
+  <text x="330" y="532" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.42">Every month pulls you closer.</text>
+
+  <!-- FLOOR zone -->
+  <text x="728" y="638" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="22" font-weight="700" fill="white" fill-opacity="0.80" letter-spacing="2">Floor</text>
+  <text x="728" y="660" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.40">This is where most companies die.</text>
+  <text x="728" y="674" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.40">No funding. No revenue. No time.</text>
+
+  <!-- ASCENT zone -->
+  <text x="1060" y="495" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="22" font-weight="700" fill="#7ed957" fill-opacity="0.85" letter-spacing="2">Ascent</text>
+  <text x="1060" y="518" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.42">Revenue begins to cover the burn.</text>
+  <text x="1060" y="532" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif"
+        font-size="11" fill="white" fill-opacity="0.42">The company becomes real.</text>
+
+  <!-- ── TITLE ─────────────────────────────────────────────────────────────── -->
+  <text x="728" y="60" text-anchor="middle" font-family="Georgia,serif"
+        font-size="52" font-weight="700" letter-spacing="-1">
+    <tspan fill="white" fill-opacity="0.94">Valley </tspan><tspan fill="#e85a0a" fill-opacity="0.94" font-style="italic">of Death</tspan>
+  </text>
+
+  <!-- ── VIGNETTE ──────────────────────────────────────────────────────────── -->
+  <rect width="1456" height="816" fill="url(#vignette)"/>
+
+  <!-- Bottom fade to black -->
+  <linearGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="70%" stop-color="transparent"/>
+    <stop offset="100%" stop-color="#000" stop-opacity="0.5"/>
+  </linearGradient>
+  <rect width="1456" height="816" fill="url(#bottomFade)"/>
+</svg>

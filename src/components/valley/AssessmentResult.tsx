@@ -101,8 +101,8 @@ export function AssessmentResult({
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           transition={{ duration: 1.7, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            'text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight max-w-3xl text-white',
-            isRTL ? 'font-arabic font-bold leading-[1.3]' : 'font-serif-display'
+            'text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight max-w-3xl text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]',
+            isRTL ? 'font-arabic font-bold leading-[1.3]' : 'font-serif-display font-semibold'
           )}
         >
           <span className={cn(!isRTL && 'italic')}>{verdict.title}</span>
@@ -140,7 +140,7 @@ export function AssessmentResult({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.5, delay: founderName ? 2.75 : 2.5, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            'text-2xl md:text-[2.15rem] leading-[1.42] text-white/88 max-w-2xl',
+            'text-2xl md:text-[2.15rem] leading-[1.42] text-white/95 max-w-2xl',
             isRTL ? 'font-arabic font-semibold leading-[1.75]' : 'font-serif-display'
           )}
         >
@@ -216,7 +216,7 @@ export function AssessmentResult({
         </p>
         <p className={cn(
           'text-xl md:text-3xl leading-[1.45] max-w-3xl',
-          riskBucket === 'high' ? 'text-white/90' : 'text-white/72',
+          riskBucket === 'high' ? 'text-white/92' : 'text-white/82',
           isRTL ? 'font-arabic leading-[1.9]' : 'font-serif-display'
         )}>
           {consequence}
