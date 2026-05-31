@@ -16,7 +16,12 @@ interface BinaryQ {
   id: string;
   en: string;
   ar: string;
-  yesRisky: boolean; // true → Yes=5 No=1; false → Yes=1 No=5
+  /** When true, YES answer is risky; when false (inverted), NO answer is risky */
+  yesRisky: boolean;
+  /** Weight applied when answer is risky (default 5) */
+  riskWeight?: number;
+  /** Weight applied when answer is safe (default 1) */
+  safeWeight?: number;
   blindSpot?: string;
   blindSpotAr?: string;
 }
@@ -646,7 +651,7 @@ export function ValleyAssessment() {
 
   const pickAnswer = useCallback((userSaysYes: boolean, q: BinaryQ) => {
     const risky = userSaysYes === q.yesRisky;
-    const weight = risky ? 5 : 1;
+    const weight = risky ? (q.riskWeight ?? 5) : (q.safeWeight ?? 1);
     if (risky) setFlashKey(k => k + 1);
 
     // Node flash: green for safe, red for risky
@@ -781,16 +786,19 @@ export function ValleyAssessment() {
 
           {/* Premium single gradient progress bar */}
           {stage === 'quiz' && (
-            <div className="px-4 pt-2 pb-0.5">
-              <div className="relative h-px w-full overflow-hidden" style={{ backgroundColor: 'hsl(0 0% 100% / 0.07)' }}>
+            <div className="px-4 pt-2 pb-1">
+              <div className="relative h-0.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: 'hsl(0 0% 100% / 0.07)' }}>
                 <motion.div
-                  className={cn('absolute inset-y-0 h-full', isRTL ? 'right-0' : 'left-0')}
+                  className={cn('absolute inset-y-0 h-full rounded-full', isRTL ? 'right-0' : 'left-0')}
                   style={{
                     background: isDanger
                       ? `linear-gradient(${isRTL ? '270deg' : '90deg'}, hsl(0 84% 45%), hsl(0 84% 65%))`
                       : `linear-gradient(${isRTL ? '270deg' : '90deg'}, hsl(18 92% 45%), hsl(18 92% 65%))`,
+                    boxShadow: isDanger
+                      ? '0 0 8px 2px hsl(0 84% 55% / 0.6)'
+                      : '0 0 8px 2px hsl(18 92% 55% / 0.6)',
                   }}
-                  animate={{ width: `${(idx / total) * 100}%` }}
+                  animate={{ width: `${((idx + 1) / total) * 100}%` }}
                   transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 />
               </div>
@@ -800,7 +808,7 @@ export function ValleyAssessment() {
       )}
 
       {/* Content */}
-      <div ref={contentRef} className="relative z-10 max-w-2xl mx-auto px-6 lg:px-10 py-16 md:py-24 min-h-[55vh] flex flex-col justify-center">
+      <div ref={contentRef} className="relative z-10 max-w-2xl mx-auto px-5 lg:px-10 py-10 md:py-20 min-h-[40vh] md:min-h-[55vh] flex flex-col justify-center">
         <AnimatePresence mode="wait">
 
           {/* ─── GATE ────────────────────────────────────────────────── */}
@@ -1001,7 +1009,7 @@ export function ValleyAssessment() {
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.07, duration: 0.4 }}
                   onClick={() => pickAnswer(true, QUESTIONS[idx])}
-                  className="group flex-1 py-7 border border-white/10 hover:border-ember hover:bg-ember/[0.05] transition-all duration-300">
+                  className="group flex-1 py-5 md:py-7 border border-white/10 hover:border-ember hover:bg-ember/[0.05] transition-all duration-300">
                   <span className={cn('text-white/80 text-xl md:text-2xl group-hover:text-white transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
                     {isRTL ? 'نعم' : 'Yes'}
                   </span>
@@ -1010,7 +1018,7 @@ export function ValleyAssessment() {
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.13, duration: 0.4 }}
                   onClick={() => pickAnswer(false, QUESTIONS[idx])}
-                  className="group flex-1 py-7 border border-white/10 hover:border-white/35 hover:bg-white/[0.03] transition-all duration-300">
+                  className="group flex-1 py-5 md:py-7 border border-white/10 hover:border-white/35 hover:bg-white/[0.03] transition-all duration-300">
                   <span className={cn('text-white/48 text-xl md:text-2xl group-hover:text-white/78 transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
                     {isRTL ? 'لا' : 'No'}
                   </span>

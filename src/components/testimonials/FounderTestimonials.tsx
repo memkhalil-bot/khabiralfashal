@@ -142,8 +142,8 @@ export function FounderTestimonials({
                 &ldquo;
               </div>
 
-              <blockquote className={cn(
-                'relative text-2xl md:text-4xl leading-[1.35] text-white/90 max-w-4xl',
+              <blockquote dir={isRTL ? 'rtl' : 'ltr'} className={cn(
+                'relative text-2xl md:text-4xl leading-[1.35] text-white/95 max-w-4xl',
                 isRTL ? 'font-arabic font-semibold leading-[1.8] text-right' : 'font-serif-display'
               )}>
                 {current.quote}
@@ -152,7 +152,13 @@ export function FounderTestimonials({
               {/* Subtle rating */}
               <div className={cn('mt-8 flex items-center gap-1.5', isRTL && 'flex-row-reverse')} aria-label="5 out of 5">
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <svg key={i} viewBox="0 0 20 20" className="size-3 fill-ember/80" aria-hidden>
+                  <svg
+                    key={i}
+                    viewBox="0 0 20 20"
+                    className="size-3"
+                    aria-hidden
+                    style={{ fill: '#7ED957', filter: 'drop-shadow(0 0 4px rgba(126,217,87,.4))' }}
+                  >
                     <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9 4.8 17.6l1-5.8L1.5 7.7l5.9-.9z" />
                   </svg>
                 ))}
@@ -160,7 +166,7 @@ export function FounderTestimonials({
 
               <figcaption className={cn('mt-4 flex items-center gap-4 text-sm flex-wrap', isRTL && 'flex-row-reverse')}>
                 <span className="h-px w-8 bg-ember" />
-                <span className="text-white/85 font-medium">
+                <span className="text-white/90 font-medium">
                   {current.author_name}
                 </span>
                 {current.author_role && (
