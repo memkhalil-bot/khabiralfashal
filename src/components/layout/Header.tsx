@@ -88,7 +88,7 @@ export function Header() {
             {/* Language toggle */}
             <Link
               to={switchPath(lang === 'en' ? 'ar' : 'en')}
-              className="text-[11px] tracking-[0.3em] uppercase text-ember/80 hover:text-ember border border-ember/30 hover:border-ember px-2 py-1 transition-all duration-300"
+              className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-4 py-2 border-2 border-ember/50 hover:border-ember bg-ember/5 hover:bg-ember/15 text-ember hover:text-white text-[11px] tracking-[0.3em] uppercase font-semibold transition-all duration-300"
               aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
             >
               {t.nav.langToggle}
@@ -136,7 +136,7 @@ export function Header() {
               <Link
                 to={switchPath(lang === 'en' ? 'ar' : 'en')}
                 onClick={() => setOpen(false)}
-                className="inline-flex self-start items-center gap-2 text-[11px] tracking-[0.3em] uppercase text-ember border border-ember/30 px-3 py-2"
+                className="inline-flex self-start items-center justify-center min-h-[44px] gap-2 text-[11px] tracking-[0.3em] uppercase text-ember font-semibold border-2 border-ember/50 hover:border-ember bg-ember/5 hover:bg-ember/15 px-4 py-2 transition-all duration-300"
               >
                 {t.nav.langToggle}
               </Link>

@@ -7,7 +7,7 @@ import { FounderTestimonials } from '@/components/testimonials/FounderTestimonia
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import { ArrowDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const inView = {
   initial: { opacity: 0, y: 20 },
@@ -267,7 +267,7 @@ export default function ValleyOfDeath() {
                   )}>
                     {v.diagnosisCta.button}
                   </span>
-                  <ArrowDown className="size-4 group-hover:translate-y-1 transition-transform" />
+                  <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
                 </button>
               </div>
             </motion.div>

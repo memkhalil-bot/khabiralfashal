@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
@@ -12,6 +12,56 @@ import { cn } from '@/lib/utils';
  * Home — خبير الفشل | Khabir Al Fashal
  * Cinematic dark landing. Fully bilingual via useT() and useLanguage().
  */
+
+function useCountUp(end: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const elRef = useRef<HTMLSpanElement>(null);
+  const triggered = useRef(false);
+
+  useEffect(() => {
+    const el = elRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !triggered.current) {
+          triggered.current = true;
+          const start = performance.now();
+          const run = (now: number) => {
+            const p = Math.min((now - start) / duration, 1);
+            const eased = 1 - (1 - p) ** 3;
+            setCount(Math.round(eased * end));
+            if (p < 1) requestAnimationFrame(run);
+          };
+          requestAnimationFrame(run);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [end, duration]);
+
+  return { count, elRef };
+}
+
+function StatCell({ k, isRTL: rtl }: { k: string; isRTL: boolean }) {
+  const numeric = /^\d+$/.test(k);
+  const target = numeric ? parseInt(k, 10) : 0;
+  const padLen = k.length;
+  const { count, elRef } = useCountUp(target);
+  const display = numeric
+    ? String(count).padStart(padLen, '0')
+    : k;
+  return (
+    <span ref={numeric ? elRef : undefined} className={cn(
+      'text-5xl md:text-6xl text-ember mb-3 block',
+      rtl ? 'font-arabic font-bold' : 'font-serif-display'
+    )}>
+      {display}
+    </span>
+  );
+}
+
 export default function Home() {
   const t = useT();
   const h = t.home;
@@ -101,7 +151,7 @@ export default function Home() {
                   <span className="text-ember italic">{h.heroLine5}</span>
                   <br />
                   {t.home.heroPitch.split('—')[0] && (
-                    <span className="italic">losing.</span>
+                    <span className="italic">you fail.</span>
                   )}
                 </>
               )}
@@ -343,12 +393,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: i * 0.08 }}
               className={cn('bg-black p-8 md:p-10', isRTL && 'text-right')}
             >
-              <div className={cn(
-                'text-5xl md:text-6xl text-ember mb-3',
-                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
-              )}>
-                {s.k}
-              </div>
+              <StatCell k={s.k} isRTL={isRTL} />
               <div className={cn(
                 'text-[10px] uppercase text-white/40',
                 isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'

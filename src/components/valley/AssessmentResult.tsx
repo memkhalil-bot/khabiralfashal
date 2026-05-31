@@ -246,6 +246,32 @@ export function AssessmentResult({
         <p className={eyebrow(labels.nextMoveSection, riskBucket === 'high' ? 'text-red-400' : 'text-ember')}>
           {labels.nextMoveSection}
         </p>
+
+        {/* Compact findings summary — value before the ask */}
+        <div className="mb-10 p-6 border border-white/[0.08] bg-white/[0.02] max-w-xl">
+          <div className={cn('flex flex-wrap gap-x-10 gap-y-3 mb-4', isRTL && 'flex-row-reverse')}>
+            <div className={isRTL ? 'text-right' : undefined}>
+              <p className={cn('text-[9px] uppercase text-white/28 mb-1', isRTL ? 'font-arabic tracking-normal text-xs' : 'tracking-[0.3em]')}>
+                {labels.riskLevelLabel}
+              </p>
+              <p className={cn('text-sm font-semibold', accent, isRTL && 'font-arabic')}>
+                {verdict.level}
+              </p>
+            </div>
+            <div className={isRTL ? 'text-right' : undefined}>
+              <p className={cn('text-[9px] uppercase text-white/28 mb-1', isRTL ? 'font-arabic tracking-normal text-xs' : 'tracking-[0.3em]')}>
+                {labels.riskScoreLabel}
+              </p>
+              <p className={cn('text-sm font-semibold text-white/80 tabular-nums', isRTL && 'font-arabic')}>
+                {scorePct}/100
+              </p>
+            </div>
+          </div>
+          <p className={cn('text-sm text-white/55 leading-relaxed', isRTL ? 'font-arabic leading-[1.9] text-right' : 'font-light')}>
+            {verdict.tone}
+          </p>
+        </div>
+
         <p className={cn('text-base md:text-lg text-white/50 max-w-2xl mb-12', isRTL ? 'font-arabic leading-[2]' : 'font-light leading-relaxed')}>
           {recovery}
         </p>
