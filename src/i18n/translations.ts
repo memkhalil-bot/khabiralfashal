@@ -29,6 +29,7 @@ interface LangStrings {
     valley: string;
     session: string;
     langToggle: string; // "AR" or "EN"
+    methodology: string;
   };
 
   home: {
@@ -63,7 +64,7 @@ interface LangStrings {
     pullQuote2: string;
     pullQuote3: string;
     fieldNote: string;
-    stats: { k: string; v: string }[];
+    stats: { k: string; v: string; i?: string }[];
     ctaLabel: string;
     ctaHeading1: string;
     ctaHeading2: string;
@@ -275,6 +276,7 @@ const en: LangStrings = {
     valley: 'Valley of Death',
     session: 'Session',
     langToggle: 'AR',
+    methodology: 'Methodology',
   },
 
   home: {
@@ -337,10 +339,10 @@ const en: LangStrings = {
     pullQuote3: 'the company is already gone.',
     fieldNote: '— Field Note · 2023 · Riyadh',
     stats: [
-      { k: '317', v: 'Post-mortems studied' },
-      { k: '12',  v: 'Recurring failure patterns' },
-      { k: '6mo', v: 'Average warning window ignored' },
-      { k: '01',  v: 'Honest conversation required' },
+      { k: '317', v: 'Post-mortems studied', i: 'An archive of 317 structured startup post-mortems, analyzed for decision patterns and failure triggers across 12 years.' },
+      { k: '12',  v: 'Recurring failure patterns', i: 'Twelve behavioral patterns that appear in over 80% of documented collapses — long before the financials confirm it.' },
+      { k: '6mo', v: 'Average warning window ignored', i: 'The average founder ignores the first clear warning signals for six months before the company enters crisis.' },
+      { k: '01',  v: 'Honest conversation required', i: 'One honest conversation — with the right person, at the right moment — changes the trajectory more than any strategy document.' },
     ],
     ctaLabel:   'Intake Open · Limited Cases',
     ctaHeading1: 'Something already',
@@ -806,6 +808,7 @@ const ar: LangStrings = {
     valley: 'وادي الموت',
     session: 'الجلسة',
     langToggle: 'EN',
+    methodology: 'المنهجية',
   },
 
   home: {
@@ -868,10 +871,10 @@ const ar: LangStrings = {
     pullQuote3: 'تكون الشركة قد رحلت.',
     fieldNote: '— ملاحظة ميدانية · 2023 · الرياض',
     stats: [
-      { k: '317', v: 'تشريح دُرس' },
-      { k: '12',  v: 'نمط فشل متكرر' },
-      { k: '٦ أشهر', v: 'متوسط مدة تجاهل التحذير' },
-      { k: '01',  v: 'محادثة صادقة واحدة كافية' },
+      { k: '317', v: 'تشريح دُرس', i: 'أرشيف من 317 تشريحاً منظماً للشركات الناشئة، حُلِّلت للكشف عن أنماط القرار ومحفّزات الفشل عبر 12 عاماً.' },
+      { k: '12',  v: 'نمط فشل متكرر', i: 'اثنا عشر نمطاً سلوكياً تظهر في أكثر من 80% من حالات الانهيار الموثقة — قبل وقت طويل من تأكيد الأرقام المالية ذلك.' },
+      { k: '٦ أشهر', v: 'متوسط مدة تجاهل التحذير', i: 'يتجاهل المؤسس في المتوسط أولى الإشارات التحذيرية الواضحة لستة أشهر قبل أن تدخل الشركة في أزمة.' },
+      { k: '01',  v: 'محادثة صادقة واحدة كافية', i: 'محادثة صادقة واحدة — مع الشخص المناسب، في اللحظة المناسبة — تغيّر المسار أكثر من أي وثيقة استراتيجية.' },
     ],
     ctaLabel:   'مقاعد مفتوحة · حالات محدودة',
     ctaHeading1: 'شيء ما',

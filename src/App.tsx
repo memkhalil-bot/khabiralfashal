@@ -20,6 +20,7 @@ const Home          = lazy(() => import("./pages/Home"));
 const About         = lazy(() => import("./pages/About"));
 const Contact       = lazy(() => import("./pages/Contact"));
 const ValleyOfDeath = lazy(() => import("./pages/ValleyOfDeath"));
+const Methodology   = lazy(() => import("./pages/Methodology"));
 const NotFound      = lazy(() => import("./pages/NotFound"));
 
 // ── Preview (temporary — remove after visual approval) ────────────────────────
@@ -64,12 +65,14 @@ function AnimatedRoutes() {
         <Route path="/en/about"           element={<PageTransition><About /></PageTransition>} />
         <Route path="/en/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/en/contact"         element={<PageTransition><Contact /></PageTransition>} />
+        <Route path="/en/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
 
         {/* Arabic routes — same components, language derived from URL prefix */}
         <Route path="/ar"                 element={<PageTransition><Home /></PageTransition>} />
         <Route path="/ar/about"           element={<PageTransition><About /></PageTransition>} />
         <Route path="/ar/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/ar/contact"         element={<PageTransition><Contact /></PageTransition>} />
+        <Route path="/ar/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
 
         {/* Preview route — remove after visual approval */}
         <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />

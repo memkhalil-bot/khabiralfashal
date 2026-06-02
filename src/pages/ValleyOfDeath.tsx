@@ -276,6 +276,80 @@ export default function ValleyOfDeath() {
         </div>
       </section>
 
+      {/* ============ CONSULTATION WALKTHROUGH ============ */}
+      <section className="relative py-24 md:py-32 px-6 lg:px-12 border-t border-white/5 bg-black">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.9 }}
+            className={cn('mb-16', isRTL && 'text-right')}
+          >
+            <p className={cn('text-[10px] uppercase text-ember mb-4', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]')}>
+              {isRTL ? 'ماذا يحدث بعد الحجز؟' : 'What happens after booking?'}
+            </p>
+            <h2 className={cn(
+              'text-3xl md:text-5xl leading-tight tracking-tight',
+              isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
+            )}>
+              {isRTL ? 'أربع خطوات واضحة.' : 'Four clear steps.'}
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-4 gap-px bg-white/5 border border-white/5">
+            {[
+              { n: '01', en: 'Review', ar: 'المراجعة', enBody: 'Your diagnostic results and submitted context are reviewed before the session begins.', arBody: 'تُراجَع نتائج تشخيصك والسياق المُقدَّم قبل بدء الجلسة.' },
+              { n: '02', en: 'Diagnosis', ar: 'التشخيص', enBody: 'A forensic reading of your specific failure patterns, blind spots, and decision history.', arBody: 'قراءة جنائية لأنماط الفشل الخاصة بك ونقاط عمائك وتاريخ قراراتك.' },
+              { n: '03', en: 'Strategic Discussion', ar: 'النقاش الاستراتيجي', enBody: 'An honest conversation about what is actually happening — not what should be happening.', arBody: 'محادثة صادقة حول ما يحدث فعلاً — وليس ما ينبغي أن يحدث.' },
+              { n: '04', en: 'Action Plan', ar: 'خطة العمل', enBody: 'A specific set of interventions calibrated to your risk level and current position in the valley.', arBody: 'مجموعة محددة من التدخلات المُعايَرة وفق مستوى مخاطرك وموقعك الحالي في الوادي.' },
+            ].map((step, i) => (
+              <motion.div
+                key={step.n}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.7, delay: i * 0.1 }}
+                className={cn('bg-black p-8 md:p-10', isRTL && 'text-right')}
+              >
+                <div className={cn('text-[10px] text-ember mb-5', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.35em] uppercase font-medium')}>
+                  {step.n}
+                </div>
+                <h3 className={cn('text-xl mb-3', isRTL ? 'font-arabic font-bold' : 'font-serif-display')}>
+                  {isRTL ? step.ar : step.en}
+                </h3>
+                <p className={cn('text-sm text-white/45 font-light leading-relaxed', isRTL && 'font-arabic leading-[2]')}>
+                  {isRTL ? step.arBody : step.enBody}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ RESOURCES (placeholder — future products) ============ */}
+      <section className="relative py-16 px-6 lg:px-12 border-t border-white/5 bg-black">
+        <div className={cn('max-w-5xl mx-auto', isRTL && 'text-right')}>
+          <p className={cn('text-[10px] uppercase text-white/20 mb-6', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]')}>
+            {isRTL ? 'الموارد القادمة' : 'Coming resources'}
+          </p>
+          <div className={cn('flex flex-wrap gap-4', isRTL && 'justify-end')}>
+            {[
+              { en: 'Recovery Playbook', ar: 'دليل الاسترداد' },
+              { en: 'Founder Survival Toolkit', ar: 'أدوات نجاة المؤسس' },
+              { en: 'Startup Failure Framework', ar: 'إطار فشل الشركات' },
+            ].map(item => (
+              <div key={item.en} className={cn(
+                'px-4 py-2.5 border border-white/[0.06] text-[11px] text-white/20',
+                isRTL ? 'font-arabic text-sm' : 'uppercase tracking-[0.2em]'
+              )}>
+                {isRTL ? item.ar : item.en}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── INTERACTIVE ASSESSMENT — full-screen overlay, revealed on CTA click */}
       {assessmentActive && (
         <ValleyAssessment />

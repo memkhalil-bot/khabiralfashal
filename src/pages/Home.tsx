@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
@@ -67,6 +67,8 @@ export default function Home() {
   const h = t.home;
   const { getPath, lang } = useLanguage();
   const isRTL = lang === 'ar';
+
+  const [activeStatIdx, setActiveStatIdx] = useState<number | null>(null);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -385,22 +387,41 @@ export default function Home() {
       <section className="border-t border-white/5 py-20 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 border border-white/5">
           {h.stats.map((s, i) => (
-            <motion.div
+            <motion.button
               key={s.k}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.08 }}
-              className={cn('bg-black p-8 md:p-10', isRTL && 'text-right')}
+              onClick={() => setActiveStatIdx(activeStatIdx === i ? null : i)}
+              className={cn(
+                'bg-black p-8 md:p-10 text-left w-full transition-colors duration-300 cursor-pointer',
+                isRTL && 'text-right',
+                activeStatIdx === i && 'bg-ember/[0.05]'
+              )}
             >
               <StatCell k={s.k} isRTL={isRTL} />
-              <div className={cn(
-                'text-[10px] uppercase text-white/40',
-                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-              )}>
+              <div className={cn('text-[10px] uppercase text-white/40', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]')}>
                 {s.v}
               </div>
-            </motion.div>
+              <AnimatePresence>
+                {activeStatIdx === i && (s as any).i && (
+                  <motion.p
+                    key="insight"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={cn(
+                      'mt-4 text-xs text-white/55 leading-relaxed overflow-hidden',
+                      isRTL ? 'font-arabic leading-[2]' : 'font-light'
+                    )}
+                  >
+                    {(s as any).i}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.button>
           ))}
         </div>
       </section>

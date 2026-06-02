@@ -21,10 +21,11 @@ export function Header() {
 
   // Build nav links from translations (base paths without lang prefix)
   const navLinks = [
-    { name: t.nav.home,     basePath: '/' },
-    { name: t.nav.caseFile, basePath: '/about' },
-    { name: t.nav.valley,   basePath: '/valley-of-death' },
-    { name: t.nav.session,  basePath: '/contact' },
+    { name: t.nav.home,        basePath: '/' },
+    { name: t.nav.caseFile,    basePath: '/about' },
+    { name: t.nav.valley,      basePath: '/valley-of-death' },
+    { name: t.nav.methodology, basePath: '/methodology' },
+    { name: t.nav.session,     basePath: '/contact' },
   ];
 
   const isRTL = lang === 'ar';

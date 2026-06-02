@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
@@ -8,6 +9,54 @@ import { cn } from '@/lib/utils';
  * Order: shock → personal read → evidence → blind spots → consequences → action.
  * No dashboard. No SaaS cards. No excessive animation.
  */
+
+function ScoreRing({ pct, accentHsl, isRTL }: { pct: number; accentHsl: string; isRTL: boolean }) {
+  const [displayed, setDisplayed] = useState(0);
+  const triggered = useRef(false);
+  const r = 42;
+  const circ = 2 * Math.PI * r;
+  const dashOffset = circ * (1 - displayed / 100);
+
+  useEffect(() => {
+    if (triggered.current) return;
+    triggered.current = true;
+    const duration = 1200;
+    const start = performance.now();
+    const run = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - (1 - p) ** 3;
+      setDisplayed(Math.round(eased * pct));
+      if (p < 1) requestAnimationFrame(run);
+    };
+    requestAnimationFrame(run);
+  }, [pct]);
+
+  return (
+    <div className="relative inline-flex items-center justify-center w-28 h-28">
+      <svg width="112" height="112" className="-rotate-90" style={{ overflow: 'visible' }}>
+        <circle cx="56" cy="56" r={r} fill="none" stroke="hsl(0 0% 100% / 0.06)" strokeWidth="2.5" />
+        <circle
+          cx="56" cy="56" r={r}
+          fill="none"
+          stroke={accentHsl}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={dashOffset}
+          style={{ filter: `drop-shadow(0 0 5px ${accentHsl})` }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={cn(
+          'tabular-nums leading-none text-3xl',
+          isRTL ? 'font-arabic font-bold' : 'font-serif-display italic'
+        )} style={{ color: accentHsl }}>
+          {displayed}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 type CTA = { title: string; desc: string; intent: string; urgent?: boolean };
 
@@ -22,6 +71,7 @@ interface Props {
   ctas: CTA[];
   isRTL: boolean;
   contactPath: string;
+  dominantBlindSpot?: string | null;
   labels: {
     diagnosisLabel: string;
     shockEyebrow: string;
@@ -54,6 +104,7 @@ export function AssessmentResult({
   ctas,
   isRTL,
   contactPath,
+  dominantBlindSpot,
   labels,
   onReset,
 }: Props) {
@@ -160,10 +211,7 @@ export function AssessmentResult({
             <p className={cn('text-[10px] uppercase text-white/28 mb-4', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]')}>
               {labels.riskScoreLabel}
             </p>
-            <p className={cn('leading-none tabular-nums', accent, isRTL ? 'font-arabic font-bold text-6xl md:text-8xl' : 'font-serif-display italic text-7xl md:text-9xl')}>
-              {scorePct}
-              <span className="text-2xl md:text-3xl text-white/18">/100</span>
-            </p>
+            <ScoreRing pct={scorePct} accentHsl={accentHsl} isRTL={isRTL} />
           </div>
           <div>
             <p className={cn('text-[10px] uppercase text-white/28 mb-4', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]')}>
@@ -247,6 +295,21 @@ export function AssessmentResult({
           {labels.nextMoveSection}
         </p>
 
+        {dominantBlindSpot && (
+          <motion.p
+            {...reveal}
+            className={cn(
+              'mb-6 text-sm',
+              accent,
+              isRTL ? 'font-arabic leading-[2]' : 'font-light tracking-wide'
+            )}
+          >
+            {isRTL
+              ? `المنطقة الأعلى خطورة لديك: ${dominantBlindSpot}`
+              : `Your highest-risk pattern: ${dominantBlindSpot}`}
+          </motion.p>
+        )}
+
         {/* Compact findings summary — value before the ask */}
         <div className="mb-10 p-6 border border-white/[0.08] bg-white/[0.02] max-w-xl">
           <div className={cn('flex flex-wrap gap-x-10 gap-y-3 mb-4', isRTL && 'flex-row-reverse')}>
@@ -316,6 +379,14 @@ export function AssessmentResult({
             {isRTL ? 'مقاعد محدودة · هذا الأسبوع فقط' : 'Limited intake · This week only'}
           </p>
         )}
+
+        {/* Scarcity — professional, not fake urgency */}
+        <p className={cn(
+          'mt-6 text-[10px] text-white/22',
+          isRTL ? 'font-arabic tracking-normal text-sm' : 'uppercase tracking-[0.3em]'
+        )}>
+          {isRTL ? 'طاقة استيعابية محدودة هذا الشهر' : 'Limited advisory capacity this month'}
+        </p>
 
         {secondaryCtas.length > 0 && (
           <div className={cn('mt-12 flex flex-col gap-5', isRTL && 'items-end')}>

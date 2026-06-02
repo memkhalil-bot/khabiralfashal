@@ -577,13 +577,26 @@ export function ValleyAssessment() {
     const src = isDone ? finalAnswers : answers;
     const set = new Set<string>();
     QUESTIONS.forEach(q => {
-      if ((src[q.id] ?? 0) >= 4) {
+      if ((src[q.id] ?? 0) >= 3) {
         const label = isRTL ? (q.blindSpotAr ?? q.blindSpot) : q.blindSpot;
         if (label) set.add(label);
       }
     });
     return Array.from(set).slice(0, 4);
   }, [isDone, finalAnswers, answers, isRTL]);
+
+  const dominantBlindSpot = useMemo(() => {
+    if (!isDone) return null;
+    const counts: Record<string, number> = {};
+    QUESTIONS.forEach(q => {
+      if ((finalAnswers[q.id] ?? 0) >= 3) {
+        const label = isRTL ? (q.blindSpotAr ?? q.blindSpot) : q.blindSpot;
+        if (label) counts[label] = (counts[label] ?? 0) + 1;
+      }
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] ?? null;
+  }, [isDone, finalAnswers, isRTL]);
 
   const riskBucket: 'low' | 'medium' | 'high' =
     verdict.level === 'COLLAPSE PROXIMITY' ? 'high'
@@ -594,14 +607,16 @@ export function ValleyAssessment() {
   const showImage   = stage !== 'gate';
   const markerActive = stage === 'quiz' || stage === 'analyzing' || stage === 'result';
 
-  // ── Keyboard Y/N ───────────────────────────────────────────────────────────
+  // ── Keyboard 1/2/3/4 ──────────────────────────────────────────────────────
 
   useEffect(() => {
     if (stage !== 'quiz') return;
     const q = QUESTIONS[idx];
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'y' || e.key === 'Y') pickAnswer(true, q);
-      if (e.key === 'n' || e.key === 'N') pickAnswer(false, q);
+      if (e.key === '1') pickAnswer(0, q);
+      if (e.key === '2') pickAnswer(1, q);
+      if (e.key === '3') pickAnswer(2, q);
+      if (e.key === '4') pickAnswer(3, q);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -649,9 +664,14 @@ export function ValleyAssessment() {
 
   // ── Quiz answer ────────────────────────────────────────────────────────────
 
-  const pickAnswer = useCallback((userSaysYes: boolean, q: BinaryQ) => {
-    const risky = userSaysYes === q.yesRisky;
-    const weight = risky ? (q.riskWeight ?? 5) : (q.safeWeight ?? 1);
+  const pickAnswer = useCallback((level: 0 | 1 | 2 | 3, q: BinaryQ) => {
+    // Scoring: yesRisky=true → more = riskier: 0→0, 1→1, 2→3, 3→5
+    //          yesRisky=false (q12) → less = riskier: 0→5, 1→3, 2→1, 3→0
+    const riskTable   = [0, 1, 3, 5] as const;
+    const safeTable   = [5, 3, 1, 0] as const;
+    const weight = q.yesRisky ? riskTable[level] : safeTable[level];
+    const risky = weight >= 3;
+
     if (risky) setFlashKey(k => k + 1);
 
     // Node flash: green for safe, red for risky
@@ -667,6 +687,19 @@ export function ValleyAssessment() {
     }, 220);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, idx, total]);
+
+  // ── Back navigation ────────────────────────────────────────────────────────
+
+  const goBack = useCallback(() => {
+    if (idx === 0) return;
+    const prevQ = QUESTIONS[idx - 1];
+    setAnswers(prev => {
+      const next = { ...prev };
+      delete next[prevQ.id];
+      return next;
+    });
+    setIdx(i => i - 1);
+  }, [idx]);
 
   // ── Finalize ───────────────────────────────────────────────────────────────
 
@@ -988,6 +1021,20 @@ export function ValleyAssessment() {
                 </span>
                 <ArrowRight className={cn('size-4 text-white/40 group-hover:text-white/70 group-hover:translate-x-1 transition-all', isRTL && 'rotate-180')} />
               </motion.button>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.8, duration: 0.5 }}
+                className={cn(
+                  'mt-8 text-white/18',
+                  isRTL ? 'font-arabic text-xs leading-[2]' : 'text-[9px] uppercase tracking-[0.28em]'
+                )}
+              >
+                {isRTL
+                  ? 'سرية كاملة · لا مشاركة مع مستثمرين · لا بريد مزعج'
+                  : '100% Confidential · No investor disclosure · No spam'}
+              </motion.p>
             </motion.div>
           )}
 
@@ -1000,6 +1047,20 @@ export function ValleyAssessment() {
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={isRTL ? 'text-right' : undefined}>
 
+              {/* Back button */}
+              {idx > 0 && (
+                <button
+                  onClick={goBack}
+                  className={cn(
+                    'mb-8 inline-flex items-center gap-2 text-white/25 hover:text-white/55 transition-colors',
+                    isRTL ? 'flex-row-reverse font-arabic text-sm' : 'text-[9px] uppercase tracking-[0.3em]'
+                  )}
+                >
+                  <ArrowRight className={cn('size-3', isRTL ? undefined : 'rotate-180')} />
+                  {isRTL ? 'السؤال السابق' : 'Previous'}
+                </button>
+              )}
+
               <p className={cn('text-ember mb-8', isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.4em]')}>
                 {isRTL
                   ? `السؤال ${idx + 1} من ${total}`
@@ -1010,30 +1071,44 @@ export function ValleyAssessment() {
                 {isRTL ? QUESTIONS[idx].ar : QUESTIONS[idx].en}
               </h2>
 
-              {/* Yes / No */}
-              <div className={cn('flex gap-4', isRTL && 'flex-row-reverse')}>
-                <motion.button
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.07, duration: 0.4 }}
-                  onClick={() => pickAnswer(true, QUESTIONS[idx])}
-                  className="group flex-1 py-5 md:py-7 border border-white/10 hover:border-ember hover:bg-ember/[0.05] transition-all duration-300">
-                  <span className={cn('text-white/80 text-xl md:text-2xl group-hover:text-white transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
-                    {isRTL ? 'نعم' : 'Yes'}
-                  </span>
-                </motion.button>
-                <motion.button
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.13, duration: 0.4 }}
-                  onClick={() => pickAnswer(false, QUESTIONS[idx])}
-                  className="group flex-1 py-5 md:py-7 border border-white/10 hover:border-white/35 hover:bg-white/[0.03] transition-all duration-300">
-                  <span className={cn('text-white/48 text-xl md:text-2xl group-hover:text-white/78 transition-colors', isRTL ? 'font-arabic' : 'font-serif-display')}>
-                    {isRTL ? 'لا' : 'No'}
-                  </span>
-                </motion.button>
+              {/* 4-level scale */}
+              <div className={cn('grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2', isRTL && 'direction-rtl')}>
+                {([
+                  { level: 0 as const, en: 'Never',     ar: 'أبداً',    muted: true },
+                  { level: 1 as const, en: 'Rarely',    ar: 'نادراً',   muted: false },
+                  { level: 2 as const, en: 'Sometimes', ar: 'أحياناً',  muted: false },
+                  { level: 3 as const, en: 'Always',    ar: 'دائماً',   muted: false },
+                ]).map(({ level, en, ar: arLabel, muted: _muted }, btnIdx) => (
+                  <motion.button
+                    key={level}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 + btnIdx * 0.05, duration: 0.35 }}
+                    onClick={() => pickAnswer(level, QUESTIONS[idx])}
+                    className={cn(
+                      'group py-5 md:py-7 border transition-all duration-300 min-h-[48px]',
+                      level === 0 && 'border-white/8 hover:border-white/28 hover:bg-white/[0.02]',
+                      level === 1 && 'border-white/10 hover:border-white/35 hover:bg-white/[0.03]',
+                      level === 2 && 'border-white/12 hover:border-ember/50 hover:bg-ember/[0.04]',
+                      level === 3 && 'border-white/14 hover:border-ember hover:bg-ember/[0.07]',
+                    )}
+                  >
+                    <span className={cn(
+                      'text-base md:text-lg transition-colors',
+                      isRTL ? 'font-arabic' : 'font-serif-display',
+                      level === 0 && 'text-white/35 group-hover:text-white/60',
+                      level === 1 && 'text-white/52 group-hover:text-white/75',
+                      level === 2 && 'text-white/70 group-hover:text-white/90',
+                      level === 3 && 'text-white/85 group-hover:text-white',
+                    )}>
+                      {isRTL ? arLabel : en}
+                    </span>
+                  </motion.button>
+                ))}
               </div>
 
               <p className={cn('mt-5 text-white/18', isRTL ? 'font-arabic text-xs' : 'text-[9px] uppercase tracking-[0.32em]')}>
-                {isRTL ? 'اضغط Y أو N للإجابة' : 'Press Y or N to answer'}
+                {isRTL ? 'اضغط 1 · 2 · 3 · 4 للإجابة' : 'Press 1 · 2 · 3 · 4 to answer'}
               </p>
             </motion.div>
           )}
@@ -1072,6 +1147,7 @@ export function ValleyAssessment() {
                 ctas={a.dynamicCtas[riskBucket]}
                 isRTL={isRTL}
                 contactPath={getPath('/contact')}
+                dominantBlindSpot={dominantBlindSpot}
                 labels={{
                   diagnosisLabel:       a.diagnosisLabel,
                   shockEyebrow:         a.shockEyebrow,
