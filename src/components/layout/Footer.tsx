@@ -78,7 +78,7 @@ export function Footer() {
                 </a>
               </li>
               <li className={isRTL ? 'font-arabic' : ''}>
-                {isRTL ? 'الرياض · عن بُعد' : 'Riyadh · Remote'}
+                {isRTL ? '' : ''}
               </li>
             </ul>
           </div>
