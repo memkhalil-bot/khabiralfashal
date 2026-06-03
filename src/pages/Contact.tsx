@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { SEOHead } from '@/components/seo/SEOHead';
 import bookCallPhone from '@/assets/book-call-phone.png';
+import bookCallPhoneWebp from '@/assets/book-call-phone.webp';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -135,12 +136,16 @@ export default function Contact() {
                 <path d="M30 75 Q50 45 70 75" className="animate-arc" style={{ animationDelay: '0.6s' }} />
                 <path d="M40 80 Q50 60 60 80" className="animate-arc" style={{ animationDelay: '1.2s' }} />
               </svg>
-              <img
-                src={bookCallPhone}
-                alt="Orange phone receiver — book a risk session"
-                className="relative z-10 w-full h-auto select-none pointer-events-none animate-float"
-                draggable={false}
-              />
+              <picture>
+                <source srcSet={bookCallPhoneWebp} type="image/webp" />
+                <img
+                  src={bookCallPhone}
+                  alt="Orange phone receiver — book a risk session"
+                  className="relative z-10 w-full h-auto select-none pointer-events-none animate-float"
+                  draggable={false}
+                  loading="lazy"
+                />
+              </picture>
             </div>
           </motion.div>
         </div>

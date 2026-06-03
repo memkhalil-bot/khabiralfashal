@@ -323,33 +323,34 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-px bg-white/5 border border-white/5">
             {h.patterns.map((p, i) => (
-              <motion.article
-                key={p.n}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.8, delay: i * 0.08 }}
-                className="group relative bg-black p-10 md:p-14 hover:bg-ember/[0.04] transition-colors duration-700"
-              >
-                <div className={cn('flex items-start justify-between mb-10', isRTL && 'flex-row-reverse')}>
-                  <span className="text-xs tracking-[0.3em] text-ember">
-                    Pattern · {p.n}
-                  </span>
-                  <ArrowUpRight className="size-4 text-white/20 group-hover:text-ember group-hover:rotate-45 transition-all duration-500" />
-                </div>
-                <h3 className={cn(
-                  'text-3xl md:text-4xl mb-6 leading-tight',
-                  isRTL ? 'font-arabic font-bold text-right leading-[1.5]' : 'font-serif-display'
-                )}>
-                  {p.title}
-                </h3>
-                <p className={cn(
-                  'text-base text-white/50 font-light leading-relaxed max-w-md',
-                  isRTL && 'font-arabic text-right leading-[2]'
-                )}>
-                  {p.body}
-                </p>
-              </motion.article>
+              <Link key={p.n} to={getPath('/valley-of-death')} className="block">
+                <motion.article
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.8, delay: i * 0.08 }}
+                  className="group relative bg-black p-10 md:p-14 hover:bg-ember/[0.04] hover:scale-[1.02] transition-all duration-500 cursor-pointer"
+                >
+                  <div className={cn('flex items-start justify-between mb-10', isRTL && 'flex-row-reverse')}>
+                    <span className="text-xs tracking-[0.3em] text-ember">
+                      Pattern · {p.n}
+                    </span>
+                    <ArrowUpRight className="size-4 text-white/20 group-hover:text-ember group-hover:rotate-45 transition-all duration-500" />
+                  </div>
+                  <h3 className={cn(
+                    'text-3xl md:text-4xl mb-6 leading-tight',
+                    isRTL ? 'font-arabic font-bold text-right leading-[1.5]' : 'font-serif-display'
+                  )}>
+                    {p.title}
+                  </h3>
+                  <p className={cn(
+                    'text-base text-white/50 font-light leading-relaxed max-w-md',
+                    isRTL && 'font-arabic text-right leading-[2]'
+                  )}>
+                    {p.body}
+                  </p>
+                </motion.article>
+              </Link>
             ))}
           </div>
         </div>
@@ -466,18 +467,30 @@ export default function Home() {
             {h.ctaBody}
           </p>
 
-          <Link
-            to={getPath('/contact')}
-            className="group inline-flex items-center gap-8 px-10 py-6 bg-ember text-black hover:bg-white transition-colors duration-500"
-          >
-            <span className={cn(
-              'text-sm uppercase font-semibold',
-              isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]'
-            )}>
-              {h.ctaButton}
-            </span>
-            <ArrowUpRight className={cn('size-5 transition-transform group-hover:rotate-45', isRTL && 'rotate-180')} />
-          </Link>
+          <div className="relative inline-block">
+            <motion.span
+              className="absolute inset-0 pointer-events-none"
+              animate={{
+                boxShadow: [
+                  '0 0 0 0px hsl(18 92% 55% / 0.35)',
+                  '0 0 0 20px hsl(18 92% 55% / 0.00)',
+                ],
+              }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
+            />
+            <Link
+              to={getPath('/contact')}
+              className="group inline-flex items-center gap-8 px-10 py-6 bg-ember text-black hover:bg-white transition-colors duration-500"
+            >
+              <span className={cn(
+                'text-sm uppercase font-semibold',
+                isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]'
+              )}>
+                {h.ctaButton}
+              </span>
+              <ArrowUpRight className={cn('size-5 transition-transform group-hover:rotate-45', isRTL && 'rotate-180')} />
+            </Link>
+          </div>
         </motion.div>
       </section>
 

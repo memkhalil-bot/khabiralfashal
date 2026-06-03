@@ -97,7 +97,13 @@ export default function CaseFiles() {
       {/* CASE GRID */}
       <section className="px-6 lg:px-12 py-20 md:py-28">
         <div className="max-w-5xl mx-auto space-y-16">
-          {filtered.map((c, i) => (
+          {filtered.length === 0 ? (
+            <div className={cn('py-32 text-center', isRTL && 'font-arabic')}>
+              <p className={cn('text-white/28 text-lg font-light', isRTL && 'leading-[2]')}>
+                {isRTL ? 'لا توجد حالات لهذا التصنيف.' : 'No cases match this filter.'}
+              </p>
+            </div>
+          ) : filtered.map((c, i) => (
             <motion.article
               key={c.id}
               {...inView}
