@@ -22,9 +22,11 @@ export type Database = {
           founder_name: string
           id: string
           notes: string | null
+          payment_status: string | null
           risk_level: string | null
           scheduled_at: string | null
           session_type: string | null
+          session_value: number | null
           status: string | null
           updated_at: string | null
         }
@@ -37,9 +39,11 @@ export type Database = {
           founder_name: string
           id?: string
           notes?: string | null
+          payment_status?: string | null
           risk_level?: string | null
           scheduled_at?: string | null
           session_type?: string | null
+          session_value?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -52,9 +56,11 @@ export type Database = {
           founder_name?: string
           id?: string
           notes?: string | null
+          payment_status?: string | null
           risk_level?: string | null
           scheduled_at?: string | null
           session_type?: string | null
+          session_value?: number | null
           status?: string | null
           updated_at?: string | null
         }
@@ -203,13 +209,17 @@ export type Database = {
         Row: {
           answers: Json | null
           blind_spots: string[] | null
+          case_code: string | null
           company: string | null
           country: string | null
           created_at: string | null
           email: string
+          founder_health_score: number | null
           id: string
           insight: string | null
+          lead_source: string | null
           name: string | null
+          primary_failure_mode: string | null
           risk_level: string | null
           risk_score: number | null
           sector: string | null
@@ -219,13 +229,17 @@ export type Database = {
         Insert: {
           answers?: Json | null
           blind_spots?: string[] | null
+          case_code?: string | null
           company?: string | null
           country?: string | null
           created_at?: string | null
           email: string
+          founder_health_score?: number | null
           id?: string
           insight?: string | null
+          lead_source?: string | null
           name?: string | null
+          primary_failure_mode?: string | null
           risk_level?: string | null
           risk_score?: number | null
           sector?: string | null
@@ -235,13 +249,17 @@ export type Database = {
         Update: {
           answers?: Json | null
           blind_spots?: string[] | null
+          case_code?: string | null
           company?: string | null
           country?: string | null
           created_at?: string | null
           email?: string
+          founder_health_score?: number | null
           id?: string
           insight?: string | null
+          lead_source?: string | null
           name?: string | null
+          primary_failure_mode?: string | null
           risk_level?: string | null
           risk_score?: number | null
           sector?: string | null
@@ -348,13 +366,13 @@ export type Tables<
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
         DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
-  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
@@ -374,12 +392,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
-  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
@@ -399,12 +417,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
     : never
-  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
@@ -420,8 +438,8 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
@@ -437,8 +455,8 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {

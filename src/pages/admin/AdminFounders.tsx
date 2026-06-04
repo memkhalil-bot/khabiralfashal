@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, X, AlertTriangle, Shield, Activity, Skull,
   Building, Layers, Globe, Calendar, CalendarClock, FileText, Bell,
+  Hash, Heart, Tag, Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -155,6 +156,44 @@ function DetailPanel({ row, onClose }: { row: Assessment; onClose: () => void })
               )}
             </div>
           </div>
+
+          {/* Methodology fields */}
+          {(row.case_code || row.founder_health_score != null || row.primary_failure_mode || row.lead_source) && (
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+              {row.case_code && (
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-white/30 mb-1">
+                    <Hash className="size-3" /> Case Code
+                  </p>
+                  <p className="text-sm text-white/70 font-mono">{row.case_code}</p>
+                </div>
+              )}
+              {row.founder_health_score != null && (
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-white/30 mb-1">
+                    <Heart className="size-3" /> Health Score
+                  </p>
+                  <p className="text-sm text-white/70">{row.founder_health_score}<span className="text-white/30 text-xs ml-0.5">/100</span></p>
+                </div>
+              )}
+              {row.primary_failure_mode && (
+                <div className="col-span-2">
+                  <p className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-white/30 mb-1">
+                    <Zap className="size-3" /> Primary Failure Mode
+                  </p>
+                  <p className="text-sm text-white/70">{row.primary_failure_mode}</p>
+                </div>
+              )}
+              {row.lead_source && (
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-white/30 mb-1">
+                    <Tag className="size-3" /> Lead Source
+                  </p>
+                  <p className="text-sm text-white/70">{row.lead_source}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Blind spots */}
           {row.blind_spots && row.blind_spots.length > 0 && (

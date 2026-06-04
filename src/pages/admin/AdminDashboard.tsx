@@ -11,9 +11,12 @@ import {
   Activity,
   CalendarClock,
   Bell,
+  DollarSign,
+  CalendarDays,
+  Skull,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { format, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 // ── Queries ──────────────────────────────────────────────────────────────────
@@ -56,16 +59,28 @@ function useStats() {
         (a) => a.risk_level === 'COLLAPSE PROXIMITY' || a.risk_level === 'INSIDE THE VALLEY'
       ).length;
 
-      // Count active sessions and pending follow-ups
-      const activeSessionsRes = await supabase
-        .from('advisory_sessions')
-        .select('id', { count: 'exact' })
-        .in('status', ['pending', 'confirmed']);
+      const monthStart = startOfMonth(new Date()).toISOString();
 
-      const pendingFollowUpsRes = await supabase
-        .from('follow_ups')
-        .select('id', { count: 'exact' })
-        .eq('status', 'pending');
+      const [
+        activeSessionsRes,
+        pendingFollowUpsRes,
+        paidSessionsRes,
+        sessionsThisMonthRes,
+        highRiskRes,
+        criticalRes,
+      ] = await Promise.all([
+        supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
+        supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
+        supabase.from('advisory_sessions').select('session_value').eq('payment_status', 'paid'),
+        supabase.from('advisory_sessions').select('id', { count: 'exact' }).gte('created_at', monthStart),
+        supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'INSIDE THE VALLEY'),
+        supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'COLLAPSE PROXIMITY'),
+      ]);
+
+      const totalRevenue = (paidSessionsRes.data ?? []).reduce(
+        (sum, s) => sum + (s.session_value ?? 0),
+        0
+      );
 
       return {
         totalSubmissions: assessmentsRes.count ?? 0,
@@ -75,6 +90,10 @@ function useStats() {
         highRisk,
         activeSessions: activeSessionsRes.count ?? 0,
         pendingFollowUps: pendingFollowUpsRes.count ?? 0,
+        totalRevenue,
+        sessionsThisMonth: sessionsThisMonthRes.count ?? 0,
+        highRiskCases: highRiskRes.count ?? 0,
+        criticalCases: criticalRes.count ?? 0,
         recent: recentRes.data ?? [],
         upcomingSessions: sessionsRes.data ?? [],
         pendingFollowUpsList: followUpsRes.data ?? [],
@@ -181,6 +200,34 @@ export default function AdminDashboard() {
       icon: Bell,
       to: '/admin/follow-ups',
       accent: 'text-violet-400',
+    },
+    {
+      label: 'Total Revenue',
+      value: data ? `$${data.totalRevenue.toLocaleString()}` : '—',
+      icon: DollarSign,
+      to: '/admin/sessions',
+      accent: 'text-emerald-400',
+    },
+    {
+      label: 'Sessions This Month',
+      value: data?.sessionsThisMonth ?? '—',
+      icon: CalendarDays,
+      to: '/admin/sessions',
+      accent: 'text-sky-300',
+    },
+    {
+      label: 'High-Risk Cases',
+      value: data?.highRiskCases ?? '—',
+      icon: AlertTriangle,
+      to: '/admin/founders',
+      accent: 'text-orange-400',
+    },
+    {
+      label: 'Critical Cases',
+      value: data?.criticalCases ?? '—',
+      icon: Skull,
+      to: '/admin/founders',
+      accent: 'text-red-500',
     },
   ];
 
