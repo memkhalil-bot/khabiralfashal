@@ -38,6 +38,10 @@ const AdminLogin        = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminDashboard    = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminSubmissions  = lazy(() => import("./pages/admin/AdminSubmissions"));
 const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
+const AdminFounders     = lazy(() => import("./pages/admin/AdminFounders"));
+const AdminSessions     = lazy(() => import("./pages/admin/AdminSessions"));
+const AdminReports      = lazy(() => import("./pages/admin/AdminReports"));
+const AdminFollowUps    = lazy(() => import("./pages/admin/AdminFollowUps"));
 
 const queryClient = new QueryClient();
 
@@ -131,6 +135,10 @@ function RootRouter() {
               </ProtectedAdminRoute>
             }
           />
+          <Route path="/admin/founders"   element={<ProtectedAdminRoute><AdminFounders /></ProtectedAdminRoute>} />
+          <Route path="/admin/sessions"   element={<ProtectedAdminRoute><AdminSessions /></ProtectedAdminRoute>} />
+          <Route path="/admin/reports"    element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
+          <Route path="/admin/follow-ups" element={<ProtectedAdminRoute><AdminFollowUps /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );
