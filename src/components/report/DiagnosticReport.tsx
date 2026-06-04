@@ -108,7 +108,7 @@ export function DiagnosticReport({
         <p className={cn('text-[10px] uppercase text-white/28 group-hover:text-white/50 transition-colors', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.42em]')}>
           {isRTL ? 'التقرير التشخيصي' : 'Diagnostic Report'}
         </p>
-        <span className={cn('text-white/25 text-xs transition-transform duration-300', expanded && 'rotate-180')}>▾</span>
+        <span className={cn('text-white/25 text-xs transition-transform duration-300 inline-block', expanded && 'rotate-180')}>▾</span>
       </button>
 
       {expanded && (

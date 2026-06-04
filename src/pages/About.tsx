@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import portrait from '@/assets/khabir-portrait.png';
+import portraitWebp from '@/assets/khabir-portrait.webp';
 import { EmergencyBriefings } from '@/components/newsletter/EmergencyBriefings';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,11 +47,15 @@ export default function About() {
             isRTL ? 'left-0' : 'right-0'
           )}
         >
-          <img
-            src={portrait}
-            alt="Mohamed Khalil"
-            className="h-full w-full object-cover grayscale contrast-110"
-          />
+          <picture>
+            <source srcSet={portraitWebp} type="image/webp" />
+            <img
+              src={portrait}
+              alt="Mohamed Khalil"
+              className="h-full w-full object-cover grayscale contrast-110"
+              loading="lazy"
+            />
+          </picture>
           <div className={cn(
             'absolute inset-0',
             isRTL

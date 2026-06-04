@@ -240,12 +240,11 @@ export function FirstAidKit({ dominantBlindSpot, isRTL }: FirstAidKitProps) {
 
         <button
           className={cn(
-            'inline-flex items-center gap-3 border border-white/15 hover:border-ember/50 hover:bg-ember/[0.03] px-6 py-3 transition-all duration-300 text-sm text-white/55 hover:text-white/85',
+            'inline-flex items-center gap-3 border border-white/15 hover:border-white/30 px-6 py-3 transition-all duration-300 text-sm text-white/40 cursor-not-allowed',
             isRTL ? 'font-arabic flex-row-reverse' : 'uppercase tracking-[0.2em]'
           )}
-          onClick={() => {
-            // Placeholder — PDF download integration point
-          }}
+          disabled
+          aria-label={isRTL ? 'قريباً' : 'Coming soon'}
           data-download-key={dominantBlindSpot?.toLowerCase().replace(/\s/g, '-') ?? 'default'}
         >
           {isRTL ? resource.ctaAr : resource.ctaEn}

@@ -7,29 +7,22 @@ import {
   LogOut,
   ChevronRight,
   Flame,
+  UserCircle,
+  CalendarClock,
+  FileText,
+  Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 const navItems = [
-  {
-    to: '/admin',
-    label: 'Overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-  {
-    to: '/admin/submissions',
-    label: 'Submissions',
-    icon: Users,
-    end: false,
-  },
-  {
-    to: '/admin/testimonials',
-    label: 'Testimonials',
-    icon: MessageSquareQuote,
-    end: false,
-  },
+  { to: '/admin',              label: 'Overview',     icon: LayoutDashboard,    end: true  },
+  { to: '/admin/founders',     label: 'Founders',     icon: UserCircle,         end: false },
+  { to: '/admin/sessions',     label: 'Sessions',     icon: CalendarClock,      end: false },
+  { to: '/admin/reports',      label: 'Reports',      icon: FileText,           end: false },
+  { to: '/admin/follow-ups',   label: 'Follow-ups',   icon: Bell,               end: false },
+  { to: '/admin/submissions',  label: 'Submissions',  icon: Users,              end: false },
+  { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote, end: false },
 ];
 
 interface Props {
@@ -70,36 +63,41 @@ export function AdminLayout({ children, title, subtitle }: Props) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-6 space-y-1">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] tracking-[0.15em] uppercase transition-all duration-200 group',
-                  isActive
-                    ? 'bg-white/8 text-white'
-                    : 'text-white/40 hover:text-white/80 hover:bg-white/4'
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    className={cn(
-                      'size-4 shrink-0 transition-colors',
-                      isActive ? 'text-ember' : 'text-white/30 group-hover:text-white/60'
-                    )}
-                  />
-                  <span className="flex-1">{label}</span>
-                  {isActive && (
-                    <ChevronRight className="size-3 text-ember/60" />
+          {navItems.map(({ to, label, icon: Icon, end }, index) => {
+            const isLegacyDivider = label === 'Submissions';
+            return (
+              <div key={to}>
+                {isLegacyDivider && <hr className="my-2 border-white/5" />}
+                <NavLink
+                  to={to}
+                  end={end}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] tracking-[0.15em] uppercase transition-all duration-200 group',
+                      isActive
+                        ? 'bg-white/8 text-white'
+                        : 'text-white/40 hover:text-white/80 hover:bg-white/4'
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon
+                        className={cn(
+                          'size-4 shrink-0 transition-colors',
+                          isActive ? 'text-ember' : 'text-white/30 group-hover:text-white/60'
+                        )}
+                      />
+                      <span className="flex-1">{label}</span>
+                      {isActive && (
+                        <ChevronRight className="size-3 text-ember/60" />
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </NavLink>
-          ))}
+                </NavLink>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Footer */}

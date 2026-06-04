@@ -378,12 +378,15 @@ function ValleyVisual({
     // No paddingBottom trick, no object-cover, no cropping ever.
     <div className="relative w-full">
       {/* Hero image — full image, zero crop */}
-      <img
-        src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.png'}
-        alt=""
-        className="w-full h-auto block"
-        draggable={false}
-      />
+      <picture>
+        <source srcSet={isRTL ? '/valley-bg-ar.webp' : '/valley-bg-en.webp'} type="image/webp" />
+        <img
+          src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.png'}
+          alt=""
+          className="w-full h-auto block"
+          draggable={false}
+        />
+      </picture>
 
       {/* SVG overlay — absolutely covers the exact image bounds */}
       <svg
@@ -1052,7 +1055,7 @@ export function ValleyAssessment() {
                 <button
                   onClick={goBack}
                   className={cn(
-                    'mb-8 inline-flex items-center gap-2 text-white/25 hover:text-white/55 transition-colors',
+                    'mb-6 inline-flex items-center gap-2 min-h-[44px] text-white/25 hover:text-white/55 transition-colors',
                     isRTL ? 'flex-row-reverse font-arabic text-sm' : 'text-[9px] uppercase tracking-[0.3em]'
                   )}
                 >

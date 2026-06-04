@@ -7,58 +7,261 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      founder_assessments: {
+      advisory_sessions: {
         Row: {
-          answers: Json
+          assessment_id: string | null
+          company: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          founder_email: string
+          founder_name: string
+          id: string
+          notes: string | null
+          payment_status: string | null
+          risk_level: string | null
+          scheduled_at: string | null
+          session_type: string | null
+          session_value: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          company?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          founder_email: string
+          founder_name: string
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          risk_level?: string | null
+          scheduled_at?: string | null
+          session_type?: string | null
+          session_value?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          company?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          founder_email?: string
+          founder_name?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string | null
+          risk_level?: string | null
+          scheduled_at?: string | null
+          session_type?: string | null
+          session_value?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisory_sessions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "founder_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      autopsy_reports: {
+        Row: {
+          advisor_notes: string | null
+          assessment_id: string | null
           blind_spots: string[] | null
           company: string | null
+          created_at: string | null
+          executive_summary: string | null
+          failure_mode: string | null
+          founder_email: string | null
+          founder_name: string
+          id: string
+          recovery_path: string | null
+          risk_score: number | null
+          root_causes: string | null
+          status: string | null
+          timeline_to_collapse: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          advisor_notes?: string | null
+          assessment_id?: string | null
+          blind_spots?: string[] | null
+          company?: string | null
+          created_at?: string | null
+          executive_summary?: string | null
+          failure_mode?: string | null
+          founder_email?: string | null
+          founder_name: string
+          id?: string
+          recovery_path?: string | null
+          risk_score?: number | null
+          root_causes?: string | null
+          status?: string | null
+          timeline_to_collapse?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          advisor_notes?: string | null
+          assessment_id?: string | null
+          blind_spots?: string[] | null
+          company?: string | null
+          created_at?: string | null
+          executive_summary?: string | null
+          failure_mode?: string | null
+          founder_email?: string | null
+          founder_name?: string
+          id?: string
+          recovery_path?: string | null
+          risk_score?: number | null
+          root_causes?: string | null
+          status?: string | null
+          timeline_to_collapse?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "autopsy_reports_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "founder_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_ups: {
+        Row: {
+          assessment_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          due_date: string | null
+          founder_email: string | null
+          founder_name: string | null
+          id: string
+          note: string | null
+          priority: string | null
+          session_id: string | null
+          status: string | null
+          title: string
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          founder_email?: string | null
+          founder_name?: string | null
+          id?: string
+          note?: string | null
+          priority?: string | null
+          session_id?: string | null
+          status?: string | null
+          title: string
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          founder_email?: string | null
+          founder_name?: string | null
+          id?: string
+          note?: string | null
+          priority?: string | null
+          session_id?: string | null
+          status?: string | null
+          title?: string
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "founder_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "advisory_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      founder_assessments: {
+        Row: {
+          answers: Json | null
+          blind_spots: string[] | null
+          case_code: string | null
+          company: string | null
           country: string | null
-          created_at: string
+          created_at: string | null
           email: string
+          founder_health_score: number | null
           id: string
           insight: string | null
+          lead_source: string | null
           name: string | null
+          primary_failure_mode: string | null
           risk_level: string | null
-          risk_score: number
+          risk_score: number | null
           sector: string | null
           stage: string | null
           user_agent: string | null
         }
         Insert: {
-          answers?: Json
+          answers?: Json | null
           blind_spots?: string[] | null
+          case_code?: string | null
           company?: string | null
           country?: string | null
-          created_at?: string
+          created_at?: string | null
           email: string
+          founder_health_score?: number | null
           id?: string
           insight?: string | null
+          lead_source?: string | null
           name?: string | null
+          primary_failure_mode?: string | null
           risk_level?: string | null
-          risk_score?: number
+          risk_score?: number | null
           sector?: string | null
           stage?: string | null
           user_agent?: string | null
         }
         Update: {
-          answers?: Json
+          answers?: Json | null
           blind_spots?: string[] | null
+          case_code?: string | null
           company?: string | null
           country?: string | null
-          created_at?: string
+          created_at?: string | null
           email?: string
+          founder_health_score?: number | null
           id?: string
           insight?: string | null
+          lead_source?: string | null
           name?: string | null
+          primary_failure_mode?: string | null
           risk_level?: string | null
-          risk_score?: number
+          risk_score?: number | null
           sector?: string | null
           stage?: string | null
           user_agent?: string | null
@@ -70,34 +273,55 @@ export type Database = {
           author_name: string
           author_role: string | null
           company: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          order_index: number
-          published: boolean
+          order_index: number | null
+          published: boolean | null
           quote: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           author_name: string
           author_role?: string | null
           company?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          order_index?: number
-          published?: boolean
+          order_index?: number | null
+          published?: boolean | null
           quote: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           author_name?: string
           author_role?: string | null
           company?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          order_index?: number
-          published?: boolean
+          order_index?: number | null
+          published?: boolean | null
           quote?: string
-          updated_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }

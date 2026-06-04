@@ -16,14 +16,15 @@ import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
 // ── Public pages ──────────────────────────────────────────────────────────────
-const Home          = lazy(() => import("./pages/Home"));
-const About         = lazy(() => import("./pages/About"));
-const Contact       = lazy(() => import("./pages/Contact"));
-const ValleyOfDeath = lazy(() => import("./pages/ValleyOfDeath"));
-const Methodology   = lazy(() => import("./pages/Methodology"));
-const CaseFiles     = lazy(() => import("./pages/CaseFiles"));
-const ThankYou      = lazy(() => import("./pages/ThankYou"));
-const NotFound      = lazy(() => import("./pages/NotFound"));
+const Home             = lazy(() => import("./pages/Home"));
+const About            = lazy(() => import("./pages/About"));
+const Contact          = lazy(() => import("./pages/Contact"));
+const ValleyOfDeath    = lazy(() => import("./pages/ValleyOfDeath"));
+const Methodology      = lazy(() => import("./pages/Methodology"));
+const CaseFiles        = lazy(() => import("./pages/CaseFiles"));
+const ThankYou         = lazy(() => import("./pages/ThankYou"));
+const NotFound         = lazy(() => import("./pages/NotFound"));
+const RunwaySimulator  = lazy(() => import("./pages/tools/RunwaySimulator"));
 
 // ── Preview (temporary — remove after visual approval) ────────────────────────
 const ResultPreview = lazy(() =>
@@ -37,6 +38,10 @@ const AdminLogin        = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminDashboard    = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminSubmissions  = lazy(() => import("./pages/admin/AdminSubmissions"));
 const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
+const AdminFounders     = lazy(() => import("./pages/admin/AdminFounders"));
+const AdminSessions     = lazy(() => import("./pages/admin/AdminSessions"));
+const AdminReports      = lazy(() => import("./pages/admin/AdminReports"));
+const AdminFollowUps    = lazy(() => import("./pages/admin/AdminFollowUps"));
 
 const queryClient = new QueryClient();
 
@@ -70,6 +75,7 @@ function AnimatedRoutes() {
         <Route path="/en/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
         <Route path="/en/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/en/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
+        <Route path="/en/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
 
         {/* Arabic routes — same components, language derived from URL prefix */}
         <Route path="/ar"                 element={<PageTransition><Home /></PageTransition>} />
@@ -79,6 +85,7 @@ function AnimatedRoutes() {
         <Route path="/ar/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
         <Route path="/ar/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/ar/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
+        <Route path="/ar/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
 
         {/* Preview route — remove after visual approval */}
         <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />
@@ -128,6 +135,10 @@ function RootRouter() {
               </ProtectedAdminRoute>
             }
           />
+          <Route path="/admin/founders"   element={<ProtectedAdminRoute><AdminFounders /></ProtectedAdminRoute>} />
+          <Route path="/admin/sessions"   element={<ProtectedAdminRoute><AdminSessions /></ProtectedAdminRoute>} />
+          <Route path="/admin/reports"    element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
+          <Route path="/admin/follow-ups" element={<ProtectedAdminRoute><AdminFollowUps /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );
