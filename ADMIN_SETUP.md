@@ -7,9 +7,9 @@ database migration applied and your user account granted the `admin` role.
 
 ## Step 1 — Apply the database migration
 
-Open the Supabase SQL Editor for project `jdbydwyzydjuyjhgepvz`:
+Open the Supabase SQL Editor for project `kryiituxmejqfszinicu`:
 
-> https://supabase.com/dashboard/project/jdbydwyzydjuyjhgepvz/sql/new
+> https://supabase.com/dashboard/project/kryiituxmejqfszinicu/sql/new
 
 Paste and run the entire contents of:
 

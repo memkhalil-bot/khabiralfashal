@@ -1,7 +1,7 @@
 -- ============================================================
 -- Admin roles infrastructure for /admin dashboard
 -- Run this once in the Supabase SQL Editor:
---   https://supabase.com/dashboard/project/jdbydwyzydjuyjhgepvz/sql/new
+--   https://supabase.com/dashboard/project/kryiituxmejqfszinicu/sql/new
 -- ============================================================
 
 -- 1. user_roles table

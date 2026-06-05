@@ -30,15 +30,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<anon/publishable key>
 VITE_SUPABASE_PROJECT_ID=<project-ref>
 ```
 
-Current values for **this** Supabase project (the one already wired up via Lovable Cloud) — copy these into a fresh `.env` locally so the app talks to the same backend you've been using:
+Copy the values from the Supabase project dashboard (**Settings → API**) into a local `.env` file. The `.env` file is git-ignored — do not commit it.
 
-```env
-VITE_SUPABASE_URL=https://jdbydwyzydjuyjhgepvz.supabase.co
-VITE_SUPABASE_PROJECT_ID=jdbydwyzydjuyjhgepvz
-VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkYnlkd3l6eWRqdXlqaGdlcHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjQ1NTYsImV4cCI6MjA5NTQwMDU1Nn0.ESSYarqn3o9125yXHcZX5uUKPzrvNPcZ0N8Ynwru5Wg
-```
-
-> If you ever migrate to a fresh Supabase project, re-run the SQL migrations in `supabase/migrations/` against it and replace the three values above.
+> If you migrate to a different Supabase project, re-run the SQL migrations in `supabase/migrations/` against it and update your `.env` accordingly.
 
 No server-side secrets are needed for local dev — there are no edge functions in this project (yet).
 

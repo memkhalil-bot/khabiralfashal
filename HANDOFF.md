@@ -14,9 +14,9 @@ Condensed pointer doc. Full detail is in [`README.md`](./README.md).
     - Assessment: `src/components/valley/FounderAssessment.tsx`
   - Testimonials: `src/components/testimonials/FounderTestimonials.tsx` (used on Home + Valley)
 
-## 2. Backend (Supabase via Lovable Cloud)
+## 2. Backend (Supabase)
 
-- Project ref: `jdbydwyzydjuyjhgepvz`
+- Project ref: `kryiituxmejqfszinicu`
 - Migrations: `supabase/migrations/` (run in order on any fresh DB)
 - Tables:
   - `founder_assessments` — diagnostic submissions, anon `INSERT` only, no public read
@@ -29,9 +29,9 @@ Condensed pointer doc. Full detail is in [`README.md`](./README.md).
 Create `.env` at project root:
 
 ```env
-VITE_SUPABASE_URL=https://jdbydwyzydjuyjhgepvz.supabase.co
-VITE_SUPABASE_PROJECT_ID=jdbydwyzydjuyjhgepvz
-VITE_SUPABASE_PUBLISHABLE_KEY=<paste the publishable key from README.md>
+VITE_SUPABASE_URL=https://kryiituxmejqfszinicu.supabase.co
+VITE_SUPABASE_PROJECT_ID=kryiituxmejqfszinicu
+VITE_SUPABASE_PUBLISHABLE_KEY=<anon key from Supabase dashboard → Settings → API>
 ```
 
 ## 4. Run locally
