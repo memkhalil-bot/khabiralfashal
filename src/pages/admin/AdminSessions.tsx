@@ -3,14 +3,59 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { adminT } from '@/i18n/adminTranslations';
-import { useSearchParams } from 'react-router-dom';
-import { X, Plus, ChevronDown } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import {
+  X,
+  Plus,
+  ChevronDown,
+  CalendarClock,
+  LayoutList,
+  Video,
+  Phone,
+  Link2,
+  CalendarPlus,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
-import type { Tables } from '@/integrations/supabase/types';
+import { format, isToday, isFuture, isPast, isThisWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-type Session = Tables<'advisory_sessions'>;
+// ── Extended session type (includes columns added by booking_session_workflow) ──
+
+interface ExtendedSession {
+  id:                string;
+  founder_name:      string;
+  founder_email:     string;
+  company:           string | null;
+  session_type:      string | null;
+  scheduled_at:      string | null;
+  duration_minutes:  number | null;
+  status:            string | null;
+  risk_level:        string | null;
+  notes:             string | null;
+  created_at:        string | null;
+  updated_at:        string | null;
+  session_value:     number | null;
+  payment_status:    string | null;
+  source_booking_id: string | null;
+  meeting_method:    string | null;
+  meeting_link:      string | null;
+}
+
+// ── Calendar helpers ──────────────────────────────────────────────────────────
+
+type TimeSection = 'today' | 'thisWeek' | 'upcoming' | 'past' | 'unscheduled';
+
+function getTimeSection(dateStr: string | null): TimeSection {
+  if (!dateStr) return 'unscheduled';
+  const d = new Date(dateStr);
+  if (isToday(d)) return 'today';
+  if (isFuture(d) && isThisWeek(d, { weekStartsOn: 0 })) return 'thisWeek';
+  if (isFuture(d)) return 'upcoming';
+  if (isPast(d)) return 'past';
+  return 'unscheduled';
+}
+
+const TIME_SECTIONS: TimeSection[] = ['today', 'thisWeek', 'upcoming', 'past', 'unscheduled'];
 
 // ── Status filters ─────────────────────────────────────────────────────────────
 
@@ -52,19 +97,45 @@ function StatusBadge({ status }: { status: string | null }) {
   );
 }
 
+function SourceBadge({ sourceBookingId }: { sourceBookingId: string | null }) {
+  if (sourceBookingId) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border bg-ember/8 text-ember border-ember/20 font-arabic">
+        <CalendarPlus className="size-2.5" />
+        {adminT.sessions.sources.booking}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border bg-white/5 text-white/35 border-white/10 font-arabic">
+      {adminT.sessions.sources.manual}
+    </span>
+  );
+}
+
+function MeetingMethodIcon({ method }: { method: string | null }) {
+  if (!method) return null;
+  const isVideo = method === 'Zoom' || method === 'Google Meet';
+  const Icon = isVideo ? Video : Phone;
+  return <Icon className="size-3 shrink-0 text-white/30" />;
+}
+
 // ── Data hook ─────────────────────────────────────────────────────────────────
 
 function useSessions(statusFilter: StatusFilter) {
   return useQuery({
     queryKey: ['admin', 'sessions', statusFilter],
     queryFn: async () => {
-      let q = supabase.from('advisory_sessions').select('*').order('scheduled_at', { ascending: true, nullsFirst: false });
+      let q = (supabase as any)
+        .from('advisory_sessions')
+        .select('*')
+        .order('scheduled_at', { ascending: true, nullsFirst: false });
       if (statusFilter !== 'ALL') {
         q = q.eq('status', statusFilter.toLowerCase());
       }
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as Session[];
+      return (data ?? []) as ExtendedSession[];
     },
     staleTime: 30_000,
   });
@@ -72,7 +143,7 @@ function useSessions(statusFilter: StatusFilter) {
 
 // ── Status actions dropdown ────────────────────────────────────────────────────
 
-function StatusActions({ session }: { session: Session }) {
+function StatusActions({ session }: { session: ExtendedSession }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -131,33 +202,208 @@ function StatusActions({ session }: { session: Session }) {
   );
 }
 
+// ── Session row (shared between table and calendar card) ──────────────────────
+
+function SessionTableRow({ row }: { row: ExtendedSession }) {
+  return (
+    <tr className="hover:bg-white/2 transition-colors">
+      <td className="px-4 py-3">
+        <p className="text-white/80">{row.founder_name}</p>
+        <p className="text-[11px] text-white/30">{row.founder_email}</p>
+      </td>
+      <td className="px-4 py-3">
+        <p className="text-white/60 truncate max-w-[100px]">{row.company ?? '—'}</p>
+      </td>
+      <td className="px-4 py-3">
+        <TypeBadge type={row.session_type} />
+      </td>
+      <td className="px-4 py-3">
+        {row.scheduled_at ? (
+          <>
+            <p className="text-white/60 text-xs">{format(new Date(row.scheduled_at), 'MMM d, yyyy')}</p>
+            <p className="text-[10px] text-white/30">{format(new Date(row.scheduled_at), 'HH:mm')}</p>
+          </>
+        ) : (
+          <span className="text-white/25 text-xs font-arabic">غير محدد</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <span className="text-white/50 text-xs">{row.duration_minutes ? `${row.duration_minutes}m` : '—'}</span>
+      </td>
+      <td className="px-4 py-3">
+        {row.meeting_method ? (
+          <div className="flex items-center gap-1.5">
+            <MeetingMethodIcon method={row.meeting_method} />
+            <span className="text-white/50 text-xs">{adminT.sessions.meetingMethods[row.meeting_method] ?? row.meeting_method}</span>
+            {row.meeting_link && (
+              <a
+                href={row.meeting_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-sky-400/70 hover:text-sky-400 transition-colors"
+              >
+                <Link2 className="size-3" />
+              </a>
+            )}
+          </div>
+        ) : (
+          <span className="text-white/20 text-xs">—</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <SourceBadge sourceBookingId={row.source_booking_id} />
+      </td>
+      <td className="px-4 py-3">
+        <StatusBadge status={row.status} />
+      </td>
+      <td className="px-4 py-3">
+        <StatusActions session={row} />
+      </td>
+    </tr>
+  );
+}
+
+// ── Calendar card ─────────────────────────────────────────────────────────────
+
+function CalendarCard({ session }: { session: ExtendedSession }) {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-white/10 transition-colors">
+      {/* Time column */}
+      <div className="w-14 shrink-0 text-center">
+        {session.scheduled_at ? (
+          <>
+            <p className="text-white/70 text-sm font-mono">{format(new Date(session.scheduled_at), 'HH:mm')}</p>
+            <p className="text-white/25 text-[10px]">{format(new Date(session.scheduled_at), 'MMM d')}</p>
+          </>
+        ) : (
+          <p className="text-white/20 text-xs font-arabic">—</p>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="w-px self-stretch bg-white/6 shrink-0" />
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+          <p className="text-white/80 text-sm font-arabic font-medium">{session.founder_name}</p>
+          {session.company && (
+            <p className="text-white/30 text-xs font-arabic">· {session.company}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <TypeBadge type={session.session_type} />
+          <StatusBadge status={session.status} />
+          {session.meeting_method && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-white/40 font-arabic">
+              <MeetingMethodIcon method={session.meeting_method} />
+              {adminT.sessions.meetingMethods[session.meeting_method] ?? session.meeting_method}
+              {session.meeting_link && (
+                <a
+                  href={session.meeting_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sky-400/60 hover:text-sky-400 ms-0.5"
+                >
+                  <Link2 className="size-2.5" />
+                </a>
+              )}
+            </span>
+          )}
+        </div>
+        {session.duration_minutes && (
+          <p className="text-white/25 text-[10px] mt-1">{session.duration_minutes} دقيقة</p>
+        )}
+      </div>
+
+      <SourceBadge sourceBookingId={session.source_booking_id} />
+    </div>
+  );
+}
+
+// ── Calendar view ─────────────────────────────────────────────────────────────
+
+const SECTION_LABELS: Record<TimeSection, string> = {
+  today:       'اليوم',
+  thisWeek:    'هذا الأسبوع',
+  upcoming:    'القادمة',
+  past:        'السابقة',
+  unscheduled: 'غير مجدول',
+};
+
+function CalendarView({ sessions }: { sessions: ExtendedSession[] }) {
+  const grouped = TIME_SECTIONS.reduce<Record<TimeSection, ExtendedSession[]>>(
+    (acc, s) => ({ ...acc, [s]: [] }),
+    {} as Record<TimeSection, ExtendedSession[]>
+  );
+  sessions.forEach((s) => grouped[getTimeSection(s.scheduled_at)].push(s));
+
+  const hasAny = Object.values(grouped).some((g) => g.length > 0);
+  if (!hasAny) return null;
+
+  return (
+    <div className="space-y-8">
+      {TIME_SECTIONS.map((section) => {
+        const items = grouped[section];
+        if (!items.length) return null;
+        const isTodays = section === 'today';
+        return (
+          <div key={section}>
+            <div className="flex items-center gap-3 mb-4">
+              <span className={cn(
+                'text-[11px] tracking-[0.2em] uppercase font-arabic font-medium',
+                isTodays ? 'text-recovery' : 'text-white/35'
+              )}>
+                {SECTION_LABELS[section]}
+              </span>
+              <span className={cn(
+                'px-1.5 py-0.5 rounded text-[10px]',
+                isTodays
+                  ? 'bg-recovery/15 text-recovery'
+                  : 'bg-white/6 text-white/30'
+              )}>
+                {items.length}
+              </span>
+              <hr className="flex-1 border-white/5" />
+            </div>
+            <div className="space-y-2">
+              {items.map((s) => <CalendarCard key={s.id} session={s} />)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── New Session Form Panel ────────────────────────────────────────────────────
 
 function NewSessionPanel({ onClose }: { onClose: () => void }) {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [founderName, setFounderName] = useState(searchParams.get('name') ?? '');
+  const [founderName, setFounderName]   = useState(searchParams.get('name') ?? '');
   const [founderEmail, setFounderEmail] = useState(searchParams.get('founder') ?? '');
-  const [company, setCompany] = useState('');
-  const [sessionType, setSessionType] = useState('initial');
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [duration, setDuration] = useState(60);
-  const [riskLevel, setRiskLevel] = useState('');
-  const [notes, setNotes] = useState('');
+  const [company, setCompany]           = useState('');
+  const [sessionType, setSessionType]   = useState('initial');
+  const [scheduledAt, setScheduledAt]   = useState('');
+  const [duration, setDuration]         = useState(60);
+  const [riskLevel, setRiskLevel]       = useState('');
+  const [notes, setNotes]               = useState('');
 
   const mutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('advisory_sessions').insert({
-        founder_name: founderName,
-        founder_email: founderEmail,
-        company: company || null,
-        session_type: sessionType,
-        scheduled_at: scheduledAt || null,
+        founder_name:    founderName,
+        founder_email:   founderEmail,
+        company:         company || null,
+        session_type:    sessionType,
+        scheduled_at:    scheduledAt || null,
         duration_minutes: duration,
-        risk_level: riskLevel || null,
-        notes: notes || null,
-        status: 'pending',
+        risk_level:      riskLevel || null,
+        notes:           notes || null,
+        status:          'pending',
       });
       if (error) throw error;
     },
@@ -167,8 +413,8 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
     },
   });
 
-  const inputCls = "w-full bg-transparent border-b border-white/15 focus:border-ember outline-none py-2 text-sm text-white/70 placeholder:text-white/20";
-  const labelCls = "text-[10px] tracking-[0.25em] uppercase text-white/35 mb-1 block";
+  const inputCls = 'w-full bg-transparent border-b border-white/15 focus:border-ember outline-none py-2 text-sm text-white/70 placeholder:text-white/20';
+  const labelCls = 'text-[10px] tracking-[0.25em] uppercase text-white/35 mb-1 block';
 
   return (
     <>
@@ -190,11 +436,11 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
         <div className="p-6 space-y-5">
           <div>
             <label className={labelCls}>{adminT.sessions.form.founderName} *</label>
-            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="الاسم الكامل" className={inputCls} required />
+            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="الاسم الكامل" className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>{adminT.sessions.form.email} *</label>
-            <input type="email" value={founderEmail} onChange={(e) => setFounderEmail(e.target.value)} placeholder="email@example.com" className={inputCls} required />
+            <input type="email" value={founderEmail} onChange={(e) => setFounderEmail(e.target.value)} placeholder="email@example.com" className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>{adminT.sessions.form.company}</label>
@@ -255,11 +501,18 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+type ViewMode = 'table' | 'calendar';
+
 export default function AdminSessions() {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+  const [viewMode, setViewMode]         = useState<ViewMode>('table');
   const [showNewPanel, setShowNewPanel] = useState(false);
 
   const { data, isLoading, error } = useSessions(statusFilter);
+  const sessions = data ?? [];
+
+  const isEmpty = !isLoading && sessions.length === 0;
 
   return (
     <AdminLayout
@@ -268,22 +521,48 @@ export default function AdminSessions() {
     >
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6 gap-4">
-        {/* Status filter */}
-        <div className="flex gap-1.5 flex-wrap">
-          {STATUS_FILTERS.map((f) => (
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Status filter */}
+          <div className="flex gap-1.5 flex-wrap">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setStatusFilter(f)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-[11px] transition-colors font-arabic',
+                  statusFilter === f
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/35 hover:text-white/60 hover:bg-white/5'
+                )}
+              >
+                {adminT.sessions.filters[f] ?? f}
+              </button>
+            ))}
+          </div>
+
+          {/* View toggle */}
+          <div className="flex items-center gap-0.5 bg-white/5 rounded-lg p-0.5 border border-white/6">
             <button
-              key={f}
-              onClick={() => setStatusFilter(f)}
+              onClick={() => setViewMode('table')}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-[11px] transition-colors font-arabic',
-                statusFilter === f
-                  ? 'bg-white/10 text-white'
-                  : 'text-white/35 hover:text-white/60 hover:bg-white/5'
+                'p-1.5 rounded-md transition-colors',
+                viewMode === 'table' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'
               )}
+              title="Table view"
             >
-              {adminT.sessions.filters[f] ?? f}
+              <LayoutList className="size-3.5" />
             </button>
-          ))}
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={cn(
+                'p-1.5 rounded-md transition-colors',
+                viewMode === 'calendar' ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'
+              )}
+              title="Calendar view"
+            >
+              <CalendarClock className="size-3.5" />
+            </button>
+          </div>
         </div>
 
         <button
@@ -300,81 +579,92 @@ export default function AdminSessions() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-auto">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-[#111] z-10">
-            <tr className="border-b border-white/5">
-              {[
-                adminT.sessions.table.founder,
-                adminT.founders.table.company,
-                adminT.sessions.table.type,
-                adminT.sessions.table.scheduled,
-                'المدة',
-                adminT.sessions.table.status,
-                adminT.sessions.table.actions,
-              ].map((h) => (
-                <th key={h} className="px-4 py-3 text-start">
-                  <span className="text-[10px] text-white/35 font-arabic">{h}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/4">
-            {isLoading ? (
-              [...Array(6)].map((_, i) => (
-                <tr key={i}>
-                  {[...Array(7)].map((_, j) => (
-                    <td key={j} className="px-4 py-3">
-                      <div className="h-4 bg-white/6 rounded animate-pulse" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : !data?.length ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-16 text-center text-white/25 text-sm font-arabic">
-                  {adminT.sessions.empty}
-                </td>
+      {/* ── Table view ── */}
+      {viewMode === 'table' && (
+        <div className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-[#111] z-10">
+              <tr className="border-b border-white/5">
+                {[
+                  adminT.sessions.table.founder,
+                  adminT.founders.table.company,
+                  adminT.sessions.table.type,
+                  adminT.sessions.table.scheduled,
+                  'المدة',
+                  adminT.sessions.table.meeting,
+                  adminT.sessions.table.source,
+                  adminT.sessions.table.status,
+                  adminT.sessions.table.actions,
+                ].map((h) => (
+                  <th key={h} className="px-4 py-3 text-start">
+                    <span className="text-[10px] text-white/35 font-arabic">{h}</span>
+                  </th>
+                ))}
               </tr>
-            ) : (
-              data.map((row) => (
-                <tr key={row.id} className="hover:bg-white/2 transition-colors">
-                  <td className="px-4 py-3">
-                    <p className="text-white/80">{row.founder_name}</p>
-                    <p className="text-[11px] text-white/30">{row.founder_email}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-white/60 truncate max-w-[100px]">{row.company ?? '—'}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <TypeBadge type={row.session_type} />
-                  </td>
-                  <td className="px-4 py-3">
-                    {row.scheduled_at ? (
-                      <>
-                        <p className="text-white/60 text-xs">{format(new Date(row.scheduled_at), 'MMM d, yyyy')}</p>
-                        <p className="text-[10px] text-white/30">{format(new Date(row.scheduled_at), 'HH:mm')}</p>
-                      </>
-                    ) : (
-                      <span className="text-white/25 text-xs font-arabic">غير محدد</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-white/50 text-xs">{row.duration_minutes ? `${row.duration_minutes}m` : '—'}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={row.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusActions session={row} />
+            </thead>
+            <tbody className="divide-y divide-white/4">
+              {isLoading ? (
+                [...Array(6)].map((_, i) => (
+                  <tr key={i}>
+                    {[...Array(9)].map((_, j) => (
+                      <td key={j} className="px-4 py-3">
+                        <div className="h-4 bg-white/6 rounded animate-pulse" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : isEmpty ? (
+                <tr>
+                  <td colSpan={9} className="px-4 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <CalendarClock className="size-10 text-white/10" />
+                      <p className="text-white/30 text-sm font-arabic">
+                        {adminT.sessions.emptyFromBooking}
+                      </p>
+                      <button
+                        onClick={() => navigate('/admin/bookings')}
+                        className="mt-1 px-4 py-2 bg-ember/10 hover:bg-ember/20 border border-ember/25 text-ember text-xs rounded-lg transition-all font-arabic"
+                      >
+                        {adminT.sessions.goToBookings}
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                sessions.map((row) => <SessionTableRow key={row.id} row={row} />)
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Calendar/Timeline view ── */}
+      {viewMode === 'calendar' && (
+        <div>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-20 bg-white/4 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : isEmpty ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <CalendarClock className="size-10 text-white/10" />
+              <p className="text-white/30 text-sm font-arabic">
+                {adminT.sessions.emptyFromBooking}
+              </p>
+              <button
+                onClick={() => navigate('/admin/bookings')}
+                className="mt-1 px-4 py-2 bg-ember/10 hover:bg-ember/20 border border-ember/25 text-ember text-xs rounded-lg transition-all font-arabic"
+              >
+                {adminT.sessions.goToBookings}
+              </button>
+            </div>
+          ) : (
+            <CalendarView sessions={sessions} />
+          )}
+        </div>
+      )}
 
       {/* New session slide panel */}
       <AnimatePresence>
