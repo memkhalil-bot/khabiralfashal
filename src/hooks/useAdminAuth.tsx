@@ -14,53 +14,104 @@ interface AdminAuthState {
   session: Session | null;
   isAdmin: boolean;
   loading: boolean;
+  authError: string | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
 const AdminAuthContext = createContext<AdminAuthState | null>(null);
 
+// If user_roles query takes longer than this, we stop waiting and treat as non-admin.
+const ROLE_CHECK_TIMEOUT_MS = 8_000;
+
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser]       = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  const checkAdmin = useCallback(async (uid: string) => {
-    const { data, error } = await (supabase as any)
+  const checkAdmin = useCallback(async (uid: string): Promise<boolean> => {
+    console.log('[AdminAuth] checkAdmin → querying user_roles for uid:', uid);
+
+    const timeoutPromise = new Promise<false>((resolve) =>
+      setTimeout(() => {
+        console.warn('[AdminAuth] checkAdmin → timed out after', ROLE_CHECK_TIMEOUT_MS, 'ms');
+        resolve(false);
+      }, ROLE_CHECK_TIMEOUT_MS)
+    );
+
+    const queryPromise = (supabase as any)
       .from('user_roles')
       .select('role')
       .eq('user_id', uid)
       .eq('role', 'admin')
-      .maybeSingle();
-    if (error) return false;
-    return data !== null;
+      .maybeSingle()
+      .then(({ data, error }: { data: unknown; error: { message: string; code: string } | null }) => {
+        if (error) {
+          console.error('[AdminAuth] checkAdmin → role query error:', error.code, error.message);
+          return false;
+        }
+        console.log('[AdminAuth] checkAdmin → role query result:', data ?? '(no matching row)');
+        return data !== null;
+      })
+      .catch((err: unknown) => {
+        console.error('[AdminAuth] checkAdmin → role query threw:', err);
+        return false;
+      });
+
+    return Promise.race([queryPromise, timeoutPromise]);
   }, []);
 
   useEffect(() => {
-    // Initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const admin = await checkAdmin(session.user.id);
-        setIsAdmin(admin);
-      }
-      setLoading(false);
-    });
-
-    // Auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    // ── Initial session ────────────────────────────────────────────────────────
+    supabase.auth.getSession()
+      .then(async ({ data: { session } }) => {
+        console.log('[AdminAuth] getSession → user:', session?.user?.email ?? 'none');
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
           const admin = await checkAdmin(session.user.id);
           setIsAdmin(admin);
-        } else {
-          setIsAdmin(false);
         }
         setLoading(false);
+        console.log('[AdminAuth] getSession → loading cleared, isAdmin will update');
+      })
+      .catch((err) => {
+        console.error('[AdminAuth] getSession threw:', err);
+        setLoading(false);
+      });
+
+    // ── Auth state changes (fires on signIn / signOut / token refresh) ─────────
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        console.log('[AdminAuth] onAuthStateChange → event:', _event, '| user:', session?.user?.email ?? 'none');
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            console.log('[AdminAuth] onAuthStateChange → running checkAdmin...');
+            const admin = await checkAdmin(session.user.id);
+            console.log('[AdminAuth] onAuthStateChange → isAdmin:', admin);
+            setIsAdmin(admin);
+            if (!admin) {
+              setAuthError('This account does not have admin access. Contact the site owner.');
+            } else {
+              setAuthError(null);
+            }
+          } else {
+            setIsAdmin(false);
+            setAuthError(null);
+          }
+        } catch (err) {
+          console.error('[AdminAuth] onAuthStateChange handler threw:', err);
+          setIsAdmin(false);
+          setAuthError('Unexpected error verifying admin role. Please try again.');
+        } finally {
+          // CRITICAL: always clear loading, even if checkAdmin hangs or throws.
+          setLoading(false);
+          console.log('[AdminAuth] onAuthStateChange → loading cleared');
+        }
       }
     );
 
@@ -68,22 +119,30 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [checkAdmin]);
 
   const signIn = async (email: string, password: string) => {
+    console.log('[AdminAuth] signIn → calling signInWithPassword for:', email);
     setLoading(true);
+    setAuthError(null);
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log('[AdminAuth] signIn → signInWithPassword resolved | error:', error?.message ?? 'none');
+
     if (error) {
       setLoading(false);
       return { error: error.message };
     }
+
+    // loading is cleared by onAuthStateChange (guaranteed by try/finally above).
     return { error: null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setAuthError(null);
   };
 
   return (
-    <AdminAuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signOut }}>
+    <AdminAuthContext.Provider value={{ user, session, isAdmin, loading, authError, signIn, signOut }}>
       {children}
     </AdminAuthContext.Provider>
   );
