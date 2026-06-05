@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -106,17 +107,18 @@ function useStats() {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
-  STABLE: 'text-emerald-400',
-  EXPOSED: 'text-yellow-400',
-  'INSIDE THE VALLEY': 'text-orange-400',
-  'COLLAPSE PROXIMITY': 'text-red-400',
+  STABLE:               'text-recovery',
+  EXPOSED:              'text-yellow-400',
+  'INSIDE THE VALLEY':  'text-orange-400',
+  'COLLAPSE PROXIMITY': 'text-crimson',
 };
 
 function RiskBadge({ level }: { level: string | null }) {
   if (!level) return <span className="text-white/30">—</span>;
+  const label = adminT.risk[level] ?? level;
   return (
-    <span className={`text-[10px] tracking-[0.15em] uppercase font-medium ${riskColors[level] ?? 'text-white/60'}`}>
-      {level}
+    <span className={`text-[10px] font-medium font-arabic ${riskColors[level] ?? 'text-white/60'}`}>
+      {label}
     </span>
   );
 }
@@ -127,12 +129,13 @@ function TypeBadge({ type }: { type: string | null }) {
     initial:   'bg-sky-950/30 text-sky-400 border-sky-800/30',
     followup:  'bg-violet-950/30 text-violet-400 border-violet-800/30',
     intensive: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
-    emergency: 'bg-red-950/30 text-red-400 border-red-800/30',
+    emergency: 'bg-crimson/10 text-crimson border-crimson/25',
   };
   const style = styles[type] ?? 'bg-white/8 text-white/50 border-white/10';
+  const label = adminT.sessions.types[type] ?? type;
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {type}
+    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
+      {label}
     </span>
   );
 }
@@ -140,15 +143,16 @@ function TypeBadge({ type }: { type: string | null }) {
 function PriorityBadge({ priority }: { priority: string | null }) {
   if (!priority) return null;
   const styles: Record<string, string> = {
-    urgent: 'bg-red-950/30 text-red-400 border-red-800/30',
+    urgent: 'bg-crimson/10 text-crimson border-crimson/25',
     high:   'bg-orange-950/30 text-orange-400 border-orange-800/30',
     medium: 'bg-yellow-950/30 text-yellow-400 border-yellow-800/30',
     low:    'bg-white/5 text-white/35 border-white/8',
   };
   const style = styles[priority] ?? 'bg-white/5 text-white/35 border-white/8';
+  const label = adminT.followUps.priority[priority] ?? priority;
   return (
-    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {priority}
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium border font-arabic ${style}`}>
+      {label}
     </span>
   );
 }
@@ -160,84 +164,84 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      label: 'Total Submissions',
+      label: adminT.dashboard.stats.totalSubmissions,
       value: data?.totalSubmissions ?? '—',
       icon: Users,
       to: '/admin/founders',
       accent: 'text-ember',
     },
     {
-      label: 'Avg Risk Score',
+      label: adminT.dashboard.stats.avgRiskScore,
       value: data ? `${data.avgRisk}%` : '—',
       icon: TrendingUp,
       to: '/admin/founders',
       accent: 'text-yellow-400',
     },
     {
-      label: 'High Risk Founders',
+      label: adminT.dashboard.stats.highRiskFounders,
       value: data?.highRisk ?? '—',
       icon: AlertTriangle,
       to: '/admin/founders',
-      accent: 'text-red-400',
+      accent: 'text-crimson',
     },
     {
-      label: 'Published Testimonials',
+      label: adminT.dashboard.stats.publishedTestimonials,
       value: data ? `${data.publishedTestimonials} / ${data.totalTestimonials}` : '—',
       icon: MessageSquareQuote,
       to: '/admin/testimonials',
       accent: 'text-sky-400',
     },
     {
-      label: 'Active Sessions',
+      label: adminT.dashboard.stats.activeSessions,
       value: data?.activeSessions ?? '—',
       icon: CalendarClock,
       to: '/admin/sessions',
       accent: 'text-sky-400',
     },
     {
-      label: 'Pending Follow-ups',
+      label: adminT.dashboard.stats.pendingFollowUps,
       value: data?.pendingFollowUps ?? '—',
       icon: Bell,
       to: '/admin/follow-ups',
       accent: 'text-violet-400',
     },
     {
-      label: 'Total Revenue',
+      label: adminT.dashboard.stats.totalRevenue,
       value: data ? `$${data.totalRevenue.toLocaleString()}` : '—',
       icon: DollarSign,
       to: '/admin/sessions',
-      accent: 'text-emerald-400',
+      accent: 'text-recovery',
     },
     {
-      label: 'Sessions This Month',
+      label: adminT.dashboard.stats.sessionsThisMonth,
       value: data?.sessionsThisMonth ?? '—',
       icon: CalendarDays,
       to: '/admin/sessions',
       accent: 'text-sky-300',
     },
     {
-      label: 'High-Risk Cases',
+      label: adminT.dashboard.stats.highRiskCases,
       value: data?.highRiskCases ?? '—',
       icon: AlertTriangle,
       to: '/admin/founders',
       accent: 'text-orange-400',
     },
     {
-      label: 'Critical Cases',
+      label: adminT.dashboard.stats.criticalCases,
       value: data?.criticalCases ?? '—',
       icon: Skull,
       to: '/admin/founders',
-      accent: 'text-red-500',
+      accent: 'text-crimson',
     },
   ];
 
   return (
-    <AdminLayout title="Overview" subtitle="Khabir Al Fashal — Admin">
+    <AdminLayout title={adminT.dashboard.title} subtitle={adminT.dashboard.subtitle}>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-950/30 border border-red-800/30 rounded-lg text-red-300 text-sm">
-          <strong>Access error:</strong> Make sure you've applied the admin migration in Supabase
-          and added your user ID to the <code className="font-mono text-xs bg-red-900/30 px-1 rounded">user_roles</code> table.
+        <div className="mb-6 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+          <strong>{adminT.common.error}:</strong> تأكد من تطبيق ترحيل قاعدة البيانات وإضافة معرّف المستخدم في جدول{' '}
+          <code className="font-mono text-xs bg-crimson/15 px-1 rounded">user_roles</code>
         </div>
       )}
 
@@ -254,20 +258,20 @@ export default function AdminDashboard() {
             >
               <Link
                 to={s.to}
-                className="block p-5 bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-white/12 transition-all duration-300 group"
+                className="block p-5 bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-ember/20 hover:bg-[#0f0f0f] transition-all duration-300 group"
               >
                 <div className="flex items-start justify-between mb-4">
                   <Icon className={`size-5 ${s.accent}`} />
-                  <ArrowRight className="size-3.5 text-white/15 group-hover:text-white/40 transition-colors" />
+                  <ArrowRight className="size-3.5 text-white/15 group-hover:text-ember/40 transition-colors" />
                 </div>
-                <div className={`text-3xl font-serif-display ${s.accent} mb-1`}>
+                <div className={`text-3xl font-serif-display ${s.accent} mb-1.5 tabular-nums`}>
                   {isLoading ? (
                     <span className="inline-block w-12 h-7 bg-white/8 rounded animate-pulse" />
                   ) : (
                     s.value
                   )}
                 </div>
-                <p className="text-[10px] tracking-[0.2em] uppercase text-white/35">{s.label}</p>
+                <p className="text-[11px] text-white/35 font-arabic">{s.label}</p>
               </Link>
             </motion.div>
           );
@@ -276,7 +280,7 @@ export default function AdminDashboard() {
 
       {/* Panels row */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent submissions — spans 1 col on xl */}
+        {/* Recent submissions */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -286,15 +290,15 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Activity className="size-4 text-ember" />
-              <h2 className="text-[11px] tracking-[0.25em] uppercase text-white/60">
-                Recent Submissions
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.recentSubmissions}
               </h2>
             </div>
             <Link
               to="/admin/submissions"
-              className="text-[10px] tracking-[0.2em] uppercase text-ember/60 hover:text-ember transition-colors"
+              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
             >
-              View all →
+              {adminT.common.viewAll}
             </Link>
           </div>
 
@@ -306,7 +310,7 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.recent.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm">No submissions yet.</p>
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.submissions}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -349,15 +353,15 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <CalendarClock className="size-4 text-sky-400" />
-              <h2 className="text-[11px] tracking-[0.25em] uppercase text-white/60">
-                Upcoming Sessions
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.upcomingSessions}
               </h2>
             </div>
             <Link
               to="/admin/sessions"
-              className="text-[10px] tracking-[0.2em] uppercase text-ember/60 hover:text-ember transition-colors"
+              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
             >
-              View all →
+              {adminT.common.viewAll}
             </Link>
           </div>
 
@@ -369,7 +373,7 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.upcomingSessions.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm">No upcoming sessions.</p>
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.sessions}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -405,15 +409,15 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Bell className="size-4 text-violet-400" />
-              <h2 className="text-[11px] tracking-[0.25em] uppercase text-white/60">
-                Pending Follow-ups
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.pendingFollowUps}
               </h2>
             </div>
             <Link
               to="/admin/follow-ups"
-              className="text-[10px] tracking-[0.2em] uppercase text-ember/60 hover:text-ember transition-colors"
+              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
             >
-              View all →
+              {adminT.common.viewAll}
             </Link>
           </div>
 
@@ -425,7 +429,7 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.pendingFollowUpsList.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm">No pending follow-ups.</p>
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.followUps}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">

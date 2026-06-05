@@ -5,6 +5,9 @@
 @theme {
   --color-ember: hsl(18 92% 55%);
   --color-ember-dim: hsl(18 70% 45%);
+  --color-crimson: hsl(0 78% 52%);
+  --color-crimson-dim: hsl(0 65% 42%);
+  --color-recovery: hsl(101 61% 59%);
   --font-serif-display: 'Instrument Serif', serif;
   --font-arabic: 'Cairo', sans-serif;
   --font-sans-ui: 'Inter', sans-serif;
