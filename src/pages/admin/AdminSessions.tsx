@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import { useSearchParams } from 'react-router-dom';
 import { X, Plus, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,12 +25,12 @@ function TypeBadge({ type }: { type: string | null }) {
     initial:   'bg-sky-950/30 text-sky-400 border-sky-800/30',
     followup:  'bg-violet-950/30 text-violet-400 border-violet-800/30',
     intensive: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
-    emergency: 'bg-red-950/30 text-red-400 border-red-800/30',
+    emergency: 'bg-crimson/10 text-crimson border-crimson/25',
   };
   const style = styles[type] ?? 'bg-white/8 text-white/50 border-white/10';
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {type}
+    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
+      {adminT.sessions.types[type] ?? type}
     </span>
   );
 }
@@ -39,14 +40,14 @@ function StatusBadge({ status }: { status: string | null }) {
   const styles: Record<string, string> = {
     pending:   'bg-amber-950/30 text-amber-400 border-amber-800/30',
     confirmed: 'bg-sky-950/30 text-sky-400 border-sky-800/30',
-    completed: 'bg-emerald-950/30 text-emerald-400 border-emerald-800/30',
+    completed: 'bg-recovery/10 text-recovery border-recovery/25',
     cancelled: 'bg-white/8 text-white/40 border-white/10',
-    no_show:   'bg-red-950/30 text-red-400/70 border-red-800/30',
+    no_show:   'bg-crimson/10 text-crimson/70 border-crimson/25',
   };
   const style = styles[status] ?? 'bg-white/8 text-white/50 border-white/10';
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {status.replace('_', ' ')}
+    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
+      {adminT.sessions.status[status] ?? status.replace('_', ' ')}
     </span>
   );
 }
@@ -87,19 +88,19 @@ function StatusActions({ session }: { session: Session }) {
   });
 
   const actions = [
-    { label: 'Mark Confirmed',  value: 'confirmed' },
-    { label: 'Mark Completed',  value: 'completed' },
-    { label: 'Mark Cancelled',  value: 'cancelled' },
-    { label: 'Mark No Show',    value: 'no_show'   },
+    { label: `→ ${adminT.sessions.status.confirmed}`, value: 'confirmed' },
+    { label: `→ ${adminT.sessions.status.completed}`, value: 'completed' },
+    { label: `→ ${adminT.sessions.status.cancelled}`, value: 'cancelled' },
+    { label: `→ ${adminT.sessions.status.no_show}`,   value: 'no_show'   },
   ].filter((a) => a.value !== session.status);
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 px-2 py-1 text-[10px] text-white/40 hover:text-white/70 border border-white/10 hover:border-white/20 rounded-lg transition-colors"
+        className="flex items-center gap-1 px-2 py-1 text-[10px] text-white/40 hover:text-white/70 border border-white/10 hover:border-white/20 rounded-lg transition-colors font-arabic"
       >
-        Update <ChevronDown className="size-3" />
+        تحديث <ChevronDown className="size-3" />
       </button>
       <AnimatePresence>
         {open && (
@@ -117,7 +118,7 @@ function StatusActions({ session }: { session: Session }) {
                   key={a.value}
                   onClick={() => mutation.mutate(a.value)}
                   disabled={mutation.isPending}
-                  className="w-full text-left px-3 py-2 text-[11px] text-white/60 hover:text-white/90 hover:bg-white/5 transition-colors"
+                  className="w-full text-start px-3 py-2 text-[11px] text-white/60 hover:text-white/90 hover:bg-white/5 transition-colors font-arabic"
                 >
                   {a.label}
                 </button>
@@ -180,7 +181,7 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
         className="fixed right-0 top-0 bottom-0 w-[420px] z-30 bg-[#0d0d0d] border-l border-white/6 overflow-y-auto"
       >
         <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-[#0d0d0d] z-10">
-          <p className="text-white font-medium text-sm">New Session</p>
+          <p className="text-white font-medium text-sm font-arabic">{adminT.sessions.new}</p>
           <button onClick={onClose} className="size-8 flex items-center justify-center text-white/30 hover:text-white/70 rounded-lg hover:bg-white/5 transition-colors">
             <X className="size-4" />
           </button>
@@ -188,63 +189,63 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
 
         <div className="p-6 space-y-5">
           <div>
-            <label className={labelCls}>Founder Name *</label>
-            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="Full name" className={inputCls} required />
+            <label className={labelCls}>{adminT.sessions.form.founderName} *</label>
+            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="الاسم الكامل" className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Founder Email *</label>
+            <label className={labelCls}>{adminT.sessions.form.email} *</label>
             <input type="email" value={founderEmail} onChange={(e) => setFounderEmail(e.target.value)} placeholder="email@example.com" className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Company</label>
+            <label className={labelCls}>{adminT.sessions.form.company}</label>
             <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Session Type</label>
-            <select value={sessionType} onChange={(e) => setSessionType(e.target.value)} className={cn(inputCls, 'cursor-pointer')}>
-              <option value="initial">Initial</option>
-              <option value="followup">Follow-up</option>
-              <option value="intensive">Intensive</option>
-              <option value="emergency">Emergency</option>
+            <label className={labelCls}>{adminT.sessions.form.sessionType}</label>
+            <select value={sessionType} onChange={(e) => setSessionType(e.target.value)} className={cn(inputCls, 'cursor-pointer font-arabic')}>
+              <option value="initial">{adminT.sessions.types.initial}</option>
+              <option value="followup">{adminT.sessions.types.followup}</option>
+              <option value="intensive">{adminT.sessions.types.intensive}</option>
+              <option value="emergency">{adminT.sessions.types.emergency}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Scheduled At</label>
+            <label className={labelCls}>{adminT.sessions.form.scheduledAt}</label>
             <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Duration (minutes)</label>
+            <label className={labelCls}>المدة (دقيقة)</label>
             <input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} min={15} step={15} className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Risk Level</label>
-            <select value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)} className={cn(inputCls, 'cursor-pointer')}>
+            <label className={labelCls}>{adminT.founders.table.risk}</label>
+            <select value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)} className={cn(inputCls, 'cursor-pointer font-arabic')}>
               <option value="">—</option>
-              <option value="STABLE">STABLE</option>
-              <option value="EXPOSED">EXPOSED</option>
-              <option value="INSIDE THE VALLEY">INSIDE THE VALLEY</option>
-              <option value="COLLAPSE PROXIMITY">COLLAPSE PROXIMITY</option>
+              <option value="STABLE">{adminT.risk.STABLE}</option>
+              <option value="EXPOSED">{adminT.risk.EXPOSED}</option>
+              <option value="INSIDE THE VALLEY">{adminT.risk['INSIDE THE VALLEY']}</option>
+              <option value="COLLAPSE PROXIMITY">{adminT.risk['COLLAPSE PROXIMITY']}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal notes…" rows={4} className={cn(inputCls, 'resize-none')} />
+            <label className={labelCls}>{adminT.sessions.form.notes}</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ملاحظات داخلية..." rows={4} className={cn(inputCls, 'resize-none')} />
           </div>
 
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => mutation.mutate()}
               disabled={mutation.isPending || !founderName || !founderEmail}
-              className="flex-1 py-2.5 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 py-2.5 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-arabic"
             >
-              {mutation.isPending ? 'Saving…' : 'Save Session'}
+              {mutation.isPending ? 'جارٍ الحفظ...' : adminT.sessions.form.save}
             </button>
-            <button onClick={onClose} className="px-4 text-white/40 hover:text-white/70 transition-colors text-sm">
-              Cancel
+            <button onClick={onClose} className="px-4 text-white/40 hover:text-white/70 transition-colors text-sm font-arabic">
+              {adminT.sessions.form.cancel}
             </button>
           </div>
           {mutation.isError && (
-            <p className="text-red-400 text-xs">Failed to save session. Please try again.</p>
+            <p className="text-crimson text-xs font-arabic">فشل حفظ الجلسة. يرجى المحاولة مرة أخرى.</p>
           )}
         </div>
       </motion.div>
@@ -262,8 +263,8 @@ export default function AdminSessions() {
 
   return (
     <AdminLayout
-      title="Sessions"
-      subtitle={`${data?.length ?? '…'} advisory session${data?.length !== 1 ? 's' : ''}`}
+      title={adminT.sessions.title}
+      subtitle={adminT.sessions.subtitle}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6 gap-4">
@@ -274,28 +275,28 @@ export default function AdminSessions() {
               key={f}
               onClick={() => setStatusFilter(f)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-[10px] tracking-[0.15em] uppercase transition-colors',
+                'px-3 py-1.5 rounded-lg text-[11px] transition-colors font-arabic',
                 statusFilter === f
                   ? 'bg-white/10 text-white'
                   : 'text-white/35 hover:text-white/60 hover:bg-white/5'
               )}
             >
-              {f.replace('_', ' ')}
+              {adminT.sessions.filters[f] ?? f}
             </button>
           ))}
         </div>
 
         <button
           onClick={() => setShowNewPanel(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs tracking-[0.1em] uppercase rounded-lg hover:bg-ember/90 transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
         >
-          <Plus className="size-3.5" /> New Session
+          <Plus className="size-3.5" /> {adminT.sessions.new}
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-950/30 border border-red-800/30 rounded-lg text-red-300 text-sm">
-          Could not load sessions.
+        <div className="mb-4 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+          تعذّر تحميل الجلسات.
         </div>
       )}
 
@@ -304,9 +305,17 @@ export default function AdminSessions() {
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-[#111] z-10">
             <tr className="border-b border-white/5">
-              {['Founder', 'Company', 'Type', 'Scheduled', 'Duration', 'Status', 'Actions'].map((h) => (
-                <th key={h} className="px-4 py-3 text-left">
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-white/35">{h}</span>
+              {[
+                adminT.sessions.table.founder,
+                adminT.founders.table.company,
+                adminT.sessions.table.type,
+                adminT.sessions.table.scheduled,
+                'المدة',
+                adminT.sessions.table.status,
+                adminT.sessions.table.actions,
+              ].map((h) => (
+                <th key={h} className="px-4 py-3 text-start">
+                  <span className="text-[10px] text-white/35 font-arabic">{h}</span>
                 </th>
               ))}
             </tr>
@@ -324,8 +333,8 @@ export default function AdminSessions() {
               ))
             ) : !data?.length ? (
               <tr>
-                <td colSpan={7} className="px-4 py-16 text-center text-white/25 text-sm">
-                  No sessions scheduled yet.
+                <td colSpan={7} className="px-4 py-16 text-center text-white/25 text-sm font-arabic">
+                  {adminT.sessions.empty}
                 </td>
               </tr>
             ) : (
@@ -348,7 +357,7 @@ export default function AdminSessions() {
                         <p className="text-[10px] text-white/30">{format(new Date(row.scheduled_at), 'HH:mm')}</p>
                       </>
                     ) : (
-                      <span className="text-white/25 text-xs">Not set</span>
+                      <span className="text-white/25 text-xs font-arabic">غير محدد</span>
                     )}
                   </td>
                   <td className="px-4 py-3">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import {
   Plus,
   Pencil,
@@ -139,7 +140,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
           <div className="flex items-center gap-3">
             <Quote className="size-4 text-ember" />
             <h2 className="text-sm text-white/80 tracking-wide">
-              {isEdit ? 'Edit Testimonial' : 'Add Testimonial'}
+              {isEdit ? 'تعديل شهادة' : adminT.testimonials.add}
             </h2>
           </div>
           <button
@@ -154,7 +155,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
           {/* Quote */}
           <div className="space-y-2">
             <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-              Quote <span className="text-ember">*</span>
+              {adminT.testimonials.form.quote} <span className="text-ember">*</span>
             </label>
             <textarea
               rows={4}
@@ -169,7 +170,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
           {/* Author name */}
           <div className="space-y-2">
             <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-              Author Name <span className="text-ember">*</span>
+              {adminT.testimonials.form.authorName} <span className="text-ember">*</span>
             </label>
             <input
               type="text"
@@ -185,7 +186,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-                Role / Stage
+                {adminT.testimonials.form.authorRole}
               </label>
               <input
                 type="text"
@@ -197,7 +198,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-                Company / City
+                {adminT.testimonials.form.company}
               </label>
               <input
                 type="text"
@@ -213,7 +214,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-                Order Index
+                ترتيب العرض
               </label>
               <input
                 type="number"
@@ -222,25 +223,25 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
                 onChange={(e) => set('order_index', parseInt(e.target.value, 10) || 0)}
                 className="w-full px-4 py-2.5 bg-white/4 border border-white/8 rounded-lg text-sm text-white/80 focus:outline-none focus:border-ember/40 transition-colors"
               />
-              <p className="text-[10px] text-white/25">Lower = shown first</p>
+              <p className="text-[10px] text-white/25">الأقل يُعرض أولاً</p>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] tracking-[0.25em] uppercase text-white/40">
-                Visibility
+                الظهور
               </label>
               <button
                 type="button"
                 onClick={() => set('published', !form.published)}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 border rounded-lg text-sm transition-all ${
                   form.published
-                    ? 'bg-emerald-950/30 border-emerald-800/30 text-emerald-400'
+                    ? 'bg-recovery/10 border-recovery/25 text-recovery'
                     : 'bg-white/4 border-white/8 text-white/40'
                 }`}
               >
                 {form.published ? (
-                  <><Eye className="size-4" /> Published</>
+                  <><Eye className="size-4" /> {adminT.testimonials.form.published}</>
                 ) : (
-                  <><EyeOff className="size-4" /> Hidden</>
+                  <><EyeOff className="size-4" /> مخفية</>
                 )}
               </button>
             </div>
@@ -248,9 +249,9 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
 
           {/* Error */}
           {error && (
-            <div className="flex items-start gap-3 p-3 bg-red-950/30 border border-red-800/30 rounded-lg">
-              <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-red-300">{error}</p>
+            <div className="flex items-start gap-3 p-3 bg-crimson/8 border border-crimson/20 rounded-lg">
+              <AlertCircle className="size-4 text-crimson shrink-0 mt-0.5" />
+              <p className="text-xs text-crimson/80">{error}</p>
             </div>
           )}
 
@@ -261,7 +262,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
               onClick={onClose}
               className="flex-1 py-2.5 border border-white/10 rounded-lg text-sm text-white/50 hover:text-white/80 hover:border-white/20 transition-all"
             >
-              Cancel
+              {adminT.testimonials.form.cancel}
             </button>
             <button
               type="submit"
@@ -273,7 +274,7 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
               ) : (
                 <Save className="size-4" />
               )}
-              {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Testimonial'}
+              {saving ? 'جارٍ الحفظ...' : isEdit ? adminT.testimonials.form.save : adminT.testimonials.add}
             </button>
           </div>
         </form>
@@ -326,20 +327,20 @@ function DeleteConfirm({
         className="w-full max-w-sm bg-[#0f0f0f] border border-white/8 rounded-2xl p-6"
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="size-9 flex items-center justify-center rounded-full bg-red-950/40 border border-red-800/30">
-            <Trash2 className="size-4 text-red-400" />
+          <div className="size-9 flex items-center justify-center rounded-full bg-crimson/10 border border-crimson/20">
+            <Trash2 className="size-4 text-crimson" />
           </div>
-          <h2 className="text-sm text-white/80">Delete Testimonial?</h2>
+          <h2 className="text-sm text-white/80">حذف الشهادة؟</h2>
         </div>
         <p className="text-sm text-white/50 leading-relaxed mb-5">
-          This will permanently delete the testimonial by{' '}
-          <strong className="text-white/70">{row.author_name}</strong>. This action cannot be undone.
+          سيتم حذف شهادة{' '}
+          <strong className="text-white/70">{row.author_name}</strong> نهائياً. لا يمكن التراجع عن هذا الإجراء.
         </p>
 
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-950/30 border border-red-800/30 rounded-lg mb-4">
-            <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-red-300">{error}</p>
+          <div className="flex items-start gap-2 p-3 bg-crimson/8 border border-crimson/20 rounded-lg mb-4">
+            <AlertCircle className="size-4 text-crimson shrink-0 mt-0.5" />
+            <p className="text-xs text-crimson/80">{error}</p>
           </div>
         )}
 
@@ -348,19 +349,19 @@ function DeleteConfirm({
             onClick={onClose}
             className="flex-1 py-2.5 border border-white/10 rounded-lg text-sm text-white/50 hover:text-white/80 transition-all"
           >
-            Cancel
+            {adminT.common.cancel}
           </button>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-all disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-crimson hover:bg-crimson-dim text-white text-sm rounded-lg transition-all disabled:opacity-50"
           >
             {deleting ? (
               <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <Trash2 className="size-4" />
             )}
-            {deleting ? 'Deleting…' : 'Delete'}
+            {deleting ? 'جارٍ الحذف...' : adminT.common.delete}
           </button>
         </div>
       </motion.div>
@@ -412,7 +413,7 @@ export default function AdminTestimonials() {
   const handleToggle = async (t: Testimonial) => {
     try {
       await togglePublished.mutateAsync({ id: t.id, published: !t.published });
-      setSuccessMsg(`Testimonial ${!t.published ? 'published' : 'hidden'}.`);
+      setSuccessMsg(!t.published ? 'تم نشر الشهادة.' : 'تم إخفاء الشهادة.');
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch {
       // Error shown by mutation
@@ -421,8 +422,8 @@ export default function AdminTestimonials() {
 
   return (
     <AdminLayout
-      title="Testimonials"
-      subtitle={`${data?.length ?? '…'} entries · ${data?.filter((t) => t.published).length ?? '…'} published`}
+      title={adminT.testimonials.title}
+      subtitle={`${data?.length ?? '…'} شهادة · ${data?.filter((t) => t.published).length ?? '…'} منشورة`}
     >
       {/* Top actions */}
       <div className="flex items-center justify-between mb-6">
@@ -439,9 +440,9 @@ export default function AdminTestimonials() {
             </motion.div>
           )}
           {error && (
-            <div className="flex items-center gap-2 text-red-400 text-sm">
+            <div className="flex items-center gap-2 text-crimson text-sm">
               <AlertCircle className="size-4" />
-              Could not load testimonials. Check your admin migration.
+              تعذّر تحميل الشهادات. تحقق من إعدادات قاعدة البيانات.
             </div>
           )}
         </div>
@@ -450,7 +451,7 @@ export default function AdminTestimonials() {
           className="flex items-center gap-2 px-4 py-2.5 bg-ember hover:bg-ember-dim text-white text-[11px] tracking-[0.2em] uppercase transition-all duration-300 rounded-lg"
         >
           <Plus className="size-4" />
-          Add Testimonial
+          {adminT.testimonials.add}
         </button>
       </div>
 
@@ -464,12 +465,12 @@ export default function AdminTestimonials() {
       ) : !data?.length ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Quote className="size-10 text-white/10 mb-4" />
-          <p className="text-white/30 text-sm">No testimonials yet.</p>
+          <p className="text-white/30 text-sm">{adminT.testimonials.empty}</p>
           <button
             onClick={() => setModal('add')}
             className="mt-4 text-[11px] tracking-[0.2em] uppercase text-ember/60 hover:text-ember transition-colors"
           >
-            Add the first one →
+            {adminT.testimonials.add} ←
           </button>
         </div>
       ) : (
@@ -521,10 +522,10 @@ export default function AdminTestimonials() {
                 {/* Toggle published */}
                 <button
                   onClick={() => handleToggle(t)}
-                  title={t.published ? 'Hide' : 'Publish'}
+                  title={t.published ? 'إخفاء' : 'نشر'}
                   className={`size-8 flex items-center justify-center rounded-lg transition-all ${
                     t.published
-                      ? 'text-emerald-400/70 hover:bg-emerald-950/30 hover:text-emerald-400'
+                      ? 'text-recovery/70 hover:bg-recovery/10 hover:text-recovery'
                       : 'text-white/25 hover:bg-white/5 hover:text-white/60'
                   }`}
                 >

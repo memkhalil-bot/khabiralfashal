@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import {
   Search,
   ArrowUpDown,
@@ -31,31 +32,31 @@ const RISK_META: Record<
   { label: string; color: string; bg: string; border: string; icon: React.ElementType }
 > = {
   STABLE: {
-    label: 'Stable',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-950/30',
-    border: 'border-emerald-800/30',
+    label: adminT.risk['STABLE'],
+    color: 'text-recovery',
+    bg:    'bg-recovery/10',
+    border:'border-recovery/25',
     icon: Shield,
   },
   EXPOSED: {
-    label: 'Exposed',
+    label: adminT.risk['EXPOSED'],
     color: 'text-yellow-400',
-    bg: 'bg-yellow-950/30',
-    border: 'border-yellow-800/30',
+    bg:    'bg-yellow-950/30',
+    border:'border-yellow-800/30',
     icon: Activity,
   },
   'INSIDE THE VALLEY': {
-    label: 'Inside the Valley',
+    label: adminT.risk['INSIDE THE VALLEY'],
     color: 'text-orange-400',
-    bg: 'bg-orange-950/30',
-    border: 'border-orange-800/30',
+    bg:    'bg-orange-950/30',
+    border:'border-orange-800/30',
     icon: AlertTriangle,
   },
   'COLLAPSE PROXIMITY': {
-    label: 'Collapse Proximity',
-    color: 'text-red-400',
-    bg: 'bg-red-950/30',
-    border: 'border-red-800/30',
+    label: adminT.risk['COLLAPSE PROXIMITY'],
+    color: 'text-crimson',
+    bg:    'bg-crimson/10',
+    border:'border-crimson/25',
     icon: Skull,
   },
 };
@@ -318,29 +319,29 @@ export default function AdminSubmissions() {
 
   return (
     <AdminLayout
-      title="Submissions"
-      subtitle={`${data?.length ?? '…'} founder assessment${data?.length !== 1 ? 's' : ''}`}
+      title={adminT.submissions.title}
+      subtitle={adminT.submissions.subtitle}
     >
       <div className="flex gap-6 h-[calc(100vh-160px)] min-h-0">
         {/* ── Left: table ── */}
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Search */}
           <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-white/25" />
+            <Search className="absolute end-4 top-1/2 -translate-y-1/2 size-4 text-white/25" />
             <input
               type="search"
-              placeholder="Search by name, email, or company…"
+              placeholder={adminT.submissions.search}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/70 placeholder:text-white/25 focus:outline-none focus:border-ember/40 transition-colors"
+              className="w-full pe-11 ps-4 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/70 placeholder:text-white/25 focus:outline-none focus:border-ember/40 transition-colors font-arabic"
             />
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-4 bg-red-950/30 border border-red-800/30 rounded-lg text-red-300 text-sm">
-              Could not load submissions. Make sure the admin migration has been applied and your
-              account has the <code className="font-mono text-xs bg-red-900/30 px-1 rounded">admin</code> role.
+            <div className="mb-4 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+              تعذّر تحميل التقييمات. تأكد من تطبيق ترحيل قاعدة البيانات وامتلاك صلاحيات{' '}
+              <code className="font-mono text-xs bg-crimson/15 px-1 rounded">admin</code>.
             </div>
           )}
 
@@ -350,17 +351,17 @@ export default function AdminSubmissions() {
               <thead className="sticky top-0 bg-[#111] z-10">
                 <tr className="border-b border-white/5">
                   {[
-                    { label: 'Founder', field: 'name' as SortField },
-                    { label: 'Company', field: 'company' as SortField },
-                    { label: 'Risk', field: 'risk_score' as SortField },
-                    { label: 'Date', field: 'created_at' as SortField },
+                    { label: adminT.submissions.table.founder, field: 'name' as SortField },
+                    { label: adminT.submissions.table.company, field: 'company' as SortField },
+                    { label: adminT.submissions.table.risk,    field: 'risk_score' as SortField },
+                    { label: adminT.submissions.table.date,    field: 'created_at' as SortField },
                   ].map(({ label, field }) => (
                     <th
                       key={field}
                       onClick={() => toggleSort(field)}
-                      className="px-4 py-3 text-left cursor-pointer select-none group"
+                      className="px-4 py-3 text-start cursor-pointer select-none group"
                     >
-                      <span className="flex items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase text-white/35 group-hover:text-white/60 transition-colors">
+                      <span className="flex items-center gap-1.5 text-[10px] text-white/35 group-hover:text-white/60 transition-colors font-arabic">
                         {label} <SortIcon field={field} />
                       </span>
                     </th>
@@ -380,8 +381,8 @@ export default function AdminSubmissions() {
                   ))
                 ) : !data?.length ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-16 text-center text-white/25 text-sm">
-                      No submissions found.
+                    <td colSpan={4} className="px-4 py-16 text-center text-white/25 text-sm font-arabic">
+                      {adminT.submissions.empty}
                     </td>
                   </tr>
                 ) : (

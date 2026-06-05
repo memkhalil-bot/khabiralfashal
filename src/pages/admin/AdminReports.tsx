@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -46,12 +47,12 @@ function StatusPill({ status }: { status: string | null }) {
   const styles: Record<string, string> = {
     draft:     'bg-white/10 text-white/50 border-white/10',
     final:     'bg-sky-950/30 text-sky-400 border-sky-800/30',
-    delivered: 'bg-emerald-950/30 text-emerald-400 border-emerald-800/30',
+    delivered: 'bg-recovery/10 text-recovery border-recovery/25',
   };
   const style = styles[status] ?? 'bg-white/8 text-white/40 border-white/10';
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {status}
+    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
+      {adminT.reports.status[status] ?? status}
     </span>
   );
 }
@@ -407,7 +408,7 @@ export default function AdminReports() {
 
   if (isEditing) {
     return (
-      <AdminLayout title="Reports" subtitle="Startup Autopsy Reports">
+      <AdminLayout title={adminT.reports.title} subtitle={adminT.reports.subtitle}>
         <ReportEditor
           report={editingReport}
           onBack={() => setEditingReport(undefined)}
@@ -417,7 +418,7 @@ export default function AdminReports() {
   }
 
   return (
-    <AdminLayout title="Reports" subtitle="Startup Autopsy Reports">
+    <AdminLayout title={adminT.reports.title} subtitle={adminT.reports.subtitle}>
       {/* Status filter + new button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex gap-1.5">
@@ -426,21 +427,21 @@ export default function AdminReports() {
               key={f}
               onClick={() => setStatusFilter(f)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-[10px] tracking-[0.15em] uppercase transition-colors',
+                'px-3 py-1.5 rounded-lg text-[11px] transition-colors font-arabic',
                 statusFilter === f
                   ? 'bg-white/10 text-white'
                   : 'text-white/35 hover:text-white/60 hover:bg-white/5'
               )}
             >
-              {f}
+              {adminT.reports.filters[f] ?? f}
             </button>
           ))}
         </div>
         <button
           onClick={() => setEditingReport(null)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs tracking-[0.1em] uppercase rounded-lg hover:bg-ember/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors font-arabic"
         >
-          <Plus className="size-3.5" /> New Report
+          <Plus className="size-3.5" /> {adminT.reports.new}
         </button>
       </div>
 

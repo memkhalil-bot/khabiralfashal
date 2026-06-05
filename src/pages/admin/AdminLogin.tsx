@@ -4,29 +4,47 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Flame, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// If onAuthStateChange doesn't resolve within this many ms after signIn, reset UI.
+const SUBMIT_TIMEOUT_MS = 12_000;
+
 export default function AdminLogin() {
-  const { signIn, user, isAdmin, loading } = useAdminAuth();
+  const { signIn, user, isAdmin, loading, authError } = useAdminAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [submitting, setSubmitting]   = useState(false);
 
-  // Redirect if already authenticated as admin
+  // ── Redirect when authenticated as admin ────────────────────────────────────
   useEffect(() => {
     if (!loading && user && isAdmin) {
+      console.log('[AdminLogin] redirect → /admin (loading:', loading, 'user:', user.email, 'isAdmin:', isAdmin, ')');
       navigate('/admin', { replace: true });
     }
   }, [user, isAdmin, loading, navigate]);
 
+  // ── Surface "not admin" error from context ──────────────────────────────────
+  // BUG FIX: original code had `!submitting` in the condition, so the error
+  // was never shown while the form was in the submitting state.
+  useEffect(() => {
+    if (!loading && authError) {
+      console.log('[AdminLogin] authError effect →', authError);
+      setError(authError);
+      setSubmitting(false);
+    }
+  }, [authError, loading]);
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    console.log('[AdminLogin] handleSubmit → calling signIn for:', email);
 
     const { error: signInError } = await signIn(email, password);
+    console.log('[AdminLogin] handleSubmit → signIn resolved | error:', signInError ?? 'none');
 
     if (signInError) {
       setError(signInError);
@@ -34,17 +52,17 @@ export default function AdminLogin() {
       return;
     }
 
-    // Auth state change will trigger isAdmin check; wait for it
-    // The useEffect above will redirect once isAdmin resolves
-  };
-
-  // Show "not admin" error if signed in but not admin
-  useEffect(() => {
-    if (!loading && user && !isAdmin && !submitting) {
-      setError('This account does not have admin access. Contact the site owner.');
+    // onAuthStateChange will pick up the new session and call setLoading(false).
+    // Guard against it never firing (network stall, etc.).
+    const bailout = setTimeout(() => {
+      console.warn('[AdminLogin] submit timeout → onAuthStateChange did not resolve in', SUBMIT_TIMEOUT_MS, 'ms');
+      setError('Authentication timed out. Check your network connection and try again.');
       setSubmitting(false);
-    }
-  }, [user, isAdmin, loading, submitting]);
+    }, SUBMIT_TIMEOUT_MS);
+
+    // Clear the bailout if the component unmounts (successful redirect).
+    return () => clearTimeout(bailout);
+  };
 
   return (
     <div className="min-h-screen bg-[#080808] flex items-center justify-center px-6">

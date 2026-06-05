@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import { useSearchParams } from 'react-router-dom';
 import { X, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,15 +22,15 @@ type FilterTab = typeof FILTER_TABS[number];
 function PriorityBadge({ priority }: { priority: string | null }) {
   if (!priority) return null;
   const styles: Record<string, string> = {
-    urgent: 'bg-red-950/30 text-red-400 border-red-800/30',
+    urgent: 'bg-crimson/10 text-crimson border-crimson/25',
     high:   'bg-orange-950/30 text-orange-400 border-orange-800/30',
     medium: 'bg-yellow-950/30 text-yellow-400 border-yellow-800/30',
     low:    'bg-white/5 text-white/35 border-white/8',
   };
   const style = styles[priority] ?? 'bg-white/5 text-white/35 border-white/8';
   return (
-    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {priority}
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium border font-arabic ${style}`}>
+      {adminT.followUps.priority[priority] ?? priority}
     </span>
   );
 }
@@ -52,13 +53,13 @@ function TypeBadge({ type }: { type: string | null }) {
     check_in: 'bg-sky-950/30 text-sky-400 border-sky-800/30',
     document: 'bg-violet-950/30 text-violet-400 border-violet-800/30',
     decision: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
-    action:   'bg-emerald-950/30 text-emerald-400 border-emerald-800/30',
+    action:   'bg-recovery/10 text-recovery border-recovery/25',
     meeting:  'bg-blue-950/30 text-blue-400 border-blue-800/30',
   };
   const style = styles[type] ?? 'bg-white/5 text-white/35 border-white/8';
   return (
-    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {type.replace('_', ' ')}
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium border font-arabic ${style}`}>
+      {adminT.followUps.type[type] ?? type.replace('_', ' ')}
     </span>
   );
 }
@@ -68,12 +69,12 @@ function StatusBadge({ status }: { status: string | null }) {
   const styles: Record<string, string> = {
     pending:     'bg-amber-950/30 text-amber-400 border-amber-800/30',
     in_progress: 'bg-sky-950/30 text-sky-400 border-sky-800/30',
-    done:        'bg-emerald-950/30 text-emerald-400 border-emerald-800/30',
+    done:        'bg-recovery/10 text-recovery border-recovery/25',
   };
   const style = styles[status] ?? 'bg-white/5 text-white/35 border-white/8';
   return (
-    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] tracking-[0.1em] uppercase font-medium border ${style}`}>
-      {status.replace('_', ' ')}
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium border font-arabic ${style}`}>
+      {adminT.followUps.status[status] ?? status.replace('_', ' ')}
     </span>
   );
 }
@@ -150,7 +151,7 @@ function AddFollowUpPanel({ onClose }: { onClose: () => void }) {
         className="fixed right-0 top-0 bottom-0 w-[420px] z-30 bg-[#0d0d0d] border-l border-white/6 overflow-y-auto"
       >
         <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-[#0d0d0d] z-10">
-          <p className="text-white font-medium text-sm">Add Follow-up</p>
+          <p className="text-white font-medium text-sm font-arabic">{adminT.followUps.new}</p>
           <button onClick={onClose} className="size-8 flex items-center justify-center text-white/30 hover:text-white/70 rounded-lg hover:bg-white/5 transition-colors">
             <X className="size-4" />
           </button>
@@ -158,42 +159,42 @@ function AddFollowUpPanel({ onClose }: { onClose: () => void }) {
 
         <div className="p-6 space-y-5">
           <div>
-            <label className={labelCls}>Founder Name</label>
-            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="Full name" className={inputCls} />
+            <label className={labelCls}>{adminT.followUps.form.founderName}</label>
+            <input type="text" value={founderName} onChange={(e) => setFounderName(e.target.value)} placeholder="الاسم الكامل" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Founder Email</label>
+            <label className={labelCls}>{adminT.sessions.form.email}</label>
             <input type="email" value={founderEmail} onChange={(e) => setFounderEmail(e.target.value)} placeholder="email@example.com" className={inputCls} />
           </div>
           <div>
-            <label className={labelCls}>Title *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Follow-up title" className={inputCls} required />
+            <label className={labelCls}>{adminT.followUps.form.title} *</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان المتابعة" className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Note</label>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Additional context…" rows={3} className={cn(inputCls, 'resize-none')} />
+            <label className={labelCls}>{adminT.followUps.form.notes}</label>
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="سياق إضافي..." rows={3} className={cn(inputCls, 'resize-none')} />
           </div>
           <div>
-            <label className={labelCls}>Type</label>
-            <select value={type} onChange={(e) => setType(e.target.value)} className={cn(inputCls, 'cursor-pointer')}>
-              <option value="check_in">Check-in</option>
-              <option value="document">Document</option>
-              <option value="decision">Decision</option>
-              <option value="action">Action</option>
-              <option value="meeting">Meeting</option>
+            <label className={labelCls}>{adminT.followUps.form.type}</label>
+            <select value={type} onChange={(e) => setType(e.target.value)} className={cn(inputCls, 'cursor-pointer font-arabic')}>
+              <option value="check_in">{adminT.followUps.type.check_in}</option>
+              <option value="document">{adminT.followUps.type.document}</option>
+              <option value="decision">{adminT.followUps.type.decision}</option>
+              <option value="action">{adminT.followUps.type.action}</option>
+              <option value="meeting">{adminT.followUps.type.meeting}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Priority</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className={cn(inputCls, 'cursor-pointer')}>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
+            <label className={labelCls}>{adminT.followUps.form.priority}</label>
+            <select value={priority} onChange={(e) => setPriority(e.target.value)} className={cn(inputCls, 'cursor-pointer font-arabic')}>
+              <option value="low">{adminT.followUps.priority.low}</option>
+              <option value="medium">{adminT.followUps.priority.medium}</option>
+              <option value="high">{adminT.followUps.priority.high}</option>
+              <option value="urgent">{adminT.followUps.priority.urgent}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Due Date</label>
+            <label className={labelCls}>{adminT.followUps.form.dueDate}</label>
             <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={inputCls} />
           </div>
 
@@ -203,14 +204,14 @@ function AddFollowUpPanel({ onClose }: { onClose: () => void }) {
               disabled={mutation.isPending || !title}
               className="flex-1 py-2.5 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {mutation.isPending ? 'Saving…' : 'Add Follow-up'}
+              {mutation.isPending ? 'جارٍ الحفظ...' : adminT.followUps.new}
             </button>
-            <button onClick={onClose} className="px-4 text-white/40 hover:text-white/70 transition-colors text-sm">
-              Cancel
+            <button onClick={onClose} className="px-4 text-white/40 hover:text-white/70 transition-colors text-sm font-arabic">
+              {adminT.common.cancel}
             </button>
           </div>
           {mutation.isError && (
-            <p className="text-red-400 text-xs">Failed to save. Please try again.</p>
+            <p className="text-crimson text-xs font-arabic">فشل الحفظ. يرجى المحاولة مرة أخرى.</p>
           )}
         </div>
       </motion.div>
@@ -259,7 +260,7 @@ function FollowUpCard({ item }: { item: FollowUp }) {
           {item.due_date && (
             <span className={cn('text-[10px]', isOverdue ? 'text-red-400' : 'text-white/30')}>
               {isToday(new Date(item.due_date))
-                ? 'Today'
+                ? 'اليوم'
                 : format(new Date(item.due_date), 'MMM d, yyyy')}
             </span>
           )}
@@ -298,8 +299,8 @@ export default function AdminFollowUps() {
 
   return (
     <AdminLayout
-      title="Follow-ups"
-      subtitle={`${pending} pending · ${overdue} overdue`}
+      title={adminT.followUps.title}
+      subtitle={adminT.followUps.subtitle}
     >
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6 gap-4">
@@ -309,27 +310,27 @@ export default function AdminFollowUps() {
               key={f}
               onClick={() => setFilterTab(f)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-[10px] tracking-[0.15em] uppercase transition-colors',
+                'px-3 py-1.5 rounded-lg text-[11px] transition-colors font-arabic',
                 filterTab === f
                   ? 'bg-white/10 text-white'
                   : 'text-white/35 hover:text-white/60 hover:bg-white/5'
               )}
             >
-              {f}
+              {adminT.followUps.filters[f] ?? f}
             </button>
           ))}
         </div>
         <button
           onClick={() => setShowAddPanel(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs tracking-[0.1em] uppercase rounded-lg hover:bg-ember/90 transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
         >
-          <Plus className="size-3.5" /> Add Follow-up
+          <Plus className="size-3.5" /> {adminT.followUps.new}
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-950/30 border border-red-800/30 rounded-lg text-red-300 text-sm">
-          Could not load follow-ups.
+        <div className="mb-4 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+          تعذّر تحميل المتابعات.
         </div>
       )}
 
@@ -342,7 +343,7 @@ export default function AdminFollowUps() {
         </div>
       ) : !data?.length ? (
         <div className="py-16 text-center">
-          <p className="text-white/25 text-sm">No follow-ups yet.</p>
+          <p className="text-white/25 text-sm font-arabic">{adminT.followUps.empty}</p>
         </div>
       ) : (
         <div className="space-y-3">

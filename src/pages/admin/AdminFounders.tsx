@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { adminT } from '@/i18n/adminTranslations';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, X, AlertTriangle, Shield, Activity, Skull,
@@ -17,10 +18,10 @@ type Assessment = Tables<'founder_assessments'>;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const RISK_META: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ElementType }> = {
-  STABLE:               { label: 'Stable',             color: 'text-emerald-400', bg: 'bg-emerald-950/30', border: 'border-emerald-800/30', icon: Shield },
-  EXPOSED:              { label: 'Exposed',             color: 'text-yellow-400',  bg: 'bg-yellow-950/30',  border: 'border-yellow-800/30',  icon: Activity },
-  'INSIDE THE VALLEY':  { label: 'Inside the Valley',   color: 'text-orange-400',  bg: 'bg-orange-950/30',  border: 'border-orange-800/30',  icon: AlertTriangle },
-  'COLLAPSE PROXIMITY': { label: 'Collapse Proximity',  color: 'text-red-400',     bg: 'bg-red-950/30',     border: 'border-red-800/30',     icon: Skull },
+  STABLE:               { label: adminT.risk['STABLE'],               color: 'text-recovery',  bg: 'bg-recovery/10',   border: 'border-recovery/25',  icon: Shield },
+  EXPOSED:              { label: adminT.risk['EXPOSED'],              color: 'text-yellow-400', bg: 'bg-yellow-950/30', border: 'border-yellow-800/30', icon: Activity },
+  'INSIDE THE VALLEY':  { label: adminT.risk['INSIDE THE VALLEY'],   color: 'text-orange-400', bg: 'bg-orange-950/30', border: 'border-orange-800/30', icon: AlertTriangle },
+  'COLLAPSE PROXIMITY': { label: adminT.risk['COLLAPSE PROXIMITY'],  color: 'text-crimson',    bg: 'bg-crimson/10',    border: 'border-crimson/25',   icon: Skull },
 };
 
 function RiskBadge({ level }: { level: string | null }) {
@@ -225,21 +226,21 @@ function DetailPanel({ row, onClose }: { row: Assessment; onClose: () => void })
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => navigate(`/admin/sessions?founder=${encodeURIComponent(row.email)}&name=${encodeURIComponent(row.name ?? '')}`)}
-                className="flex items-center gap-2 px-3 py-2 text-xs tracking-[0.1em] uppercase text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-xs text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors font-arabic"
               >
-                <CalendarClock className="size-3.5" /> Book Session
+                <CalendarClock className="size-3.5" /> حجز جلسة
               </button>
               <button
                 onClick={() => navigate(`/admin/reports?founder=${encodeURIComponent(row.email)}&name=${encodeURIComponent(row.name ?? '')}&company=${encodeURIComponent(row.company ?? '')}&score=${row.risk_score ?? 0}`)}
-                className="flex items-center gap-2 px-3 py-2 text-xs tracking-[0.1em] uppercase text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-xs text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors font-arabic"
               >
-                <FileText className="size-3.5" /> Create Report
+                <FileText className="size-3.5" /> إنشاء تقرير
               </button>
               <button
                 onClick={() => navigate(`/admin/follow-ups?founder=${encodeURIComponent(row.email)}&name=${encodeURIComponent(row.name ?? '')}`)}
-                className="flex items-center gap-2 px-3 py-2 text-xs tracking-[0.1em] uppercase text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-xs text-ember border border-ember/30 rounded-lg hover:bg-ember/10 transition-colors font-arabic"
               >
-                <Bell className="size-3.5" /> Add Follow-up
+                <Bell className="size-3.5" /> إضافة متابعة
               </button>
             </div>
           </div>
@@ -287,8 +288,8 @@ export default function AdminFounders() {
 
   return (
     <AdminLayout
-      title="Founders"
-      subtitle={`${data?.length ?? '…'} founder profile${data?.length !== 1 ? 's' : ''}`}
+      title={adminT.founders.title}
+      subtitle={adminT.founders.subtitle}
     >
       <div className="flex gap-6 h-[calc(100vh-160px)] min-h-0">
         {/* Table side */}
@@ -296,30 +297,30 @@ export default function AdminFounders() {
           {/* Filters */}
           <div className="flex gap-3 mb-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-white/25" />
+              <Search className="absolute end-4 top-1/2 -translate-y-1/2 size-4 text-white/25" />
               <input
                 type="search"
-                placeholder="Search by name, email, or company…"
+                placeholder={adminT.founders.search}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/70 placeholder:text-white/25 focus:outline-none focus:border-ember/40 transition-colors"
+                className="w-full pe-11 ps-4 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/70 placeholder:text-white/25 focus:outline-none focus:border-ember/40 transition-colors font-arabic"
               />
             </div>
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="px-3 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/60 focus:outline-none focus:border-ember/40 transition-colors"
+              className="px-3 py-2.5 bg-[#0d0d0d] border border-white/8 rounded-lg text-sm text-white/60 focus:outline-none focus:border-ember/40 transition-colors font-arabic"
             >
-              <option value="">All Risk Levels</option>
+              <option value="">{adminT.founders.riskFilter.all}</option>
               {RISK_LEVELS.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>{adminT.founders.riskFilter[r] ?? r}</option>
               ))}
             </select>
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-950/30 border border-red-800/30 rounded-lg text-red-300 text-sm">
-              Could not load founders. Make sure you have the admin role.
+            <div className="mb-4 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+              تعذّر تحميل بيانات المؤسسين. تأكد من امتلاك صلاحيات المشرف.
             </div>
           )}
 
@@ -328,9 +329,15 @@ export default function AdminFounders() {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-[#111] z-10">
                 <tr className="border-b border-white/5">
-                  {['Founder', 'Company', 'Blind Spots', 'Risk Score', 'Date'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left">
-                      <span className="text-[10px] tracking-[0.2em] uppercase text-white/35">{h}</span>
+                  {[
+                    adminT.founders.table.founder,
+                    adminT.founders.table.company,
+                    'النقاط العمياء',
+                    adminT.founders.table.score,
+                    adminT.founders.table.date,
+                  ].map((h) => (
+                    <th key={h} className="px-4 py-3 text-start">
+                      <span className="text-[10px] text-white/35 font-arabic">{h}</span>
                     </th>
                   ))}
                 </tr>
@@ -348,8 +355,8 @@ export default function AdminFounders() {
                   ))
                 ) : !data?.length ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-16 text-center text-white/25 text-sm">
-                      No founders yet.
+                    <td colSpan={5} className="px-4 py-16 text-center text-white/25 text-sm font-arabic">
+                      {adminT.founders.empty}
                     </td>
                   </tr>
                 ) : (
