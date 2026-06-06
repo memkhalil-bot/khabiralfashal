@@ -13,23 +13,32 @@ import {
   CheckCheck,
   ChevronDown,
   ExternalLink,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ReportRequest {
   id: string;
+  valley_lead_id: string | null;
   assessment_id: string | null;
-  founder_name: string | null;
+  full_name: string | null;
   email: string | null;
   company: string | null;
   risk_level: string | null;
+  risk_score: number | null;
   report_type: string;
   workflow_status: string;
   payment_status: string;
+  promo_code: string | null;
   promo_code_id: string | null;
-  base_price: number | null;
+  original_price: number | null;
+  discount_value: number | null;
   final_price: number | null;
+  primary_failure_mode: string | null;
   admin_notes: string | null;
+  scheduled_for: string | null;
+  approved_at: string | null;
+  sent_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +56,16 @@ const WORKFLOW_ORDER = [
 function nextWorkflowStatus(current: string): string | null {
   const idx = WORKFLOW_ORDER.indexOf(current as any);
   return idx >= 0 && idx < WORKFLOW_ORDER.length - 1 ? WORKFLOW_ORDER[idx + 1] : null;
+}
+
+function advanceButtonLabel(current: string): string {
+  switch (current) {
+    case 'pending_review': return 'المسودة جاهزة';
+    case 'draft_ready':    return 'موافقة';
+    case 'approved':       return 'جدولة الإرسال';
+    case 'scheduled':      return 'تأكيد الإرسال';
+    default:               return adminT.reportQueue.actions.markDraftReady;
+  }
 }
 
 function useReportQueue() {
@@ -113,7 +132,7 @@ function RiskBadge({ level }: { level: string | null }) {
 }
 
 function buildEmailPreview(r: ReportRequest): string {
-  const name = r.founder_name ?? 'المؤسس';
+  const name = r.full_name ?? 'المؤسس';
   const company = r.company ?? 'شركتكم';
   return [
     `الموضوع: تقرير خبير الفشل — تشريح ${company}`,
@@ -146,6 +165,8 @@ function DetailPanel({
   const qc = useQueryClient();
   const [notes, setNotes] = useState(report.admin_notes ?? '');
   const [copied, setCopied] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<ReportRequest>) => {
@@ -160,7 +181,22 @@ function DetailPanel({
 
   const advanceStatus = () => {
     const next = nextWorkflowStatus(report.workflow_status);
-    if (next) updateMutation.mutate({ workflow_status: next });
+    if (!next) return;
+    // If next status is 'scheduled', require a date first
+    if (next === 'scheduled') {
+      if (!showSchedule) {
+        setShowSchedule(true);
+        return;
+      }
+      if (!scheduleDate) return;
+      updateMutation.mutate({
+        workflow_status: 'scheduled',
+        scheduled_for: new Date(scheduleDate).toISOString(),
+      });
+      setShowSchedule(false);
+      return;
+    }
+    updateMutation.mutate({ workflow_status: next });
   };
 
   const rejectReport = () => updateMutation.mutate({ workflow_status: 'rejected' });
@@ -175,7 +211,14 @@ function DetailPanel({
   };
 
   const nextStatus = nextWorkflowStatus(report.workflow_status);
-  const actionLabel = nextStatus ? (adminT.reportQueue.workflowStatus[nextStatus] ?? nextStatus) : null;
+  const actionLabel = nextStatus ? advanceButtonLabel(report.workflow_status) : null;
+
+  const riskColor: Record<string, string> = {
+    STABLE:               'text-recovery',
+    EXPOSED:              'text-yellow-400',
+    'INSIDE THE VALLEY':  'text-orange-400',
+    'COLLAPSE PROXIMITY': 'text-crimson',
+  };
 
   return (
     <motion.div
@@ -183,12 +226,13 @@ function DetailPanel({
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed inset-y-0 left-0 w-[460px] bg-[#0a0d14] border-r border-white/8 z-30 flex flex-col shadow-2xl overflow-y-auto"
+      className="fixed inset-y-0 left-0 w-[500px] bg-[#0a0d14] border-r border-white/8 z-30 flex flex-col shadow-2xl overflow-y-auto"
       dir="rtl"
     >
+      {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/6">
         <div>
-          <h3 className="text-white font-semibold font-arabic">{report.founder_name ?? '—'}</h3>
+          <h3 className="text-white font-semibold font-arabic">{report.full_name ?? '—'}</h3>
           <p className="text-[11px] text-white/35 font-arabic">{report.company ?? report.email}</p>
         </div>
         <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/8 transition-colors">
@@ -198,33 +242,118 @@ function DetailPanel({
 
       <div className="flex-1 p-6 space-y-5">
 
-        {/* Status row */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <WorkflowBadge status={report.workflow_status} />
-          <PaymentBadge status={report.payment_status} />
-          <RiskBadge level={report.risk_level} />
-        </div>
-
-        {/* Meta */}
+        {/* Info grid */}
         <div className="grid grid-cols-2 gap-3">
+          {/* Row 1: full_name, email */}
+          <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
+            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">الاسم</p>
+            <p className="text-sm text-white/70 font-arabic truncate">{report.full_name ?? '—'}</p>
+          </div>
+          <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
+            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">البريد</p>
+            <p className="text-[11px] text-white/70 truncate dir-ltr text-left">{report.email ?? '—'}</p>
+          </div>
+          {/* Row 2: company, report_type */}
+          <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
+            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">الشركة</p>
+            <p className="text-sm text-white/70 font-arabic truncate">{report.company ?? '—'}</p>
+          </div>
           <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
             <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">{adminT.reportQueue.table.reportType}</p>
             <p className="text-sm text-white/70 font-arabic">{report.report_type}</p>
           </div>
+          {/* Row 3: risk_score, risk_level */}
           <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
-            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">{adminT.reportQueue.table.price}</p>
+            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">درجة المخاطر</p>
             <p className="text-sm text-white/70 tabular-nums">
-              {report.final_price != null
-                ? `$${report.final_price}`
-                : report.base_price != null
-                ? `$${report.base_price}`
-                : '—'}
+              {report.risk_score != null ? `${report.risk_score}/100` : '—'}
             </p>
+          </div>
+          <div className="p-3 bg-[#161b22] rounded-lg border border-white/6">
+            <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">{adminT.reportQueue.table.riskLevel}</p>
+            <p className={cn('text-sm font-arabic font-medium', report.risk_level ? (riskColor[report.risk_level] ?? 'text-white/50') : 'text-white/25')}>
+              {report.risk_level ? (adminT.risk[report.risk_level] ?? report.risk_level) : '—'}
+            </p>
+          </div>
+          {/* Row 4: primary_failure_mode (full width) */}
+          {report.primary_failure_mode && (
+            <div className="col-span-2 p-3 bg-[#161b22] rounded-lg border border-white/6">
+              <p className="text-[9px] uppercase tracking-wider text-white/25 mb-1">نمط الفشل</p>
+              <p className="text-sm text-white/70 font-arabic">{report.primary_failure_mode}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pricing block */}
+        <div className="p-3 bg-[#161b22] rounded-lg border border-white/6 space-y-2">
+          <p className="text-[9px] uppercase tracking-wider text-white/25 mb-2">التسعير</p>
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-white/40 font-arabic">السعر الأصلي</span>
+            <span className="text-white/60 tabular-nums">
+              {report.original_price != null ? `$${report.original_price}` : '—'}
+            </span>
+          </div>
+          {report.discount_value != null && report.discount_value > 0 && (
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-white/40 font-arabic">الخصم</span>
+              <span className="text-recovery tabular-nums">-${report.discount_value}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between text-[12px] font-semibold pt-1 border-t border-white/5">
+            <span className="text-white/60 font-arabic">
+              السعر النهائي
+              {report.promo_code && (
+                <span className="mr-2 text-[10px] font-mono font-normal bg-white/6 px-1.5 py-0.5 rounded text-ember">
+                  {report.promo_code}
+                </span>
+              )}
+            </span>
+            <span className="text-white/80 tabular-nums">
+              {report.final_price != null ? `$${report.final_price}` : '—'}
+            </span>
           </div>
         </div>
 
+        {/* Status row */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <WorkflowBadge status={report.workflow_status} />
+          <PaymentBadge status={report.payment_status} />
+        </div>
+
+        {/* Schedule date input (shown when advancing to 'scheduled') */}
+        {showSchedule && (
+          <div className="p-3 bg-[#161b22] rounded-lg border border-white/10 space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-white/30 font-arabic flex items-center gap-1.5">
+              <Calendar className="size-3" />
+              حدد تاريخ ووقت الإرسال
+            </p>
+            <input
+              type="datetime-local"
+              value={scheduleDate}
+              onChange={(e) => setScheduleDate(e.target.value)}
+              className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-3 py-2 text-sm text-white/70 focus:outline-none focus:border-white/30 transition-colors"
+              dir="ltr"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={advanceStatus}
+                disabled={!scheduleDate || updateMutation.isPending}
+                className="flex-1 py-2 bg-recovery/10 hover:bg-recovery/15 text-recovery border border-recovery/20 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
+              >
+                تأكيد الجدولة
+              </button>
+              <button
+                onClick={() => { setShowSchedule(false); setScheduleDate(''); }}
+                className="px-3 py-2 bg-white/4 hover:bg-white/8 text-white/40 border border-white/8 rounded-lg text-[12px] font-arabic transition-colors"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
-        {report.workflow_status !== 'sent' && report.workflow_status !== 'rejected' && (
+        {!showSchedule && report.workflow_status !== 'sent' && report.workflow_status !== 'rejected' && (
           <div className="flex gap-2">
             {actionLabel && (
               <button
@@ -232,9 +361,7 @@ function DetailPanel({
                 disabled={updateMutation.isPending}
                 className="flex-1 py-2.5 bg-recovery/10 hover:bg-recovery/15 text-recovery border border-recovery/20 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
               >
-                {adminT.reportQueue.actions.markDraftReady === actionLabel
-                  ? adminT.reportQueue.actions.markDraftReady
-                  : actionLabel}
+                {actionLabel}
               </button>
             )}
             <button
@@ -313,7 +440,7 @@ export default function AdminReportQueue() {
     const q = search.toLowerCase();
     const matchesSearch =
       !q ||
-      (r.founder_name ?? '').toLowerCase().includes(q) ||
+      (r.full_name ?? '').toLowerCase().includes(q) ||
       (r.email ?? '').toLowerCase().includes(q) ||
       (r.company ?? '').toLowerCase().includes(q);
     const matchesFilter =
@@ -405,7 +532,7 @@ export default function AdminReportQueue() {
                 className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_100px] gap-4 px-6 py-4 items-center hover:bg-white/3 transition-colors text-right"
               >
                 <div className="min-w-0 text-right">
-                  <p className="text-sm text-white/80 truncate font-arabic">{r.founder_name ?? '—'}</p>
+                  <p className="text-sm text-white/80 truncate font-arabic">{r.full_name ?? '—'}</p>
                   <p className="text-[11px] text-white/30 truncate">{r.email}</p>
                 </div>
                 <span className="text-sm text-white/50 font-arabic truncate">{r.report_type}</span>
