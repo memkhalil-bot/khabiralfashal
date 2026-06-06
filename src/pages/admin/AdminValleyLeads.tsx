@@ -16,21 +16,20 @@ import {
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
+const TOTAL_QUESTIONS = 12;
+
 interface ValleyLead {
   id: string;
-  session_id: string | null;
   email: string | null;
-  name: string | null;
+  full_name: string | null;
   company: string | null;
   country: string | null;
   completed: boolean;
   last_question_index: number | null;
-  total_questions: number | null;
   assessment_id: string | null;
   risk_level: string | null;
   requested_report: boolean;
   requested_session: boolean;
-  retargeting_sent: boolean;
   created_at: string;
   completed_at: string | null;
 }
@@ -93,8 +92,8 @@ function RiskBadge({ level }: { level: string | null }) {
   );
 }
 
-function ProgressBar({ current, total }: { current: number | null; total: number | null }) {
-  const pct = total && total > 0 ? Math.round(((current ?? 0) / total) * 100) : 0;
+function ProgressBar({ current }: { current: number | null }) {
+  const pct = Math.round(((current ?? 0) / TOTAL_QUESTIONS) * 100);
   return (
     <div className="flex items-center gap-2 min-w-[80px]">
       <div className="flex-1 h-1 bg-white/8 rounded-full overflow-hidden">
@@ -104,7 +103,7 @@ function ProgressBar({ current, total }: { current: number | null; total: number
         />
       </div>
       <span className="text-[10px] text-white/35 tabular-nums shrink-0">
-        {current ?? 0}/{total ?? '?'}
+        {current ?? 0}/{TOTAL_QUESTIONS}
       </span>
     </div>
   );
@@ -119,7 +118,7 @@ export default function AdminValleyLeads() {
     const q = search.toLowerCase();
     const matchesSearch =
       !q ||
-      (l.name ?? '').toLowerCase().includes(q) ||
+      (l.full_name ?? '').toLowerCase().includes(q) ||
       (l.email ?? '').toLowerCase().includes(q) ||
       (l.company ?? '').toLowerCase().includes(q);
 
@@ -213,9 +212,9 @@ export default function AdminValleyLeads() {
                 {/* Lead */}
                 <div className="min-w-0">
                   <p className="text-sm text-white/80 truncate font-arabic">
-                    {lead.name ?? lead.email ?? '—'}
+                    {lead.full_name ?? lead.email ?? '—'}
                   </p>
-                  {lead.name && lead.email && (
+                  {lead.full_name && lead.email && (
                     <p className="text-[11px] text-white/30 truncate">{lead.email}</p>
                   )}
                   {lead.created_at && (
@@ -231,10 +230,7 @@ export default function AdminValleyLeads() {
                 </span>
 
                 {/* Progress */}
-                <ProgressBar
-                  current={lead.last_question_index}
-                  total={lead.total_questions}
-                />
+                <ProgressBar current={lead.last_question_index} />
 
                 {/* Status */}
                 <StatusBadge lead={lead} />

@@ -215,9 +215,9 @@ export default function BookSession() {
       setPromoValidating(true);
       try {
         const { data } = await (supabase as any).rpc('validate_promo_code', {
-          p_code:         code.trim().toUpperCase(),
-          p_service:      form.session_type || 'founder_call',
-          p_customer_email: form.email.trim() || null,
+          input_code:        code.trim().toUpperCase(),
+          input_service_key: form.session_type || 'founder_call',
+          input_email:       form.email.trim() || null,
         });
         if (data && data.valid) {
           setPromoResult({

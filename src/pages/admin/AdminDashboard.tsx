@@ -102,7 +102,7 @@ function useStats() {
         (supabase as any).from('report_requests').select('id', { count: 'exact' }).eq('workflow_status', 'pending_review'),
         (supabase as any)
           .from('report_requests')
-          .select('id, founder_name, company, workflow_status, created_at')
+          .select('id, full_name, company, workflow_status, created_at')
           .order('created_at', { ascending: false })
           .limit(4),
       ]);
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                   className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/3 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/80 truncate font-arabic">{r.founder_name}</p>
+                    <p className="text-sm text-white/80 truncate font-arabic">{r.full_name}</p>
                     {r.company && (
                       <p className="text-[11px] text-white/35 truncate font-arabic">{r.company}</p>
                     )}

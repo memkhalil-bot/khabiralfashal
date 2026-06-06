@@ -656,11 +656,12 @@ export function ValleyAssessment() {
         const { data } = await (supabase as any)
           .from('valley_leads')
           .insert({
-            name: form.name.trim(),
+            full_name: form.name.trim(),
             email: form.email.trim(),
             company: form.company || null,
             country: form.country || null,
-            total_questions: QUESTIONS.length,
+            sector: form.sector || null,
+            startup_stage: form.stageField || null,
             last_question_index: 0,
             completed: false,
           })
@@ -758,7 +759,9 @@ export function ValleyAssessment() {
             completed: true,
             completed_at: new Date().toISOString(),
             last_question_index: QUESTIONS.length,
+            risk_score: fs,
             risk_level: v.level,
+            primary_failure_mode: bs[0] ?? null,
             assessment_id: (assessment as any)?.id ?? null,
           })
           .eq('id', valleyLeadId.current);
