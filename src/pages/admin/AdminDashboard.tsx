@@ -18,6 +18,9 @@ import {
   Inbox,
   ChevronLeft,
   ChevronRight,
+  Zap,
+  Tag,
+  Target,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
@@ -81,6 +84,9 @@ function useStats() {
         valleyAbandonedRes,
         reportPendingRes,
         recentReportQueueRes,
+        sessionsThisWeekRes,
+        promoExpiringRes,
+        retargetingRes,
       ] = await Promise.all([
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
         supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
@@ -105,6 +111,26 @@ function useStats() {
           .select('id, full_name, company, workflow_status, created_at')
           .order('created_at', { ascending: false })
           .limit(4),
+        // New: sessions this week
+        (supabase as any)
+          .from('advisory_sessions')
+          .select('id', { count: 'exact' })
+          .gte('scheduled_at', new Date().toISOString())
+          .lte('scheduled_at', new Date(Date.now() + 7 * 86400000).toISOString()),
+        // New: promo codes expiring within 7 days
+        (supabase as any)
+          .from('promo_codes')
+          .select('id', { count: 'exact' })
+          .eq('active', true)
+          .gte('ends_at', new Date().toISOString())
+          .lte('ends_at', new Date(Date.now() + 7 * 86400000).toISOString()),
+        // New: leads for retargeting (completed valley, no action taken)
+        (supabase as any)
+          .from('valley_leads')
+          .select('id', { count: 'exact' })
+          .eq('completed', true)
+          .eq('requested_report', false)
+          .eq('requested_session', false),
       ]);
 
       return {
@@ -131,6 +157,9 @@ function useStats() {
         pendingFollowUpsList: followUpsRes.data ?? [],
         recentBookings:      recentBookingsRes.data ?? [],
         recentReportQueue:   recentReportQueueRes.data ?? [],
+        sessionsThisWeek:    sessionsThisWeekRes.count ?? 0,
+        promoCodesExpiring:  promoExpiringRes.count ?? 0,
+        retargetingLeads:    retargetingRes.count ?? 0,
       };
     },
     staleTime: 60_000,
@@ -370,6 +399,36 @@ export default function AdminDashboard() {
       to: '/admin/testimonials',
       accent: 'text-white/50',
     },
+    {
+      label: adminT.dashboard.stats.sessionsThisWeek,
+      value: data?.sessionsThisWeek ?? '—',
+      icon: CalendarDays,
+      to: '/admin/sessions',
+      accent: 'text-sky-300',
+    },
+    {
+      label: adminT.dashboard.stats.promoCodesExpiring,
+      value: data?.promoCodesExpiring ?? '—',
+      icon: Tag,
+      to: '/admin/promo-codes',
+      accent: 'text-amber-400',
+    },
+    {
+      label: adminT.dashboard.stats.retargetingLeads,
+      value: data?.retargetingLeads ?? '—',
+      icon: Target,
+      to: '/admin/retargeting',
+      accent: 'text-violet-400',
+    },
+  ];
+
+  const quickLinks = [
+    { label: 'مركز الإجراءات', to: '/admin/action-center', icon: Zap,         accent: 'text-ember'      },
+    { label: 'طلبات التقارير',  to: '/admin/report-queue',  icon: Inbox,       accent: 'text-violet-400' },
+    { label: 'عملاء الوادي',    to: '/admin/valley-leads',  icon: TrendingUp,  accent: 'text-sky-400'    },
+    { label: 'طلبات الحجز',     to: '/admin/bookings',      icon: CalendarPlus,accent: 'text-amber-400'  },
+    { label: 'الإيرادات',       to: '/admin/revenue',       icon: Activity,    accent: 'text-recovery'   },
+    { label: 'إعادة الاستهداف', to: '/admin/retargeting',   icon: Target,      accent: 'text-violet-400' },
   ];
 
   return (
@@ -648,6 +707,33 @@ export default function AdminDashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Quick Links */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.52, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="mt-6"
+      >
+        <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
+          روابط سريعة
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
+          {quickLinks.map((ql) => {
+            const Icon = ql.icon;
+            return (
+              <Link
+                key={ql.to}
+                to={ql.to}
+                className="flex items-center gap-2 px-3 py-2.5 bg-[#161b22] border border-white/6 rounded-lg hover:border-white/12 hover:bg-[#1c2128] transition-all duration-200 group"
+              >
+                <Icon className={`size-3.5 shrink-0 ${ql.accent}`} />
+                <span className="text-[11px] text-white/50 group-hover:text-white/80 transition-colors font-arabic truncate">{ql.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </motion.div>
     </AdminLayout>
   );
 }

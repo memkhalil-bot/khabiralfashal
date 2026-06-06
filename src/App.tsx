@@ -51,7 +51,12 @@ const AdminTeam          = lazy(() => import("./pages/admin/AdminTeam"));
 const AdminRevenue       = lazy(() => import("./pages/admin/AdminRevenue"));
 const AdminDebug         = lazy(() => import("./pages/admin/AdminDebug"));
 const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
-const BookSession        = lazy(() => import("./pages/BookSession"));
+const AdminActionCenter     = lazy(() => import("./pages/admin/AdminActionCenter"));
+const AdminServices         = lazy(() => import("./pages/admin/AdminServices"));
+const AdminReportTemplates  = lazy(() => import("./pages/admin/AdminReportTemplates"));
+const AdminRetargeting      = lazy(() => import("./pages/admin/AdminRetargeting"));
+const AdminActivityLog      = lazy(() => import("./pages/admin/AdminActivityLog"));
+const BookSession           = lazy(() => import("./pages/BookSession"));
 
 const queryClient = new QueryClient();
 
@@ -160,6 +165,11 @@ function RootRouter() {
           <Route path="/admin/revenue"         element={<ProtectedAdminRoute><AdminRevenue /></ProtectedAdminRoute>} />
           <Route path="/admin/debug"           element={<ProtectedAdminRoute><AdminDebug /></ProtectedAdminRoute>} />
           <Route path="/admin/email-templates" element={<ProtectedAdminRoute><AdminEmailTemplates /></ProtectedAdminRoute>} />
+          <Route path="/admin/action-center"     element={<ProtectedAdminRoute><AdminActionCenter /></ProtectedAdminRoute>} />
+          <Route path="/admin/services"          element={<ProtectedAdminRoute><AdminServices /></ProtectedAdminRoute>} />
+          <Route path="/admin/report-templates"  element={<ProtectedAdminRoute><AdminReportTemplates /></ProtectedAdminRoute>} />
+          <Route path="/admin/retargeting"       element={<ProtectedAdminRoute><AdminRetargeting /></ProtectedAdminRoute>} />
+          <Route path="/admin/activity-log"      element={<ProtectedAdminRoute><AdminActivityLog /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );

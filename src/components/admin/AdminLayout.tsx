@@ -20,6 +20,11 @@ import {
   DollarSign,
   Bug,
   Mail,
+  Zap,
+  Settings,
+  LayoutTemplate,
+  Target,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -42,42 +47,47 @@ const navGroups: NavGroup[] = [
   {
     labelAr: '',
     items: [
-      { to: '/admin', label: adminT.nav.overview, icon: LayoutDashboard, end: true },
+      { to: '/admin',               label: adminT.nav.overview,      icon: LayoutDashboard, end: true },
+      { to: '/admin/action-center', label: adminT.nav.actionCenter,  icon: Zap             },
     ],
   },
   {
     labelAr: 'العمليات',
     items: [
-      { to: '/admin/sessions',   label: adminT.nav.sessions,     icon: CalendarClock },
-      { to: '/admin/bookings',   label: adminT.nav.bookings,     icon: CalendarPlus  },
-      { to: '/admin/report-queue', label: adminT.nav.reportQueue, icon: Inbox         },
-      { to: '/admin/revenue',      label: adminT.nav.revenue,     icon: DollarSign    },
+      { to: '/admin/sessions',      label: adminT.nav.sessions,      icon: CalendarClock },
+      { to: '/admin/bookings',      label: adminT.nav.bookings,      icon: CalendarPlus  },
+      { to: '/admin/report-queue',  label: adminT.nav.reportQueue,   icon: Inbox         },
+      { to: '/admin/revenue',       label: adminT.nav.revenue,       icon: DollarSign    },
     ],
   },
   {
     labelAr: 'المبيعات',
     items: [
-      { to: '/admin/founders',      label: adminT.nav.founders,    icon: UserCircle  },
-      { to: '/admin/valley-leads',  label: adminT.nav.valleyLeads, icon: TrendingUp  },
+      { to: '/admin/founders',      label: adminT.nav.founders,      icon: UserCircle  },
+      { to: '/admin/valley-leads',  label: adminT.nav.valleyLeads,   icon: TrendingUp  },
+      { to: '/admin/retargeting',   label: adminT.nav.retargeting,   icon: Target      },
     ],
   },
   {
     labelAr: 'المحتوى',
     items: [
-      { to: '/admin/approvals',    label: adminT.nav.approvals,    icon: CheckSquare       },
-      { to: '/admin/reports',      label: adminT.nav.reports,      icon: FileText          },
-      { to: '/admin/follow-ups',   label: adminT.nav.followUps,    icon: Bell              },
-      { to: '/admin/submissions',  label: adminT.nav.submissions,  icon: Users             },
-      { to: '/admin/testimonials', label: adminT.nav.testimonials, icon: MessageSquareQuote },
+      { to: '/admin/approvals',        label: adminT.nav.approvals,       icon: CheckSquare        },
+      { to: '/admin/reports',          label: adminT.nav.reports,         icon: FileText           },
+      { to: '/admin/follow-ups',       label: adminT.nav.followUps,       icon: Bell               },
+      { to: '/admin/submissions',      label: adminT.nav.submissions,     icon: Users              },
+      { to: '/admin/testimonials',     label: adminT.nav.testimonials,    icon: MessageSquareQuote },
+      { to: '/admin/report-templates', label: adminT.nav.reportTemplates, icon: LayoutTemplate     },
+      { to: '/admin/email-templates',  label: adminT.nav.emailTemplates,  icon: Mail               },
     ],
   },
   {
     labelAr: 'الإدارة',
     items: [
-      { to: '/admin/promo-codes',      label: adminT.nav.promoCodes,     icon: Tag       },
-      { to: '/admin/team',             label: adminT.nav.team,            icon: UserCheck },
-      { to: '/admin/email-templates',  label: adminT.nav.emailTemplates,  icon: Mail      },
-      { to: '/admin/debug',            label: adminT.nav.debug,           icon: Bug       },
+      { to: '/admin/services',      label: adminT.nav.services,      icon: Settings   },
+      { to: '/admin/promo-codes',   label: adminT.nav.promoCodes,    icon: Tag        },
+      { to: '/admin/team',          label: adminT.nav.team,          icon: UserCheck  },
+      { to: '/admin/activity-log',  label: adminT.nav.activityLog,   icon: ScrollText },
+      { to: '/admin/debug',         label: adminT.nav.debug,         icon: Bug        },
     ],
   },
 ];
