@@ -1,0 +1,14 @@
+-- ============================================================
+-- Dashboard V2 — Valley Funnel, Reports, Promo Codes, Team
+-- Applied remotely via Supabase MCP on 2026-06-06.
+-- This file is for local reference / git history only.
+-- ============================================================
+
+-- Tables: valley_leads, promo_codes, promo_code_redemptions,
+--         report_requests
+-- Columns added: user_roles (display_name, active)
+--                booking_requests (promo_code, promo_code_id,
+--                  original_price, discount_value, final_price,
+--                  payment_status)
+-- RLS + grants on all new tables
+-- validate_promo_code(input_code, input_email, input_service_key) RPC
