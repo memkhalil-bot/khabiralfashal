@@ -17,6 +17,9 @@ import {
   Inbox,
   Tag,
   UserCheck,
+  DollarSign,
+  Bug,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -48,6 +51,7 @@ const navGroups: NavGroup[] = [
       { to: '/admin/sessions',   label: adminT.nav.sessions,     icon: CalendarClock },
       { to: '/admin/bookings',   label: adminT.nav.bookings,     icon: CalendarPlus  },
       { to: '/admin/report-queue', label: adminT.nav.reportQueue, icon: Inbox         },
+      { to: '/admin/revenue',      label: adminT.nav.revenue,     icon: DollarSign    },
     ],
   },
   {
@@ -70,8 +74,10 @@ const navGroups: NavGroup[] = [
   {
     labelAr: 'الإدارة',
     items: [
-      { to: '/admin/promo-codes', label: adminT.nav.promoCodes, icon: Tag       },
-      { to: '/admin/team',        label: adminT.nav.team,        icon: UserCheck },
+      { to: '/admin/promo-codes',      label: adminT.nav.promoCodes,     icon: Tag       },
+      { to: '/admin/team',             label: adminT.nav.team,            icon: UserCheck },
+      { to: '/admin/email-templates',  label: adminT.nav.emailTemplates,  icon: Mail      },
+      { to: '/admin/debug',            label: adminT.nav.debug,           icon: Bug       },
     ],
   },
 ];
@@ -94,10 +100,10 @@ export function AdminLayout({ children, title, subtitle }: Props) {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#0d1117] flex font-arabic">
+    <div dir="rtl" className="min-h-screen bg-[#0c1119] flex font-arabic">
 
       {/* ── Sidebar ── */}
-      <aside className="w-64 shrink-0 bg-[#0a0d14] border-l border-white/6 flex flex-col">
+      <aside className="w-64 shrink-0 bg-[#090d14] border-l border-white/6 flex flex-col">
 
         {/* Brand */}
         <div className="px-6 py-7 border-b border-white/6">

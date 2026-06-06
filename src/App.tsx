@@ -47,8 +47,11 @@ const AdminBookings     = lazy(() => import("./pages/admin/AdminBookings"));
 const AdminValleyLeads  = lazy(() => import("./pages/admin/AdminValleyLeads"));
 const AdminReportQueue  = lazy(() => import("./pages/admin/AdminReportQueue"));
 const AdminPromoCodes   = lazy(() => import("./pages/admin/AdminPromoCodes"));
-const AdminTeam         = lazy(() => import("./pages/admin/AdminTeam"));
-const BookSession       = lazy(() => import("./pages/BookSession"));
+const AdminTeam          = lazy(() => import("./pages/admin/AdminTeam"));
+const AdminRevenue       = lazy(() => import("./pages/admin/AdminRevenue"));
+const AdminDebug         = lazy(() => import("./pages/admin/AdminDebug"));
+const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
+const BookSession        = lazy(() => import("./pages/BookSession"));
 
 const queryClient = new QueryClient();
 
@@ -154,6 +157,9 @@ function RootRouter() {
           <Route path="/admin/report-queue" element={<ProtectedAdminRoute><AdminReportQueue /></ProtectedAdminRoute>} />
           <Route path="/admin/promo-codes"  element={<ProtectedAdminRoute><AdminPromoCodes /></ProtectedAdminRoute>} />
           <Route path="/admin/team"         element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
+          <Route path="/admin/revenue"         element={<ProtectedAdminRoute><AdminRevenue /></ProtectedAdminRoute>} />
+          <Route path="/admin/debug"           element={<ProtectedAdminRoute><AdminDebug /></ProtectedAdminRoute>} />
+          <Route path="/admin/email-templates" element={<ProtectedAdminRoute><AdminEmailTemplates /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );

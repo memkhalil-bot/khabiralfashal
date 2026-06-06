@@ -13,7 +13,7 @@ interface PromoCode {
   code: string;
   title: string | null;
   description: string | null;
-  service: string;
+  service_key: string;
   discount_type: string;
   discount_value: number;
   max_uses: number | null;
@@ -29,7 +29,7 @@ interface FormState {
   code: string;
   title: string;
   description: string;
-  service: string;
+  service_key: string;
   discount_type: string;
   discount_value: string;
   max_uses: string;
@@ -43,7 +43,7 @@ const DEFAULT_FORM: FormState = {
   code: '',
   title: '',
   description: '',
-  service: 'all_services',
+  service_key: 'all_services',
   discount_type: 'percentage',
   discount_value: '',
   max_uses: '',
@@ -116,7 +116,7 @@ function CodeModal({
           code: editCode.code,
           title: editCode.title ?? '',
           description: editCode.description ?? '',
-          service: editCode.service,
+          service_key: editCode.service_key,
           discount_type: editCode.discount_type,
           discount_value: String(editCode.discount_value),
           max_uses: editCode.max_uses != null ? String(editCode.max_uses) : '',
@@ -144,13 +144,13 @@ function CodeModal({
         code: form.code.toUpperCase().trim(),
         title: form.title || null,
         description: form.description || null,
-        service: form.service,
+        service_key: form.service_key,
         discount_type: form.discount_type,
         discount_value: form.discount_type === 'free' ? 100 : Number(form.discount_value),
         max_uses: form.max_uses ? Number(form.max_uses) : null,
         max_uses_per_customer: form.max_uses_per_customer ? Number(form.max_uses_per_customer) : 1,
-        starts_at: form.starts_at || null,
-        ends_at: form.ends_at || null,
+        starts_at: form.starts_at || new Date().toISOString(),
+        ends_at: form.ends_at ? new Date(form.ends_at + 'T23:59:59').toISOString() : '2099-12-31T23:59:59+00:00',
         active: form.active,
       };
 
@@ -239,8 +239,8 @@ function CodeModal({
                   {adminT.promoCodes.form.service}
                 </label>
                 <select
-                  value={form.service}
-                  onChange={set('service')}
+                  value={form.service_key}
+                  onChange={set('service_key')}
                   className="w-full bg-[#161b22] border border-white/8 rounded-lg px-3 py-2.5 text-sm text-white/80 focus:outline-none focus:border-white/20 transition-colors font-arabic"
                 >
                   {services.map((s) => (
@@ -490,12 +490,12 @@ export default function AdminPromoCodes() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-base font-semibold text-ember">{discountLabel(code)}</span>
                 <span className="text-[10px] text-white/30 font-arabic">
-                  {adminT.promoCodes.services[code.service] ?? code.service}
+                  {adminT.promoCodes.services[code.service_key] ?? code.service_key}
                 </span>
               </div>
 
               {/* Usage */}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-1">
                 <div className="flex-1 h-1 bg-white/6 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-ember/50 rounded-full"
@@ -510,6 +510,12 @@ export default function AdminPromoCodes() {
                   {code.used_count}{code.max_uses ? `/${code.max_uses}` : ''} {adminT.promoCodes.usedCount}
                 </span>
               </div>
+              {code.max_uses && (
+                <p className="text-[10px] text-white/25 font-arabic mb-3">
+                  متبقي: {Math.max(0, code.max_uses - code.used_count)}
+                </p>
+              )}
+              {!code.max_uses && <div className="mb-3" />}
 
               {/* Validity */}
               {(code.starts_at || code.ends_at) && (
