@@ -22,6 +22,8 @@ import {
   Target,
   CheckCircle2,
   Package,
+  PackageCheck,
+  Gauge,
   DollarSign,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -92,6 +94,7 @@ function useStats() {
         startedAssessmentRes,
         bookingRevenueRes,
         reportRevenueRes,
+        failKitRes,
       ] = await Promise.all([
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
         supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
@@ -150,12 +153,54 @@ function useStats() {
           .from('report_requests')
           .select('final_price')
           .eq('payment_status', 'paid'),
+        // New: fail kit requests (KPI source — Sprint 3A)
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, email, status, risk_score, payment_status, final_price, price'),
       ]);
 
       const revenueTotal = [
         ...((bookingRevenueRes.data ?? []) as { final_price: number | null }[]),
         ...((reportRevenueRes.data ?? []) as { final_price: number | null }[]),
       ].reduce((acc, r) => acc + (r.final_price ?? 0), 0);
+
+      // ── Fail Kit derived stats ──────────────────────────────────────────────
+      const failKitRequests = (failKitRes.data ?? []) as {
+        email: string; status: string; risk_score: number | null;
+        payment_status: string; final_price: number | null; price: number;
+      }[];
+
+      const failKitTotal = failKitRequests.length;
+      const failKitDelivered = failKitRequests.filter((r) =>
+        ['delivered', 'follow_up', 'closed'].includes(r.status)
+      ).length;
+      const failKitRevenue = failKitRequests
+        .filter((r) => r.payment_status === 'paid')
+        .reduce((acc, r) => acc + (r.final_price ?? r.price ?? 0), 0);
+      const failKitRiskScores = failKitRequests
+        .map((r) => r.risk_score)
+        .filter((n): n is number => typeof n === 'number');
+      const failKitAvgRisk = failKitRiskScores.length
+        ? Math.round(failKitRiskScores.reduce((a, b) => a + b, 0) / failKitRiskScores.length)
+        : 0;
+
+      // Conversion: % of fail-kit emails that also appear in booking_requests
+      const failKitEmails = Array.from(
+        new Set(failKitRequests.map((r) => r.email?.toLowerCase()).filter(Boolean))
+      ) as string[];
+
+      const failKitSessionMatchRes = failKitEmails.length
+        ? await (supabase as any).from('booking_requests').select('email').in('email', failKitEmails)
+        : { data: [] as { email: string }[] };
+
+      const failKitSessionMatches = new Set(
+        ((failKitSessionMatchRes.data ?? []) as { email: string }[])
+          .map((r) => r.email?.toLowerCase())
+          .filter(Boolean)
+      );
+      const failKitToSessionPct = failKitEmails.length
+        ? Math.round((failKitSessionMatches.size / failKitEmails.length) * 100)
+        : 0;
 
       return {
         totalSubmissions:    assessmentsRes.count ?? 0,
@@ -186,6 +231,11 @@ function useStats() {
         retargetingLeads:    retargetingRes.count ?? 0,
         startedAssessment:   startedAssessmentRes.count ?? 0,
         revenueTotal,
+        failKitTotal,
+        failKitDelivered,
+        failKitRevenue,
+        failKitAvgRisk,
+        failKitToSessionPct,
       };
     },
     staleTime: 60_000,
@@ -272,6 +322,7 @@ interface KpiDef {
   icon:         React.ElementType;
   accent:       string;
   isCurrency?:  boolean;
+  isPercent?:   boolean;
   placeholder?: boolean;
 }
 
@@ -280,7 +331,7 @@ function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; 
     { label: adminT.dashboard.kpi.valleyVisitors,      value: data?.valleyTotal,       icon: TrendingUp,   accent: 'text-ember' },
     { label: adminT.dashboard.kpi.startedAssessment,   value: data?.startedAssessment, icon: Activity,     accent: 'text-sky-400' },
     { label: adminT.dashboard.kpi.completedAssessment, value: data?.valleyCompleted,   icon: CheckCircle2, accent: 'text-violet-400' },
-    { label: adminT.dashboard.kpi.failKitRequests,     value: null,                    icon: Package,      accent: 'text-amber-400',  placeholder: true },
+    { label: adminT.dashboard.kpi.failKitRequests,     value: data?.failKitTotal,      icon: Package,      accent: 'text-amber-400' },
     { label: adminT.dashboard.kpi.sessionRequests,     value: data?.totalBookings,     icon: CalendarPlus, accent: 'text-recovery' },
     { label: adminT.dashboard.kpi.threeMonthPlans,     value: null,                    icon: CalendarDays, accent: 'text-orange-400', placeholder: true },
     { label: adminT.dashboard.kpi.revenue,             value: data?.revenueTotal,      icon: DollarSign,   accent: 'text-recovery',   isCurrency: true },
@@ -310,6 +361,63 @@ function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; 
                   '—'
                 ) : k.isCurrency ? (
                   `$${(k.value ?? 0).toLocaleString()}`
+                ) : k.isPercent ? (
+                  `${k.value ?? 0}%`
+                ) : (
+                  k.value ?? 0
+                )}
+              </div>
+              <p className="text-[10px] text-white/35 font-arabic leading-snug">{k.label}</p>
+              {k.placeholder && !loading && (
+                <p className="text-[8px] text-white/20 font-arabic mt-1">{adminT.dashboard.kpi.placeholderHint}</p>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Fail Kit KPI Row ──────────────────────────────────────────────────────────
+
+function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const kpis: KpiDef[] = [
+    { label: adminT.dashboard.kpi.failKitRequests,  value: data?.failKitTotal,        icon: Package,      accent: 'text-amber-400' },
+    { label: adminT.dashboard.kpi.failKitDelivered, value: data?.failKitDelivered,    icon: PackageCheck, accent: 'text-recovery' },
+    { label: adminT.dashboard.kpi.failKitRevenue,   value: data?.failKitRevenue,      icon: DollarSign,   accent: 'text-recovery',  isCurrency: true },
+    { label: adminT.dashboard.kpi.failKitAvgRisk,   value: data?.failKitAvgRisk,      icon: Gauge,        accent: 'text-crimson' },
+    { label: adminT.dashboard.kpi.failKitToSession, value: data?.failKitToSessionPct, icon: TrendingUp,   accent: 'text-sky-400',   isPercent: true },
+    { label: adminT.dashboard.kpi.failKitToPlan,    value: null,                      icon: CalendarDays, accent: 'text-orange-400', placeholder: true },
+  ];
+
+  return (
+    <div className="mb-6">
+      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic flex items-center gap-2">
+        <Package className="size-3 text-white/20" />
+        {adminT.failKit.title}
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+        {kpis.map((k, i) => {
+          const Icon = k.icon;
+          return (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="p-4 bg-[#161b22] border border-white/6 rounded-xl"
+            >
+              <Icon className={`size-4 ${k.accent} mb-3`} />
+              <div className={`text-xl font-serif-display tabular-nums mb-1 ${k.accent}`}>
+                {loading ? (
+                  <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+                ) : k.placeholder ? (
+                  '—'
+                ) : k.isCurrency ? (
+                  `$${(k.value ?? 0).toLocaleString()}`
+                ) : k.isPercent ? (
+                  `${k.value ?? 0}%`
                 ) : (
                   k.value ?? 0
                 )}
@@ -342,7 +450,7 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
     { label: adminT.dashboard.funnel.visitors,        value: data?.valleyTotal,       placeholder: false },
     { label: adminT.dashboard.funnel.started,         value: data?.startedAssessment, placeholder: false },
     { label: adminT.dashboard.funnel.completed,       value: data?.valleyCompleted,   placeholder: false },
-    { label: adminT.dashboard.funnel.failKitRequests, value: 0,                       placeholder: true  },
+    { label: adminT.dashboard.funnel.failKitRequests, value: data?.failKitTotal,      placeholder: false },
     { label: adminT.dashboard.funnel.sessionRequests, value: data?.totalBookings,     placeholder: false },
     { label: adminT.dashboard.funnel.threeMonthPlans, value: 0,                       placeholder: true  },
   ];
@@ -530,6 +638,9 @@ export default function AdminDashboard() {
 
       {/* KPI row */}
       <KpiRow data={data} loading={isLoading} />
+
+      {/* Fail Kit KPI row */}
+      <FailKitKpiSection data={data} loading={isLoading} />
 
       {/* Valley Funnel */}
       <FunnelSection data={data} loading={isLoading} />
