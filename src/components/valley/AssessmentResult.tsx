@@ -62,6 +62,16 @@ function ScoreRing({ pct, accentHsl, isRTL }: { pct: number; accentHsl: string; 
 
 type CTA = { title: string; desc: string; intent: string; urgent?: boolean };
 
+export type ReportRequestContext = {
+  valleyLeadId: string | null;
+  assessmentId: string | null;
+  fullName: string | null;
+  email: string | null;
+  company: string | null;
+  riskScore: number | null;
+  riskLevel: string | null;
+};
+
 interface Props {
   verdict: { level: string; title: string; tone: string; insight: string };
   scorePct: number;
@@ -74,6 +84,7 @@ interface Props {
   isRTL: boolean;
   contactPath: string;
   dominantBlindSpot?: string | null;
+  reportContext?: ReportRequestContext;
   labels: {
     diagnosisLabel: string;
     shockEyebrow: string;
@@ -107,9 +118,14 @@ export function AssessmentResult({
   isRTL,
   contactPath,
   dominantBlindSpot,
+  reportContext,
   labels,
   onReset,
 }: Props) {
+  // CTAs with intent "report" carry the assessment context to /contact so the
+  // submission can be linked back to this exact valley_lead / assessment row.
+  const ctaState = (intent: string) => (intent === 'report' ? reportContext : undefined);
+
   const accent =
     riskBucket === 'high'   ? 'text-red-400'
     : riskBucket === 'medium' ? 'text-ember'
@@ -357,6 +373,7 @@ export function AssessmentResult({
             )}
             <Link
               to={`${contactPath}?intent=${primaryCta.intent}`}
+              state={ctaState(primaryCta.intent)}
               className={cn(
                 'group inline-flex items-center gap-5 px-8 py-5 transition-all duration-500',
                 primaryCta.urgent
@@ -402,6 +419,7 @@ export function AssessmentResult({
               >
                 <Link
                   to={`${contactPath}?intent=${c.intent}`}
+                  state={ctaState(c.intent)}
                   className={cn(
                     'group inline-flex items-start gap-4 max-w-sm',
                     isRTL && 'flex-row-reverse text-right'

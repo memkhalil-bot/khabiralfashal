@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, CheckCircle2, AlertCircle, ChevronDown, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -185,6 +186,21 @@ export default function BookSession() {
   const c = copy[lang as Lang] ?? copy.en;
   const isRTL = lang === 'ar';
 
+  // Live service prices (used to compute original/discount/final price on submit)
+  const { data: servicePrices } = useQuery({
+    queryKey: ['public', 'services', 'session-prices'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('services')
+        .select('service_key, price')
+        .eq('category', 'session')
+        .eq('active', true);
+      if (error) throw error;
+      return (data ?? []) as { service_key: string; price: number | string }[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -259,6 +275,21 @@ export default function BookSession() {
     setServerError(null);
 
     try {
+      // Price the session from live `services` data, then apply the validated promo (if any)
+      const servicePrice = servicePrices?.find((s) => s.service_key === form.session_type)?.price;
+      const originalPrice = servicePrice != null ? Number(servicePrice) : null;
+      let discountValue = 0;
+      if (originalPrice != null && promoResult?.valid) {
+        if (promoResult.discountType === 'percentage') {
+          discountValue = +(originalPrice * ((promoResult.discountValue ?? 0) / 100)).toFixed(2);
+        } else if (promoResult.discountType === 'fixed_amount') {
+          discountValue = Math.min(promoResult.discountValue ?? 0, originalPrice);
+        } else if (promoResult.discountType === 'free') {
+          discountValue = originalPrice;
+        }
+      }
+      const finalPrice = originalPrice != null ? +(originalPrice - discountValue).toFixed(2) : null;
+
       const payload = {
         full_name:      form.full_name.trim(),
         email:          form.email.trim(),
@@ -270,7 +301,11 @@ export default function BookSession() {
         preferred_time: form.preferred_time || null,
         description:    form.description.trim(),
         status:         'pending',
+        promo_code:     promoResult?.valid ? promoInput.trim().toUpperCase() : null,
         promo_code_id:  promoResult?.valid ? promoResult.promoCodeId : null,
+        original_price: originalPrice,
+        discount_value: discountValue,
+        final_price:    finalPrice,
       };
 
       const { data: inserted, error } = await (supabase as any)
@@ -295,6 +330,35 @@ export default function BookSession() {
           })
           .then(() => {})
           .catch(() => {});
+      }
+
+      // Record promo redemption + bump used_count (graceful — never blocks the booking itself)
+      if (inserted?.id && promoResult?.valid && promoResult.promoCodeId) {
+        (async () => {
+          try {
+            await (supabase as any).from('promo_code_redemptions').insert({
+              promo_code_id: promoResult.promoCodeId,
+              code:          promoInput.trim().toUpperCase(),
+              email:         form.email.trim(),
+              service_key:   form.session_type,
+              related_type:  'booking_request',
+              related_id:    inserted.id,
+              discount_type: promoResult.discountType,
+              discount_value: promoResult.discountValue,
+            });
+            const { data: promoRow } = await (supabase as any)
+              .from('promo_codes')
+              .select('used_count')
+              .eq('id', promoResult.promoCodeId)
+              .single();
+            if (promoRow) {
+              await (supabase as any)
+                .from('promo_codes')
+                .update({ used_count: (promoRow.used_count ?? 0) + 1 })
+                .eq('id', promoResult.promoCodeId);
+            }
+          } catch { /* redemption bookkeeping is non-critical */ }
+        })();
       }
 
       setSuccess(true);

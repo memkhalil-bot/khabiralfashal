@@ -50,7 +50,7 @@ const SESSION_TYPE_LABELS: Record<string, string> = {
   emergency_session: 'جلسة طارئة',
 };
 
-const PAYMENT_STATUSES = ['ALL', 'pending', 'paid', 'free', 'waived', 'refunded'] as const;
+const PAYMENT_STATUSES = ['ALL', 'pending', 'paid', 'free', 'waived', 'failed'] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,7 +65,7 @@ function paymentStatusClass(status: string | null): string {
     case 'paid':     return 'text-recovery';
     case 'free':     return 'text-sky-400';
     case 'waived':   return 'text-violet-400';
-    case 'refunded': return 'text-crimson';
+    case 'failed':   return 'text-crimson';
     default:         return 'text-white/30';
   }
 }
@@ -76,7 +76,7 @@ function paymentStatusLabel(status: string | null): string {
     case 'paid':     return 'مدفوع';
     case 'free':     return 'مجاني';
     case 'waived':   return 'معفو';
-    case 'refunded': return 'مسترجع';
+    case 'failed':   return 'فشل الدفع';
     default:         return status ?? '—';
   }
 }
@@ -127,7 +127,7 @@ function useRevenue() {
 
 // ── Payment status popover ────────────────────────────────────────────────────
 
-const PAYMENT_OPTIONS = ['pending', 'paid', 'free', 'waived', 'refunded'] as const;
+const PAYMENT_OPTIONS = ['pending', 'paid', 'free', 'waived', 'failed'] as const;
 
 function StatusPopover({
   record,

@@ -510,6 +510,7 @@ export function ValleyAssessment() {
   const nodeFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startGlowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const valleyLeadId = useRef<string | null>(null);
+  const assessmentRowId = useRef<string | null>(null);
 
   // Gate form
   const [form, setForm] = useState({
@@ -751,6 +752,7 @@ export function ValleyAssessment() {
         insight: v.insight,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       } as never).select('id').single();
+      assessmentRowId.current = (assessment as any)?.id ?? null;
       // Mark valley lead as completed
       if (valleyLeadId.current) {
         void (supabase as any)
@@ -1187,6 +1189,15 @@ export function ValleyAssessment() {
                 isRTL={isRTL}
                 contactPath={getPath('/contact')}
                 dominantBlindSpot={dominantBlindSpot}
+                reportContext={{
+                  valleyLeadId: valleyLeadId.current,
+                  assessmentId: assessmentRowId.current,
+                  fullName: founderName,
+                  email: founderEmail || null,
+                  company: form.company || null,
+                  riskScore: finalScore || null,
+                  riskLevel: verdict.level ?? null,
+                }}
                 labels={{
                   diagnosisLabel:       a.diagnosisLabel,
                   shockEyebrow:         a.shockEyebrow,

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +10,9 @@ import bookCallPhone from '@/assets/book-call-phone.png';
 import bookCallPhoneWebp from '@/assets/book-call-phone.webp';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import type { ReportRequestContext } from '@/components/valley/AssessmentResult';
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -27,6 +29,12 @@ export default function Contact() {
   const { lang, getPath } = useLanguage();
   const isRTL = lang === 'ar';
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Arrives via AssessmentResult's "Request a detailed report" CTA as
+  // `/contact?intent=report`, optionally carrying the originating valley_lead context.
+  const intent = new URLSearchParams(location.search).get('intent');
+  const reportContext = (location.state ?? null) as ReportRequestContext | null;
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const toggleTag = (tag: string) =>
@@ -45,7 +53,50 @@ export default function Contact() {
   const selectedStage = watch('stage');
 
   const onSubmit = async (data: FormValues) => {
-    await new Promise((r) => setTimeout(r, 900));
+    // "Request a detailed report" CTA → write a real report_requests row
+    // (Valley completed → Report requested → report_requests → /admin/report-queue)
+    if (intent === 'report') {
+      try {
+        const { data: service } = await (supabase as any)
+          .from('services')
+          .select('price')
+          .eq('service_key', 'valley_report')
+          .maybeSingle();
+        const price = service?.price != null ? Number(service.price) : 0;
+
+        const { data: inserted } = await (supabase as any)
+          .from('report_requests')
+          .insert({
+            valley_lead_id:      reportContext?.valleyLeadId ?? null,
+            assessment_id:       reportContext?.assessmentId ?? null,
+            full_name:           data.name,
+            email:               data.email,
+            company:             data.company || reportContext?.company || null,
+            report_type:         'valley_report',
+            risk_score:          reportContext?.riskScore ?? null,
+            risk_level:          reportContext?.riskLevel ?? null,
+            original_price:      price,
+            discount_value:      0,
+            final_price:         price,
+            payment_status:      price > 0 ? 'pending' : 'free',
+          })
+          .select('id')
+          .single();
+
+        if (inserted?.id && reportContext?.valleyLeadId) {
+          (supabase as any)
+            .from('valley_leads')
+            .update({ requested_report: true })
+            .eq('id', reportContext.valleyLeadId)
+            .then(() => {})
+            .catch(() => {});
+        }
+      } catch {
+        /* fall through to confirmation regardless — never block the founder */
+      }
+    } else {
+      await new Promise((r) => setTimeout(r, 900));
+    }
     reset();
     navigate(getPath('/thank-you'), { state: { name: data.name } });
   };

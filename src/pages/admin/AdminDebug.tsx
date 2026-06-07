@@ -9,19 +9,23 @@ import { cn } from '@/lib/utils';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TABLE_ARABIC: Record<string, string> = {
-  valley_leads:      'عملاء الوادي',
-  booking_requests:  'طلبات الحجز',
-  report_requests:   'طلبات التقارير',
-  promo_codes:       'أكواد الخصم',
-  advisory_sessions: 'جلسات الإرشاد',
-  user_roles:        'أدوار المستخدمين',
+  valley_leads:           'عملاء الوادي',
+  founder_assessments:    'تقييمات المؤسسين',
+  booking_requests:       'طلبات الحجز',
+  report_requests:        'طلبات التقارير',
+  promo_codes:            'أكواد الخصم',
+  promo_code_redemptions: 'استخدامات أكواد الخصم',
+  advisory_sessions:      'جلسات الإرشاد',
+  user_roles:             'أدوار المستخدمين',
 };
 
 const TABLE_KEYS = [
   'valley_leads',
+  'founder_assessments',
   'booking_requests',
   'report_requests',
   'promo_codes',
+  'promo_code_redemptions',
   'advisory_sessions',
   'user_roles',
 ] as const;
@@ -51,27 +55,33 @@ function useRowCounts() {
     queryFn: async () => {
       const [
         valleyLeadsRes,
+        founderAssessmentsRes,
         bookingRequestsRes,
         reportRequestsRes,
         promoCodesRes,
+        promoRedemptionsRes,
         advisorySessionsRes,
         userRolesRes,
       ] = await Promise.all([
         supabase.from('valley_leads').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('founder_assessments').select('id', { count: 'exact', head: true }),
         supabase.from('booking_requests').select('id', { count: 'exact', head: true }),
         supabase.from('report_requests').select('id', { count: 'exact', head: true }),
         supabase.from('promo_codes').select('id', { count: 'exact', head: true }),
+        (supabase as any).from('promo_code_redemptions').select('id', { count: 'exact', head: true }),
         (supabase as any).from('advisory_sessions').select('id', { count: 'exact', head: true }),
         (supabase as any).from('user_roles').select('id', { count: 'exact', head: true }),
       ]);
 
       return {
-        valley_leads:      valleyLeadsRes.count ?? 0,
-        booking_requests:  bookingRequestsRes.count ?? 0,
-        report_requests:   reportRequestsRes.count ?? 0,
-        promo_codes:       promoCodesRes.count ?? 0,
-        advisory_sessions: advisorySessionsRes.count ?? 0,
-        user_roles:        userRolesRes.count ?? 0,
+        valley_leads:           valleyLeadsRes.count ?? 0,
+        founder_assessments:    founderAssessmentsRes.count ?? 0,
+        booking_requests:       bookingRequestsRes.count ?? 0,
+        report_requests:        reportRequestsRes.count ?? 0,
+        promo_codes:            promoCodesRes.count ?? 0,
+        promo_code_redemptions: promoRedemptionsRes.count ?? 0,
+        advisory_sessions:      advisorySessionsRes.count ?? 0,
+        user_roles:             userRolesRes.count ?? 0,
       };
     },
     staleTime: 30_000,
