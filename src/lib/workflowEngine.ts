@@ -1,9 +1,18 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export type EntityType = 'report_request' | 'booking_request' | 'advisory_session';
+export type EntityType = 'report_request' | 'booking_request' | 'advisory_session' | 'fail_kit_request';
 
 // Transition graph — only allowed next states listed
 export const WORKFLOW_TRANSITIONS: Record<EntityType, Record<string, string[]>> = {
+  fail_kit_request: {
+    requested:    ['under_review', 'closed'],
+    under_review: ['approved', 'closed'],
+    approved:     ['scheduled', 'closed'],
+    scheduled:    ['delivered', 'closed'],
+    delivered:    ['follow_up', 'closed'],
+    follow_up:    ['closed'],
+    closed:       [],
+  },
   report_request: {
     pending_review: ['draft_ready', 'rejected'],
     draft_ready:    ['approved', 'rejected'],
@@ -32,6 +41,15 @@ export const WORKFLOW_TRANSITIONS: Record<EntityType, Record<string, string[]>> 
 
 // Arabic labels for each status (shown in badges)
 export const WORKFLOW_STATUS_LABELS: Record<EntityType, Record<string, string>> = {
+  fail_kit_request: {
+    requested:    'مطلوبة',
+    under_review: 'قيد المراجعة',
+    approved:     'تمت الموافقة',
+    scheduled:    'مجدولة',
+    delivered:    'تم التسليم',
+    follow_up:    'قيد المتابعة',
+    closed:       'مغلقة',
+  },
   report_request: {
     pending_review: 'بانتظار المراجعة',
     draft_ready:    'المسودة جاهزة',
@@ -60,6 +78,9 @@ export const WORKFLOW_STATUS_LABELS: Record<EntityType, Record<string, string>> 
 
 // Arabic labels for transition ACTION buttons (what doing this transition means)
 export const TRANSITION_ACTION_LABELS: Record<string, string> = {
+  requested:      'إعادة إلى مطلوبة',
+  under_review:   'بدء المراجعة',
+  delivered:      'تأكيد التسليم',
   draft_ready:    'تأكيد جاهزية المسودة',
   approved:       'الموافقة على التقرير',
   scheduled:      'جدولة الإرسال',
@@ -77,6 +98,9 @@ export const TRANSITION_ACTION_LABELS: Record<string, string> = {
 
 // Tailwind style classes for each status badge
 export const WORKFLOW_STATUS_STYLES: Record<string, string> = {
+  requested:      'bg-amber-950/30 text-amber-400 border-amber-800/30',
+  under_review:   'bg-sky-950/30 text-sky-400 border-sky-800/30',
+  delivered:      'bg-white/5 text-white/35 border-white/8',
   pending_review: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
   draft_ready:    'bg-sky-950/30 text-sky-400 border-sky-800/30',
   approved:       'bg-violet-950/30 text-violet-400 border-violet-800/30',
@@ -112,6 +136,7 @@ const TABLE_MAP: Record<EntityType, string> = {
   report_request:   'report_requests',
   booking_request:  'booking_requests',
   advisory_session: 'advisory_sessions',
+  fail_kit_request: 'fail_kit_requests',
 };
 
 export interface TransitionParams {

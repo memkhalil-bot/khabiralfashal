@@ -603,6 +603,21 @@ export function ValleyAssessment() {
     return sorted[0]?.[0] ?? null;
   }, [isDone, finalAnswers, isRTL]);
 
+  // Canonical (English) form of the dominant blind spot — used for backend
+  // mapping (e.g. Fail Kit category) regardless of display language, mirroring
+  // how `primary_failure_mode` is stored on valley_leads/founder_assessments.
+  const dominantBlindSpotCanonical = useMemo(() => {
+    if (!isDone) return null;
+    const counts: Record<string, number> = {};
+    QUESTIONS.forEach(q => {
+      if ((finalAnswers[q.id] ?? 0) >= 3 && q.blindSpot) {
+        counts[q.blindSpot] = (counts[q.blindSpot] ?? 0) + 1;
+      }
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] ?? null;
+  }, [isDone, finalAnswers]);
+
   const riskBucket: 'low' | 'medium' | 'high' =
     verdict.level === 'COLLAPSE PROXIMITY' ? 'high'
     : verdict.level === 'INSIDE THE VALLEY' ? 'medium'
@@ -1195,8 +1210,10 @@ export function ValleyAssessment() {
                   fullName: founderName,
                   email: founderEmail || null,
                   company: form.company || null,
+                  country: form.country || null,
                   riskScore: finalScore || null,
                   riskLevel: verdict.level ?? null,
+                  primaryFailureMode: dominantBlindSpotCanonical,
                 }}
                 labels={{
                   diagnosisLabel:       a.diagnosisLabel,

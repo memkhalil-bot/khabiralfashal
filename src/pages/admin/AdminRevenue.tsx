@@ -40,7 +40,22 @@ interface ReportRecord {
   source: 'report';
 }
 
-type RevenueRecord = BookingRecord | ReportRecord;
+interface FailKitRecord {
+  id: string;
+  full_name: string;
+  email: string;
+  company: null;
+  request_number: string | null;
+  original_price: number | null;
+  promo_code: null;
+  discount_value: number | null;
+  final_price: number | null;
+  payment_status: string | null;
+  created_at: string;
+  source: 'fail_kit';
+}
+
+type RevenueRecord = BookingRecord | ReportRecord | FailKitRecord;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -85,7 +100,10 @@ function serviceLabel(rec: RevenueRecord): string {
   if (rec.source === 'booking') {
     return SESSION_TYPE_LABELS[rec.session_type] ?? rec.session_type;
   }
-  return (rec as ReportRecord).report_type ?? '—';
+  if (rec.source === 'report') {
+    return (rec as ReportRecord).report_type ?? '—';
+  }
+  return 'حقيبة الفشل';
 }
 
 // ── Query ─────────────────────────────────────────────────────────────────────
@@ -94,17 +112,21 @@ function useRevenue() {
   return useQuery({
     queryKey: ['admin', 'revenue'],
     queryFn: async () => {
-      const [bookingsRes, reportsRes] = await Promise.all([
+      const [bookingsRes, reportsRes, failKitsRes] = await Promise.all([
         (supabase as any)
           .from('booking_requests')
           .select('id, full_name, email, company, session_type, original_price, promo_code, discount_value, final_price, payment_status, created_at'),
         (supabase as any)
           .from('report_requests')
           .select('id, full_name, email, company, report_type, original_price, promo_code, discount_value, final_price, payment_status, workflow_status, created_at'),
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, request_number, full_name, email, price, discount, final_price, payment_status, created_at'),
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
       if (reportsRes.error) throw reportsRes.error;
+      if (failKitsRes.error) throw failKitsRes.error;
 
       const bookings: BookingRecord[] = (bookingsRes.data ?? []).map((r: any) => ({
         ...r,
@@ -114,8 +136,22 @@ function useRevenue() {
         ...r,
         source: 'report' as const,
       }));
+      const failKits: FailKitRecord[] = (failKitsRes.data ?? []).map((r: any) => ({
+        id:               r.id,
+        full_name:        r.full_name,
+        email:            r.email,
+        company:          null,
+        request_number:   r.request_number,
+        original_price:   r.price,
+        promo_code:       null,
+        discount_value:   r.discount,
+        final_price:      r.final_price,
+        payment_status:   r.payment_status,
+        created_at:       r.created_at,
+        source:           'fail_kit' as const,
+      }));
 
-      const combined: RevenueRecord[] = [...bookings, ...reports].sort(
+      const combined: RevenueRecord[] = [...bookings, ...reports, ...failKits].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
@@ -141,7 +177,11 @@ function StatusPopover({
 
   const mutation = useMutation({
     mutationFn: async (newStatus: string) => {
-      const table = record.source === 'booking' ? 'booking_requests' : 'report_requests';
+      const table = record.source === 'booking'
+        ? 'booking_requests'
+        : record.source === 'report'
+        ? 'report_requests'
+        : 'fail_kit_requests';
       const { error } = await (supabase as any)
         .from(table)
         .update({ payment_status: newStatus })
@@ -233,6 +273,10 @@ export default function AdminRevenue() {
     (r) => r.source === 'report' && r.payment_status === 'paid'
   ).length;
 
+  const paidFailKits = data.filter(
+    (r) => r.source === 'fail_kit' && r.payment_status === 'paid'
+  ).length;
+
   const freePromo = data.filter((r) => r.payment_status === 'free').length;
 
   // ── Filtered rows ──────────────────────────────────────────────────────────
@@ -261,10 +305,11 @@ export default function AdminRevenue() {
   return (
     <AdminLayout title="الإيرادات" subtitle="تتبع المدفوعات والإيرادات">
       {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         <StatCard label="إجمالي الإيرادات" value={`$${totalRevenue}`} />
         <StatCard label="جلسات مدفوعة" value={paidSessions} />
         <StatCard label="تقارير مدفوعة" value={paidReports} />
+        <StatCard label="حقائب فشل مدفوعة" value={paidFailKits} />
         <StatCard label="مجاني / بروموكود" value={freePromo} />
       </div>
 
@@ -346,9 +391,13 @@ export default function AdminRevenue() {
                         <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border bg-sky-950/30 text-sky-400 border-sky-800/30 font-arabic">
                           جلسة
                         </span>
-                      ) : (
+                      ) : rec.source === 'report' ? (
                         <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border bg-violet-950/30 text-violet-400 border-violet-800/30 font-arabic">
                           تقرير
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border bg-amber-950/30 text-amber-400 border-amber-800/30 font-arabic">
+                          حقيبة فشل
                         </span>
                       )}
                     </td>

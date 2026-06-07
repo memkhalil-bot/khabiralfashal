@@ -19,8 +19,11 @@ import {
   ArrowLeft,
   Zap,
   LayoutDashboard,
-  Package,
   Skull,
+  Search,
+  PackageCheck,
+  Flame,
+  Ban,
 } from 'lucide-react';
 import { adminT } from '@/i18n/adminTranslations';
 
@@ -77,6 +80,47 @@ function PriorityBadge({ priority }: { priority: Priority }) {
     <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium font-arabic ${s.badge}`}>
       {s.label}
     </span>
+  );
+}
+
+// ── Fail Kit meta badges (severity / urgency / category) ─────────────────────
+
+const FAIL_KIT_SEVERITY_STYLES: Record<string, string> = {
+  Low:      'text-white/40 bg-white/5 border-white/10',
+  Medium:   'text-amber-400 bg-amber-950/25 border-amber-800/30',
+  High:     'text-orange-400 bg-orange-950/25 border-orange-800/30',
+  Critical: 'text-crimson bg-crimson/10 border-crimson/25',
+};
+
+const FAIL_KIT_URGENCY_STYLES: Record<string, string> = {
+  Green:  'text-emerald-400 bg-emerald-950/25 border-emerald-800/30',
+  Yellow: 'text-amber-400 bg-amber-950/25 border-amber-800/30',
+  Red:    'text-crimson bg-crimson/10 border-crimson/25',
+  Black:  'text-white/70 bg-white/10 border-white/20',
+};
+
+function FailKitMetaBadges({ item }: { item: { failure_category: string | null; severity: string | null; urgency_level: string | null; risk_score: number | null } }) {
+  return (
+    <>
+      {item.failure_category && (
+        <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium font-arabic text-white/40 bg-white/5 border border-white/10">
+          {adminT.failKit.category[item.failure_category] ?? item.failure_category}
+        </span>
+      )}
+      {item.severity && (
+        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium font-arabic border ${FAIL_KIT_SEVERITY_STYLES[item.severity] ?? 'text-white/40 bg-white/5 border-white/10'}`}>
+          {adminT.failKit.severity[item.severity] ?? item.severity}
+        </span>
+      )}
+      {item.urgency_level && (
+        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium font-arabic border ${FAIL_KIT_URGENCY_STYLES[item.urgency_level] ?? 'text-white/40 bg-white/5 border-white/10'}`}>
+          {adminT.failKit.urgency[item.urgency_level] ?? item.urgency_level}
+        </span>
+      )}
+      {item.risk_score != null && (
+        <span className="text-[10px] text-white/30 tabular-nums">{item.risk_score}/100</span>
+      )}
+    </>
   );
 }
 
@@ -292,22 +336,33 @@ interface HighRiskLeadItem {
   priority: Priority;
 }
 
-// Placeholder type — Fail Kit has no backing table yet (structural section only)
-interface FailKitApprovalItem {
-  id: string;
-  priority: Priority;
+interface FailKitItem {
+  id:               string;
+  request_number:   string | null;
+  full_name:        string | null;
+  email:            string | null;
+  failure_category: string | null;
+  severity:         string | null;
+  urgency_level:    string | null;
+  risk_score:       number | null;
+  status:           string;
+  created_at:       string;
+  priority:         Priority;
 }
 
 interface ActionData {
-  bookings:          BookingItem[];
-  reportsReview:     ReportReviewItem[];
-  reportsApproval:   ReportApprovalItem[];
-  reportsScheduled:  ReportScheduledItem[];
-  followUpsToday:    FollowUpItem[];
-  expiringPromos:    PromoItem[];
-  awaitingSessions:  SessionItem[];
-  highRiskLeads:     HighRiskLeadItem[];
-  failKitApprovals:  FailKitApprovalItem[];
+  bookings:             BookingItem[];
+  reportsReview:        ReportReviewItem[];
+  reportsApproval:      ReportApprovalItem[];
+  reportsScheduled:     ReportScheduledItem[];
+  followUpsToday:       FollowUpItem[];
+  expiringPromos:       PromoItem[];
+  awaitingSessions:     SessionItem[];
+  highRiskLeads:        HighRiskLeadItem[];
+  failKitAwaitingReview:   FailKitItem[];
+  failKitAwaitingDelivery: FailKitItem[];
+  failKitCritical:         FailKitItem[];
+  failKitBlackUrgency:     FailKitItem[];
 }
 
 // ── Unified query ─────────────────────────────────────────────────────────────
@@ -330,6 +385,10 @@ function useActionItems() {
         promosRes,
         sessionsRes,
         highRiskLeadsRes,
+        failKitAwaitingReviewRes,
+        failKitAwaitingDeliveryRes,
+        failKitCriticalRes,
+        failKitBlackUrgencyRes,
       ] = await Promise.all([
         // A) Pending booking requests
         (supabase as any)
@@ -392,6 +451,36 @@ function useActionItems() {
           .in('risk_level', ['COLLAPSE PROXIMITY', 'INSIDE THE VALLEY'])
           .order('created_at', { ascending: false })
           .limit(8),
+
+        // I) Fail Kits awaiting review
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, request_number, full_name, email, failure_category, severity, urgency_level, risk_score, status, created_at')
+          .in('status', ['requested', 'under_review'])
+          .order('created_at', { ascending: true }),
+
+        // J) Fail Kits awaiting delivery
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, request_number, full_name, email, failure_category, severity, urgency_level, risk_score, status, created_at')
+          .in('status', ['approved', 'scheduled'])
+          .order('created_at', { ascending: true }),
+
+        // K) Critical-severity Fail Kits (still open)
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, request_number, full_name, email, failure_category, severity, urgency_level, risk_score, status, created_at')
+          .eq('severity', 'Critical')
+          .not('status', 'in', '(closed,delivered)')
+          .order('created_at', { ascending: false }),
+
+        // L) Black-urgency Fail Kit cases (still open)
+        (supabase as any)
+          .from('fail_kit_requests')
+          .select('id, request_number, full_name, email, failure_category, severity, urgency_level, risk_score, status, created_at')
+          .eq('urgency_level', 'Black')
+          .not('status', 'in', '(closed,delivered)')
+          .order('created_at', { ascending: false }),
       ]);
 
       // A) Bookings — critical if > 48 h old
@@ -461,8 +550,29 @@ function useActionItems() {
         priority: r.risk_level === 'COLLAPSE PROXIMITY' ? 'critical' : 'high',
       }));
 
-      // I) Fail Kit approvals — placeholder section, no backing table yet
-      const failKitApprovals: FailKitApprovalItem[] = [];
+      // I) Fail Kits awaiting review — critical if Black/Red urgency, otherwise high
+      const failKitAwaitingReview: FailKitItem[] = ((failKitAwaitingReviewRes.data ?? []) as any[]).map((r) => ({
+        ...r,
+        priority: ['Black', 'Red'].includes(r.urgency_level ?? '') ? 'critical' : 'high',
+      }));
+
+      // J) Fail Kits awaiting delivery — high always
+      const failKitAwaitingDelivery: FailKitItem[] = ((failKitAwaitingDeliveryRes.data ?? []) as any[]).map((r) => ({
+        ...r,
+        priority: 'high' as Priority,
+      }));
+
+      // K) Critical-severity Fail Kits — critical always
+      const failKitCritical: FailKitItem[] = ((failKitCriticalRes.data ?? []) as any[]).map((r) => ({
+        ...r,
+        priority: 'critical' as Priority,
+      }));
+
+      // L) Black-urgency Fail Kit cases — critical always
+      const failKitBlackUrgency: FailKitItem[] = ((failKitBlackUrgencyRes.data ?? []) as any[]).map((r) => ({
+        ...r,
+        priority: 'critical' as Priority,
+      }));
 
       return {
         bookings,
@@ -473,7 +583,10 @@ function useActionItems() {
         expiringPromos,
         awaitingSessions,
         highRiskLeads,
-        failKitApprovals,
+        failKitAwaitingReview,
+        failKitAwaitingDelivery,
+        failKitCritical,
+        failKitBlackUrgency,
       };
     },
     staleTime: 60_000,
@@ -593,7 +706,10 @@ export default function AdminActionCenter() {
     expiringPromos:   data?.expiringPromos.length     ?? 0,
     awaitingSessions: data?.awaitingSessions.length   ?? 0,
     highRiskLeads:    data?.highRiskLeads.length      ?? 0,
-    failKitApprovals: data?.failKitApprovals.length   ?? 0,
+    failKitAwaitingReview:   data?.failKitAwaitingReview.length   ?? 0,
+    failKitAwaitingDelivery: data?.failKitAwaitingDelivery.length ?? 0,
+    failKitCritical:         data?.failKitCritical.length         ?? 0,
+    failKitBlackUrgency:     data?.failKitBlackUrgency.length     ?? 0,
   };
 
   const totalActions = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -642,7 +758,7 @@ export default function AdminActionCenter() {
         </div>
         <div className="flex items-start gap-2 flex-wrap">
           {isLoading ? (
-            [...Array(9)].map((_, i) => (
+            [...Array(12)].map((_, i) => (
               <div key={i} className="w-[90px] h-[62px] bg-white/4 rounded-xl animate-pulse" />
             ))
           ) : (
@@ -655,7 +771,10 @@ export default function AdminActionCenter() {
               <OverviewChip label="أكواد منتهية قريباً"    count={counts.expiringPromos}   accent="text-orange-400" />
               <OverviewChip label="جلسات بانتظار التأكيد"  count={counts.awaitingSessions} accent="text-sky-300" />
               <OverviewChip label="مؤسسون عالي المخاطر"    count={counts.highRiskLeads}    accent="text-crimson" />
-              <OverviewChip label="حقائب فشل للموافقة"     count={counts.failKitApprovals} accent="text-white/40" />
+              <OverviewChip label="حقائب فشل بانتظار المراجعة" count={counts.failKitAwaitingReview}   accent="text-amber-400" />
+              <OverviewChip label="حقائب فشل بانتظار التسليم"  count={counts.failKitAwaitingDelivery} accent="text-recovery" />
+              <OverviewChip label="حقائب فشل حرجة"            count={counts.failKitCritical}         accent="text-crimson" />
+              <OverviewChip label="حالات خطورة سوداء"         count={counts.failKitBlackUrgency}     accent="text-white/70" />
             </>
           )}
         </div>
@@ -915,21 +1034,97 @@ export default function AdminActionCenter() {
             )}
           />
 
-          {/* I) Fail Kits Awaiting Approval — structural placeholder, no data source yet */}
-          <div className="bg-[#0f141c] border border-white/5 rounded-xl mb-4 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4">
-              <div className="flex items-center gap-3">
-                <Package className="size-4 shrink-0 text-white/20" />
-                <h2 className="text-[12px] font-medium text-white/70 font-arabic">حقائب فشل بانتظار الموافقة</h2>
-                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded text-[9px] font-semibold border font-arabic bg-white/5 text-white/25 border-white/6">
-                  0
-                </span>
-              </div>
-            </div>
-            <div className="px-5 pb-5">
-              <p className="text-[11px] text-white/25 font-arabic text-center py-2">{adminT.failKit.notice}</p>
-            </div>
-          </div>
+          {/* I) Fail Kits awaiting review */}
+          <ActionSection
+            title="حقائب فشل بانتظار المراجعة"
+            icon={Search}
+            items={data?.failKitAwaitingReview ?? []}
+            renderItem={(item) => (
+              <ActionItemCard
+                key={item.id}
+                priority={item.priority}
+                actionLabel="فتح الطلب"
+                actionTo="/admin/fail-kit"
+              >
+                <p className="text-[13px] text-white/85 font-arabic leading-snug">
+                  {item.full_name ?? '—'} {item.request_number ? `· ${item.request_number}` : ''}
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <FailKitMetaBadges item={item} />
+                </div>
+                <p className="text-[10px] text-white/25 mt-1">{relAge(item.created_at)}</p>
+              </ActionItemCard>
+            )}
+          />
+
+          {/* J) Fail Kits awaiting delivery */}
+          <ActionSection
+            title="حقائب فشل بانتظار التسليم"
+            icon={PackageCheck}
+            items={data?.failKitAwaitingDelivery ?? []}
+            renderItem={(item) => (
+              <ActionItemCard
+                key={item.id}
+                priority={item.priority}
+                actionLabel="فتح الطلب"
+                actionTo="/admin/fail-kit"
+              >
+                <p className="text-[13px] text-white/85 font-arabic leading-snug">
+                  {item.full_name ?? '—'} {item.request_number ? `· ${item.request_number}` : ''}
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <FailKitMetaBadges item={item} />
+                </div>
+                <p className="text-[10px] text-white/25 mt-1">{relAge(item.created_at)}</p>
+              </ActionItemCard>
+            )}
+          />
+
+          {/* K) Critical Fail Kits */}
+          <ActionSection
+            title="حقائب فشل حرجة"
+            icon={Flame}
+            items={data?.failKitCritical ?? []}
+            renderItem={(item) => (
+              <ActionItemCard
+                key={item.id}
+                priority={item.priority}
+                actionLabel="فتح الطلب"
+                actionTo="/admin/fail-kit"
+              >
+                <p className="text-[13px] text-white/85 font-arabic leading-snug">
+                  {item.full_name ?? '—'} {item.request_number ? `· ${item.request_number}` : ''}
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <FailKitMetaBadges item={item} />
+                </div>
+                <p className="text-[10px] text-white/25 mt-1">{relAge(item.created_at)}</p>
+              </ActionItemCard>
+            )}
+          />
+
+          {/* L) Black Urgency Cases */}
+          <ActionSection
+            title="حالات خطورة سوداء"
+            icon={Ban}
+            items={data?.failKitBlackUrgency ?? []}
+            renderItem={(item) => (
+              <ActionItemCard
+                key={item.id}
+                priority={item.priority}
+                actionLabel="فتح الطلب"
+                actionTo="/admin/fail-kit"
+              >
+                <p className="text-[13px] text-white/85 font-arabic leading-snug">
+                  {item.full_name ?? '—'} {item.request_number ? `· ${item.request_number}` : ''}
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <FailKitMetaBadges item={item} />
+                </div>
+                <p className="text-[10px] text-white/25 mt-1">{relAge(item.created_at)}</p>
+              </ActionItemCard>
+            )}
+          />
 
         </motion.div>
       )}
