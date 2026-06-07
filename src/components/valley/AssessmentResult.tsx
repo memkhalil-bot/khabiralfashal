@@ -5,6 +5,8 @@ import { ArrowRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FirstAidKit } from '@/components/assessment/FirstAidKit';
 import { DiagnosticReport } from '@/components/report/DiagnosticReport';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { failKitT } from '@/i18n/failKitTranslations';
 
 /**
  * AssessmentResult — cinematic diagnosis. One revelation per section.
@@ -68,8 +70,10 @@ export type ReportRequestContext = {
   fullName: string | null;
   email: string | null;
   company: string | null;
+  country: string | null;
   riskScore: number | null;
   riskLevel: string | null;
+  primaryFailureMode?: string | null;
 };
 
 interface Props {
@@ -105,6 +109,48 @@ const reveal = {
   viewport: { once: true, margin: '-56px' },
   transition: { duration: 0.95, ease: [0.16, 1, 0.3, 1] },
 } as const;
+
+/**
+ * FailKitCTA — bridges the Valley diagnosis to the Fail Kit request flow.
+ * Shown only once the assessment has produced a real risk score, carrying
+ * the full diagnostic context forward via router state.
+ */
+function FailKitCTA({ reportContext, isRTL }: { reportContext: ReportRequestContext; isRTL: boolean }) {
+  const { lang, getPath } = useLanguage();
+  const fk = failKitT[lang].cta;
+
+  return (
+    <motion.section {...reveal} className="border-t border-white/[0.07] pt-16 pb-20">
+      <div className="max-w-xl p-7 md:p-9 border border-ember/20 bg-ember/[0.04]">
+        <p className={cn(
+          'text-[10px] uppercase text-ember mb-5',
+          isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+        )}>
+          {fk.price}
+        </p>
+        <p className={cn(
+          'text-base md:text-lg text-white/70 leading-relaxed mb-8 max-w-md',
+          isRTL ? 'font-arabic leading-[2] text-right' : 'font-light'
+        )}>
+          {fk.body}
+        </p>
+        <Link
+          to={getPath('/fail-kit-request')}
+          state={reportContext}
+          className={cn(
+            'group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500',
+            isRTL && 'flex-row-reverse'
+          )}
+        >
+          <span className={cn('text-sm uppercase font-semibold', isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]')}>
+            {fk.heading}
+          </span>
+          <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
+        </Link>
+      </div>
+    </motion.section>
+  );
+}
 
 export function AssessmentResult({
   verdict,
@@ -462,6 +508,11 @@ export function AssessmentResult({
         isRTL={isRTL}
         accentHsl={accentHsl}
       />
+
+      {/* ── FAIL KIT CTA ────────────────────────────────────────── */}
+      {reportContext?.assessmentId && reportContext?.riskScore != null && (
+        <FailKitCTA reportContext={reportContext} isRTL={isRTL} />
+      )}
 
       {/* ── RESTART ─────────────────────────────────────────────── */}
       <div className="flex justify-center pt-20 pb-6">
