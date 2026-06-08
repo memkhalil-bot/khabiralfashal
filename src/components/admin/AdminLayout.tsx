@@ -27,6 +27,7 @@ import {
   Target,
   ScrollText,
   Package,
+  Workflow,
   Sun,
   Moon,
   Languages,
@@ -102,6 +103,7 @@ function buildNavGroups(t: typeof adminTAr, language: AdminLanguage): NavGroup[]
       label: s.sales,
       items: [
         { to: '/admin/revenue',       label: t.nav.revenue,       icon: DollarSign },
+        { to: '/admin/workflow-analytics', label: t.nav.workflowAnalytics, icon: Workflow },
         { to: '/admin/promo-codes',   label: t.nav.promoCodes,    icon: Tag        },
         { to: '/admin/retargeting',   label: t.nav.retargeting,   icon: Target     },
       ],

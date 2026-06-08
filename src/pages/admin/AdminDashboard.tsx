@@ -25,10 +25,15 @@ import {
   PackageCheck,
   Gauge,
   DollarSign,
+  TrendingDown,
+  Minus,
+  Workflow,
+  ArrowDownRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { KpiCard, KpiGrid, type KpiDef } from '@/components/admin/KpiCard';
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -242,6 +247,57 @@ function useStats() {
   });
 }
 
+// Supplementary query for the homepage Revenue Snapshot widget — the only new
+// query in this sprint. `useStats` already carries the total revenue figure;
+// "Top Service" and "Revenue Growth" need a per-service, per-month breakdown
+// that no existing query exposes, so we fetch the minimal columns required
+// (mirrors the service mapping established in AdminRevenue.tsx).
+const SNAPSHOT_SERVICE_KEYS = ['fail_kit', 'founder_call', 'emergency_session', 'startup_autopsy'] as const;
+type SnapshotServiceKey = typeof SNAPSHOT_SERVICE_KEYS[number];
+
+function useRevenueSnapshotExtra() {
+  return useQuery({
+    queryKey: ['admin', 'revenue-snapshot-extra'],
+    queryFn: async () => {
+      const [bookingsRes, failKitsRes] = await Promise.all([
+        (supabase as any).from('booking_requests').select('session_type, payment_status, final_price, created_at'),
+        (supabase as any).from('fail_kit_requests').select('payment_status, final_price, created_at'),
+      ]);
+      if (bookingsRes.error) throw bookingsRes.error;
+      if (failKitsRes.error) throw failKitsRes.error;
+
+      const bookings = (bookingsRes.data ?? []) as { session_type: string | null; payment_status: string | null; final_price: number | null; created_at: string }[];
+      const failKits = (failKitsRes.data ?? []) as { payment_status: string | null; final_price: number | null; created_at: string }[];
+
+      const revenueByService = SNAPSHOT_SERVICE_KEYS.map((key) => {
+        const records = key === 'fail_kit' ? failKits : bookings.filter((b) => b.session_type === key);
+        const revenue = records.filter((r) => r.payment_status === 'paid').reduce((acc, r) => acc + (r.final_price ?? 0), 0);
+        return { key, revenue };
+      });
+      const topService = revenueByService.filter((s) => s.revenue > 0).sort((a, b) => b.revenue - a.revenue)[0] ?? null;
+
+      const now             = new Date();
+      const thisMonthStart  = startOfMonth(now);
+      const lastMonthStart  = startOfMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      const nextMonthStart  = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const paid            = [...bookings, ...failKits].filter((r) => r.payment_status === 'paid' && r.created_at);
+
+      const sumInRange = (from: Date, to: Date) => paid
+        .filter((r) => { const t = new Date(r.created_at); return t >= from && t < to; })
+        .reduce((acc, r) => acc + (r.final_price ?? 0), 0);
+
+      const current  = sumInRange(thisMonthStart, nextMonthStart);
+      const previous = sumInRange(lastMonthStart, thisMonthStart);
+
+      return {
+        topService:  topService as { key: SnapshotServiceKey; revenue: number } | null,
+        growthPct:   previous > 0 ? Math.round(((current - previous) / previous) * 100) : null,
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
@@ -315,106 +371,6 @@ function WorkflowBadge({ status }: { status: string | null }) {
     <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
       {label}
     </span>
-  );
-}
-
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-// Structure: Icon → Value → Label → Trend (a relative-magnitude bar derived
-// from the real values in the group — no fabricated deltas, since the
-// underlying stats query carries no historical comparison data).
-
-interface KpiDef {
-  label:        string;
-  value:        number | null | undefined;
-  icon:         React.ElementType;
-  accent:       string;
-  isCurrency?:  boolean;
-  isPercent?:   boolean;
-  placeholder?: boolean;
-}
-
-function KpiCard({
-  kpi, index, loading, maxValue, placeholderHint,
-}: {
-  kpi:             KpiDef;
-  index:           number;
-  loading:         boolean;
-  maxValue:        number;
-  placeholderHint: string;
-}) {
-  const Icon = kpi.icon;
-  const trendPct = !kpi.placeholder && maxValue > 0
-    ? Math.max(4, Math.round(((kpi.value ?? 0) / maxValue) * 100))
-    : 0;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10 flex flex-col gap-4"
-    >
-      <span className={cn('inline-flex items-center justify-center size-9 rounded-xl bg-white/5 shrink-0', kpi.accent)}>
-        <Icon className="size-4.5" />
-      </span>
-
-      <div className="min-w-0">
-        <div className="text-2xl font-serif-display tabular-nums text-admin-text leading-tight">
-          {loading ? (
-            <span className="inline-block w-12 h-6 bg-white/6 rounded animate-pulse" />
-          ) : kpi.placeholder ? (
-            '—'
-          ) : kpi.isCurrency ? (
-            `$${(kpi.value ?? 0).toLocaleString()}`
-          ) : kpi.isPercent ? (
-            `${kpi.value ?? 0}%`
-          ) : (
-            kpi.value ?? 0
-          )}
-        </div>
-        <p className="text-[11px] text-admin-text-muted font-arabic leading-snug mt-1.5 truncate">{kpi.label}</p>
-
-        {kpi.placeholder && !loading ? (
-          <p className="text-[9px] text-admin-text-muted/60 font-arabic mt-2">{placeholderHint}</p>
-        ) : (
-          <div className="h-1 mt-3 bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: loading ? 0 : `${trendPct}%` }}
-              transition={{ duration: 0.6, delay: 0.1 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-              className={cn('h-full rounded-full', kpi.accent.replace('text-', 'bg-'))}
-            />
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-function KpiGrid({
-  title, titleIcon: TitleIcon, kpis, loading, placeholderHint, columns,
-}: {
-  title:            string;
-  titleIcon?:       React.ElementType;
-  kpis:             KpiDef[];
-  loading:          boolean;
-  placeholderHint:  string;
-  columns:          string;
-}) {
-  const maxValue = Math.max(...kpis.filter((k) => !k.placeholder).map((k) => k.value ?? 0), 1);
-
-  return (
-    <div className="mb-6">
-      <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 mb-3 font-arabic flex items-center gap-2">
-        {TitleIcon && <TitleIcon className="size-3 text-admin-text-muted/50" />}
-        {title}
-      </p>
-      <div className={cn('grid gap-3', columns)}>
-        {kpis.map((k, i) => (
-          <KpiCard key={k.label} kpi={k} index={i} loading={loading} maxValue={maxValue} placeholderHint={placeholderHint} />
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -560,11 +516,184 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
   );
 }
 
+// ── Revenue Snapshot ──────────────────────────────────────────────────────────
+
+function RevenueSnapshotWidget({
+  data, extra, loading,
+}: {
+  data:    ReturnType<typeof useStats>['data'];
+  extra:   ReturnType<typeof useRevenueSnapshotExtra>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const rs = adminT.dashboard.revenueSnapshot;
+  const topService = extra?.topService ?? null;
+  const growthPct  = extra?.growthPct ?? null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <DollarSign className="size-3 text-admin-text-muted/50" />
+          {rs.title}
+        </p>
+        <Link to="/admin/revenue" className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0">
+          {rs.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{rs.totalRevenue}</p>
+          {loading ? (
+            <span className="inline-block w-14 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">${(data?.revenueTotal ?? 0).toLocaleString()}</p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{rs.topService}</p>
+          {loading ? (
+            <span className="inline-block w-16 h-5 bg-white/6 rounded animate-pulse" />
+          ) : topService ? (
+            <p className="text-sm font-arabic text-admin-text truncate">{adminT.revenue.serviceNames[topService.key] ?? topService.key}</p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">{rs.noBaseline}</span>
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{rs.revenueGrowth}</p>
+          {loading ? (
+            <span className="inline-block w-12 h-5 bg-white/6 rounded animate-pulse" />
+          ) : growthPct !== null ? (
+            <p className={cn('flex items-center gap-1 text-sm font-serif-display tabular-nums', growthPct >= 0 ? 'text-recovery' : 'text-crimson')}>
+              {growthPct >= 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
+              {growthPct >= 0 ? '+' : ''}{growthPct}%
+            </p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">{rs.noBaseline}</span>
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Workflow Snapshot ─────────────────────────────────────────────────────────
+
+function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const { t: adminT } = useAdminLanguage();
+  const ws = adminT.dashboard.workflowSnapshot;
+
+  const stages = [
+    { label: adminT.dashboard.funnel.visitors,        value: data?.valleyTotal },
+    { label: adminT.dashboard.funnel.completed,       value: data?.valleyCompleted },
+    { label: adminT.dashboard.funnel.failKitRequests, value: data?.failKitTotal },
+    { label: adminT.dashboard.funnel.sessionRequests, value: data?.totalBookings },
+  ];
+
+  const dropoffs = [
+    { from: adminT.dashboard.funnel.visitors,        to: adminT.dashboard.funnel.started,         fromVal: data?.valleyTotal,       toVal: data?.startedAssessment },
+    { from: adminT.dashboard.funnel.started,         to: adminT.dashboard.funnel.completed,       fromVal: data?.startedAssessment, toVal: data?.valleyCompleted   },
+    { from: adminT.dashboard.funnel.completed,       to: adminT.dashboard.funnel.failKitRequests, fromVal: data?.valleyCompleted,   toVal: data?.failKitTotal      },
+    { from: adminT.dashboard.funnel.failKitRequests, to: adminT.dashboard.funnel.sessionRequests, fromVal: data?.failKitTotal,      toVal: data?.totalBookings     },
+  ]
+    .filter((d) => (d.fromVal ?? 0) > 0)
+    .map((d) => ({ ...d, pct: Math.max(0, Math.round((((d.fromVal ?? 0) - (d.toVal ?? 0)) / (d.fromVal ?? 1)) * 100)) }));
+
+  const biggest = dropoffs.length ? dropoffs.reduce((a, b) => (b.pct > a.pct ? b : a)) : null;
+
+  const base       = data?.valleyTotal ?? 0;
+  const completed  = data?.valleyCompleted ?? 0;
+  const conversion = base > 0 ? Math.round((completed / base) * 100) : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <Workflow className="size-3 text-admin-text-muted/50" />
+          {ws.title}
+        </p>
+        <Link to="/admin/workflow-analytics" className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0">
+          {ws.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ws.funnelSummary}</p>
+          {loading ? (
+            <span className="inline-block w-20 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="flex items-center gap-1 text-sm font-serif-display tabular-nums text-admin-text">
+              {stages.map((s, i) => (
+                <span key={s.label} className="flex items-center gap-1">
+                  {i > 0 && <span className="text-admin-text-muted/30 text-xs">→</span>}
+                  {s.value ?? 0}
+                </span>
+              ))}
+            </p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ws.biggestDropoff}</p>
+          {loading ? (
+            <span className="inline-block w-20 h-5 bg-white/6 rounded animate-pulse" />
+          ) : biggest ? (
+            <p className="flex items-center gap-1.5 text-[11px] font-arabic text-admin-text leading-snug">
+              <ArrowDownRight className="size-3 text-crimson shrink-0" />
+              <span className="truncate">{biggest.from} ↓ {biggest.to}</span>
+              <span className="text-crimson tabular-nums shrink-0">{biggest.pct}%</span>
+            </p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">—</span>
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ws.conversionRate}</p>
+          {loading ? (
+            <span className="inline-block w-12 h-5 bg-white/6 rounded animate-pulse" />
+          ) : conversion !== null ? (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">{conversion}%</p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">—</span>
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useStats();
+  const { data: revenueExtra, isLoading: revenueExtraLoading } = useRevenueSnapshotExtra();
 
   const stats = [
     {
@@ -680,6 +809,12 @@ export default function AdminDashboard() {
 
       {/* Valley Funnel */}
       <FunnelSection data={data} loading={isLoading} />
+
+      {/* Revenue & Workflow snapshots */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-8">
+        <RevenueSnapshotWidget data={data} extra={revenueExtra} loading={isLoading || revenueExtraLoading} />
+        <WorkflowSnapshotWidget data={data} loading={isLoading} />
+      </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">
