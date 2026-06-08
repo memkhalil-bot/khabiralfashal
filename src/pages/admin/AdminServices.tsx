@@ -327,7 +327,7 @@ function ServiceModal({
               >
                 <div
                   className={cn(
-                    'absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
+                    'absolute top-0.5 w-4 h-4 bg-[#fff] rounded-full shadow transition-transform',
                     form.accepts_promo_codes ? 'translate-x-1' : 'translate-x-5'
                   )}
                 />
@@ -351,7 +351,7 @@ function ServiceModal({
               >
                 <div
                   className={cn(
-                    'absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
+                    'absolute top-0.5 w-4 h-4 bg-[#fff] rounded-full shadow transition-transform',
                     form.active ? 'translate-x-1' : 'translate-x-5'
                   )}
                 />

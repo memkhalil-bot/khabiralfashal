@@ -158,11 +158,11 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={submitting || loading}
-            className="w-full py-3.5 bg-ember hover:bg-ember-dim text-white text-[11px] tracking-[0.3em] uppercase font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-ember hover:bg-ember-dim text-[#fff] text-[11px] tracking-[0.3em] uppercase font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting || loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="size-4 border-2 border-[#fff] border-t-transparent rounded-full animate-spin" />
                 Signing In…
               </span>
             ) : (

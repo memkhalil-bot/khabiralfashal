@@ -12,6 +12,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
+import { AdminThemeProvider } from "@/hooks/useAdminTheme";
+import { AdminLanguageProvider } from "@/hooks/useAdminLanguage";
 import { ProtectedAdminRoute } from "@/components/admin/ProtectedAdminRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
@@ -129,6 +131,8 @@ function RootRouter() {
 
   if (isAdmin) {
     return (
+      <AdminThemeProvider>
+        <AdminLanguageProvider>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -177,6 +181,8 @@ function RootRouter() {
           <Route path="/admin/fail-kit"          element={<ProtectedAdminRoute><AdminFailKit /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
+        </AdminLanguageProvider>
+      </AdminThemeProvider>
     );
   }
 

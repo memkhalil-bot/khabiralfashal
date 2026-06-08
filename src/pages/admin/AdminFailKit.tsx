@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { WORKFLOW_STATUS_LABELS, WORKFLOW_STATUS_STYLES } from '@/lib/workflowEngine';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -70,6 +70,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function CategoryBadge({ category }: { category: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!category) return <span className="text-white/20 text-xs">—</span>;
   const label = adminT.failKit.category[category] ?? category;
   return <span className={badgeCls('bg-white/5 text-white/50 border-white/10')}>{label}</span>;
@@ -83,6 +84,7 @@ const SEVERITY_STYLE: Record<string, string> = {
 };
 
 function SeverityBadge({ severity }: { severity: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!severity) return <span className="text-white/20 text-xs">—</span>;
   const label = adminT.failKit.severity[severity] ?? severity;
   return <span className={badgeCls(SEVERITY_STYLE[severity] ?? 'bg-white/5 text-white/40 border-white/10')}>{label}</span>;
@@ -96,6 +98,7 @@ const URGENCY_STYLE: Record<string, string> = {
 };
 
 function UrgencyBadge({ urgency }: { urgency: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!urgency) return <span className="text-white/20 text-xs">—</span>;
   const label = adminT.failKit.urgency[urgency] ?? urgency;
   return <span className={badgeCls(URGENCY_STYLE[urgency] ?? 'bg-white/5 text-white/40 border-white/10')}>{label}</span>;
@@ -165,6 +168,7 @@ function DetailPanel({
   teamMembers: string[];
   onClose:     () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const [notes, setNotes]             = useState(request.admin_notes ?? '');
   const [savingNotes, setSavingNotes] = useState(false);
   const update = useUpdateFailKit();
@@ -319,6 +323,7 @@ function DetailPanel({
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function AdminFailKit() {
+  const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error }  = useFailKitRequests();
   const { data: teamMembers = [] }  = useTeamMembers();
 

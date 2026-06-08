@@ -25,7 +25,7 @@ import {
   Flame,
   Ban,
 } from 'lucide-react';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 
 // ── Priority system ───────────────────────────────────────────────────────────
 
@@ -100,6 +100,7 @@ const FAIL_KIT_URGENCY_STYLES: Record<string, string> = {
 };
 
 function FailKitMetaBadges({ item }: { item: { failure_category: string | null; severity: string | null; urgency_level: string | null; risk_score: number | null } }) {
+  const { t: adminT } = useAdminLanguage();
   return (
     <>
       {item.failure_category && (
@@ -695,6 +696,7 @@ function SectionSkeleton() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminActionCenter() {
+  const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useActionItems();
 
   const counts = {
@@ -716,8 +718,8 @@ export default function AdminActionCenter() {
 
   return (
     <AdminLayout
-      title="مركز الإجراءات"
-      subtitle="كل ما يتطلب اتخاذ إجراء فوري"
+      title={adminT.actionCenter.title}
+      subtitle={adminT.actionCenter.subtitle}
     >
       {/* Error */}
       {error && (

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { format } from 'date-fns';
 import {
   TrendingUp,
@@ -61,6 +61,7 @@ function useValleyLeads() {
 }
 
 function StatusBadge({ lead }: { lead: ValleyLead }) {
+  const { t: adminT } = useAdminLanguage();
   if (lead.completed) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border bg-recovery/8 text-recovery border-recovery/20 font-arabic">
@@ -78,6 +79,7 @@ function StatusBadge({ lead }: { lead: ValleyLead }) {
 }
 
 function RiskBadge({ level }: { level: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!level) return <span className="text-white/25 text-[10px]">—</span>;
   const colors: Record<string, string> = {
     STABLE:               'text-recovery',
@@ -110,6 +112,7 @@ function ProgressBar({ current }: { current: number | null }) {
 }
 
 export default function AdminValleyLeads() {
+  const { t: adminT } = useAdminLanguage();
   const { data: leads = [], isLoading } = useValleyLeads();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('ALL');

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   X,
@@ -68,6 +68,7 @@ type StatusFilter = typeof STATUS_FILTERS[number];
 // ── Badges ────────────────────────────────────────────────────────────────────
 
 function TypeBadge({ type }: { type: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!type) return <span className="text-white/25 text-xs">—</span>;
   const styles: Record<string, string> = {
     initial:   'bg-sky-950/30 text-sky-400 border-sky-800/30',
@@ -84,6 +85,7 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 function StatusBadge({ status }: { status: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!status) return <span className="text-white/25 text-xs">—</span>;
   const styles: Record<string, string> = {
     pending:   'bg-amber-950/30 text-amber-400 border-amber-800/30',
@@ -101,6 +103,7 @@ function StatusBadge({ status }: { status: string | null }) {
 }
 
 function SourceBadge({ sourceBookingId }: { sourceBookingId: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (sourceBookingId) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border bg-ember/8 text-ember border-ember/20 font-arabic">
@@ -147,6 +150,7 @@ function useSessions(statusFilter: StatusFilter) {
 // ── Status actions dropdown ────────────────────────────────────────────────────
 
 function StatusActions({ session }: { session: ExtendedSession }) {
+  const { t: adminT } = useAdminLanguage();
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -208,6 +212,7 @@ function StatusActions({ session }: { session: ExtendedSession }) {
 // ── Session row (shared between table and calendar card) ──────────────────────
 
 function SessionTableRow({ row }: { row: ExtendedSession }) {
+  const { t: adminT } = useAdminLanguage();
   return (
     <tr className="hover:bg-white/2 transition-colors">
       <td className="px-4 py-3">
@@ -270,6 +275,7 @@ function SessionTableRow({ row }: { row: ExtendedSession }) {
 // ── Calendar card ─────────────────────────────────────────────────────────────
 
 function CalendarCard({ session }: { session: ExtendedSession }) {
+  const { t: adminT } = useAdminLanguage();
   const [expanded, setExpanded] = useState(false);
   const wfStatus = session.workflow_status ?? 'scheduled';
 
@@ -427,6 +433,7 @@ function CalendarView({ sessions }: { sessions: ExtendedSession[] }) {
 // ── New Session Form Panel ────────────────────────────────────────────────────
 
 function NewSessionPanel({ onClose }: { onClose: () => void }) {
+  const { t: adminT } = useAdminLanguage();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
@@ -530,7 +537,7 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
             <button
               onClick={() => mutation.mutate()}
               disabled={mutation.isPending || !founderName || !founderEmail}
-              className="flex-1 py-2.5 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-arabic"
+              className="flex-1 py-2.5 bg-ember text-[#fff] text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-arabic"
             >
               {mutation.isPending ? 'جارٍ الحفظ...' : adminT.sessions.form.save}
             </button>
@@ -552,6 +559,7 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
 type ViewMode = 'table' | 'calendar';
 
 export default function AdminSessions() {
+  const { t: adminT } = useAdminLanguage();
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [viewMode, setViewMode]         = useState<ViewMode>('table');
@@ -615,7 +623,7 @@ export default function AdminSessions() {
 
         <button
           onClick={() => setShowNewPanel(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-[#fff] text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
         >
           <Plus className="size-3.5" /> {adminT.sessions.new}
         </button>

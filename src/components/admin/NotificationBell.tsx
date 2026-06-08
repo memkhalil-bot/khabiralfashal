@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Bell, X, FileText, CalendarClock, AlertTriangle, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -18,40 +18,42 @@ interface Notification {
 
 // ── Mock data (replace with live query when table is ready) ───────────────────
 
-const MOCK: Notification[] = [
-  {
-    id: '1',
-    type: 'newSubmission',
-    title: adminT.notifications.types.newSubmission,
-    body: 'أكمل أحمد خالد تقييم وادي الفشل — درجة المخاطر ٧٨',
-    minutesAgo: 12,
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'sessionRequest',
-    title: adminT.notifications.types.sessionRequest,
-    body: 'سارة محمد — طلبت جلسة مكثفة',
-    minutesAgo: 95,
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'followUpDue',
-    title: adminT.notifications.types.followUpDue,
-    body: 'مراجعة التقرير النهائي — موعد الاستحقاق اليوم',
-    minutesAgo: 300,
-    read: true,
-  },
-  {
-    id: '4',
-    type: 'reportRequest',
-    title: adminT.notifications.types.reportRequest,
-    body: 'طلب تقرير تشريح جديد من: شركة نوفا تك',
-    minutesAgo: 720,
-    read: true,
-  },
-];
+function getMockNotifications(t: ReturnType<typeof useAdminLanguage>['t']): Notification[] {
+  return [
+    {
+      id: '1',
+      type: 'newSubmission',
+      title: t.notifications.types.newSubmission,
+      body: 'أكمل أحمد خالد تقييم وادي الفشل — درجة المخاطر ٧٨',
+      minutesAgo: 12,
+      read: false,
+    },
+    {
+      id: '2',
+      type: 'sessionRequest',
+      title: t.notifications.types.sessionRequest,
+      body: 'سارة محمد — طلبت جلسة مكثفة',
+      minutesAgo: 95,
+      read: false,
+    },
+    {
+      id: '3',
+      type: 'followUpDue',
+      title: t.notifications.types.followUpDue,
+      body: 'مراجعة التقرير النهائي — موعد الاستحقاق اليوم',
+      minutesAgo: 300,
+      read: true,
+    },
+    {
+      id: '4',
+      type: 'reportRequest',
+      title: t.notifications.types.reportRequest,
+      body: 'طلب تقرير تشريح جديد من: شركة نوفا تك',
+      minutesAgo: 720,
+      read: true,
+    },
+  ];
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -78,9 +80,15 @@ function timeLabel(minutes: number): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function NotificationBell() {
+  const { t: adminT } = useAdminLanguage();
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<Notification[]>(MOCK);
+  const mock = useMemo(() => getMockNotifications(adminT), [adminT]);
+  const [items, setItems] = useState<Notification[]>(mock);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setItems(mock);
+  }, [mock]);
 
   const unread = items.filter((n) => !n.read).length;
 

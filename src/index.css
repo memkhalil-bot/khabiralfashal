@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -11,6 +11,19 @@
   --font-serif-display: 'Instrument Serif', serif;
   --font-arabic: 'Cairo', sans-serif;
   --font-sans-ui: 'Inter', sans-serif;
+
+  /* Admin dashboard — theme-aware surface tokens (overridden per [data-admin-theme]) */
+  --color-admin-bg: #102131;
+  --color-admin-card: #173248;
+  --color-admin-card-hover: #1E3D56;
+  --color-admin-text: #FFFFFF;
+  --color-admin-text-muted: rgba(255, 255, 255, 0.55);
+  --color-admin-border: rgba(255, 255, 255, 0.07);
+  --color-admin-primary: #0D4261;
+  --color-admin-accent: #A29475;
+  --color-admin-success: #129B82;
+  --color-admin-warning: #E9C56B;
+  --color-admin-danger: #DD7877;
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
@@ -273,4 +286,109 @@ All colors MUST be HSL.
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+/* ============================================================================
+   Admin Dashboard — Theme System
+   "Focus Mode" (dark, default) and "Day Mode" (light), switchable via the
+   top-bar toggle and persisted to localStorage. Scoping every override to
+   [data-admin-theme] keeps the public site's palette/fonts untouched.
+
+   Mechanism: Tailwind v4 compiles utilities like `text-white/40`, `bg-ember`,
+   `font-arabic` to reference shared CSS custom properties (--color-white,
+   --color-ember, --font-arabic, ...) — including inside color-mix() for
+   opacity variants. Re-declaring those variables here cascades through every
+   utility/hover/group-hover instance with zero markup changes.
+   ============================================================================ */
+
+[data-admin-theme] {
+  /* "Consulting OS" accent rebrand — identical across both themes per spec,
+     re-points the existing ember/crimson/recovery tokens used across all
+     23 admin pages to the new Accent / Danger / Success palette. */
+  --color-ember: #A29475;
+  --color-ember-dim: #8d816a;
+  --color-crimson: #DD7877;
+  --color-crimson-dim: #c66867;
+  --color-recovery: #129B82;
+
+  --color-admin-primary: #0D4261;
+  --color-admin-accent: #A29475;
+  --color-admin-success: #129B82;
+  --color-admin-warning: #E9C56B;
+  --color-admin-danger: #DD7877;
+
+  /* IBM Plex family across Sidebar / Tables / Forms / Cards / Dashboard.
+     Arabic mode uses IBM Plex Sans Arabic; English mode swaps the same
+     `font-arabic` utility (used everywhere across the 18 admin pages) to
+     plain IBM Plex Sans via the [data-admin-lang="en"] override below —
+     so every existing className keeps working without per-file edits. */
+  --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+  --font-sans-ui: 'IBM Plex Sans', sans-serif;
+  --font-serif-display: 'IBM Plex Sans', sans-serif;
+}
+
+[data-admin-lang="en"] {
+  --font-arabic: 'IBM Plex Sans', sans-serif;
+}
+
+/* Smooth theme transition — scoped narrowly to avoid fighting existing
+   transition utilities (hover states, animations, etc). */
+[data-admin-theme] body,
+[data-admin-theme] [class*="bg-"],
+[data-admin-theme] [class*="text-"],
+[data-admin-theme] [class*="border-"] {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ── Theme A: Focus Mode (default, dark) ───────────────────────────────────── */
+[data-admin-theme="focus"] {
+  --color-admin-bg: #102131;
+  --color-admin-card: #173248;
+  --color-admin-card-hover: #1E3D56;
+  --color-admin-text: #FFFFFF;
+  --color-admin-text-muted: rgba(255, 255, 255, 0.55);
+  --color-admin-border: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Theme B: Day Mode (light) ──────────────────────────────────────────────── */
+[data-admin-theme="day"] {
+  --color-admin-bg: #F8FAFC;
+  --color-admin-card: #FFFFFF;
+  --color-admin-card-hover: #F1F5F9;
+  --color-admin-text: #1E293B;
+  --color-admin-text-muted: rgba(30, 41, 59, 0.6);
+  --color-admin-border: rgba(30, 41, 59, 0.1);
+
+  /* Flips every text-white/N, bg-white/N, border-white/N (and hover /
+     group-hover variants) compiled via color-mix(in oklab, var(--color-white)…)
+     from "white-on-dark" to "slate-on-light" globally — zero per-file edits.
+     A handful of "white text on solid accent button" instances were converted
+     to literal text-[#fff] beforehand so they stay legible in both themes. */
+  --color-white: #1E293B;
+}
+
+/* Day Mode — remap the ~15 literal dark-hex card/surface backgrounds used
+   across the 23 admin page files. Specificity [data-admin-theme="day"] (0,1,0)
+   + .bg-\[#…\] (0,1,0) = (0,2,0) beats Tailwind's (0,1,0) utility, so no
+   !important is required. */
+[data-admin-theme="day"] .bg-\[\#161b22\],
+[data-admin-theme="day"] .bg-\[\#161d27\],
+[data-admin-theme="day"] .bg-\[\#0d0d0d\],
+[data-admin-theme="day"] .bg-\[\#0f0f0f\],
+[data-admin-theme="day"] .bg-\[\#0f141c\],
+[data-admin-theme="day"] .bg-\[\#0a0d14\],
+[data-admin-theme="day"] .bg-\[\#0b0b0b\],
+[data-admin-theme="day"] .bg-\[\#080808\],
+[data-admin-theme="day"] .bg-\[\#1a2235\],
+[data-admin-theme="day"] .bg-\[\#111111\],
+[data-admin-theme="day"] .bg-\[\#0c1119\],
+[data-admin-theme="day"] .bg-\[\#090d14\] {
+  background-color: var(--color-admin-card);
+}
+
+[data-admin-theme="day"] .bg-\[\#1c2128\],
+[data-admin-theme="day"] .hover\:bg-\[\#1c2128\]:hover,
+[data-admin-theme="day"] .bg-\[\#0a0a0a\],
+[data-admin-theme="day"] .bg-\[\#0f1520\] {
+  background-color: var(--color-admin-card-hover);
 }

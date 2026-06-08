@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -252,6 +252,7 @@ const riskColors: Record<string, string> = {
 };
 
 function RiskBadge({ level }: { level: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!level) return <span className="text-white/30">—</span>;
   const label = adminT.risk[level] ?? level;
   return (
@@ -262,6 +263,7 @@ function RiskBadge({ level }: { level: string | null }) {
 }
 
 function TypeBadge({ type }: { type: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!type) return <span className="text-white/25 text-xs">—</span>;
   const styles: Record<string, string> = {
     initial:   'bg-sky-950/30 text-sky-400 border-sky-800/30',
@@ -279,6 +281,7 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 function PriorityBadge({ priority }: { priority: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!priority) return null;
   const styles: Record<string, string> = {
     urgent: 'bg-crimson/10 text-crimson border-crimson/25',
@@ -296,6 +299,7 @@ function PriorityBadge({ priority }: { priority: string | null }) {
 }
 
 function WorkflowBadge({ status }: { status: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!status) return null;
   const styles: Record<string, string> = {
     pending_review: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
@@ -314,7 +318,10 @@ function WorkflowBadge({ status }: { status: string | null }) {
   );
 }
 
-// ── KPI Row ───────────────────────────────────────────────────────────────────
+// ── KPI Card ──────────────────────────────────────────────────────────────────
+// Structure: Icon → Value → Label → Trend (a relative-magnitude bar derived
+// from the real values in the group — no fabricated deltas, since the
+// underlying stats query carries no historical comparison data).
 
 interface KpiDef {
   label:        string;
@@ -326,7 +333,95 @@ interface KpiDef {
   placeholder?: boolean;
 }
 
+function KpiCard({
+  kpi, index, loading, maxValue, placeholderHint,
+}: {
+  kpi:             KpiDef;
+  index:           number;
+  loading:         boolean;
+  maxValue:        number;
+  placeholderHint: string;
+}) {
+  const Icon = kpi.icon;
+  const trendPct = !kpi.placeholder && maxValue > 0
+    ? Math.max(4, Math.round(((kpi.value ?? 0) / maxValue) * 100))
+    : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10 flex flex-col gap-4"
+    >
+      <span className={cn('inline-flex items-center justify-center size-9 rounded-xl bg-white/5 shrink-0', kpi.accent)}>
+        <Icon className="size-4.5" />
+      </span>
+
+      <div className="min-w-0">
+        <div className="text-2xl font-serif-display tabular-nums text-admin-text leading-tight">
+          {loading ? (
+            <span className="inline-block w-12 h-6 bg-white/6 rounded animate-pulse" />
+          ) : kpi.placeholder ? (
+            '—'
+          ) : kpi.isCurrency ? (
+            `$${(kpi.value ?? 0).toLocaleString()}`
+          ) : kpi.isPercent ? (
+            `${kpi.value ?? 0}%`
+          ) : (
+            kpi.value ?? 0
+          )}
+        </div>
+        <p className="text-[11px] text-admin-text-muted font-arabic leading-snug mt-1.5 truncate">{kpi.label}</p>
+
+        {kpi.placeholder && !loading ? (
+          <p className="text-[9px] text-admin-text-muted/60 font-arabic mt-2">{placeholderHint}</p>
+        ) : (
+          <div className="h-1 mt-3 bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: loading ? 0 : `${trendPct}%` }}
+              transition={{ duration: 0.6, delay: 0.1 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              className={cn('h-full rounded-full', kpi.accent.replace('text-', 'bg-'))}
+            />
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function KpiGrid({
+  title, titleIcon: TitleIcon, kpis, loading, placeholderHint, columns,
+}: {
+  title:            string;
+  titleIcon?:       React.ElementType;
+  kpis:             KpiDef[];
+  loading:          boolean;
+  placeholderHint:  string;
+  columns:          string;
+}) {
+  const maxValue = Math.max(...kpis.filter((k) => !k.placeholder).map((k) => k.value ?? 0), 1);
+
+  return (
+    <div className="mb-6">
+      <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 mb-3 font-arabic flex items-center gap-2">
+        {TitleIcon && <TitleIcon className="size-3 text-admin-text-muted/50" />}
+        {title}
+      </p>
+      <div className={cn('grid gap-3', columns)}>
+        {kpis.map((k, i) => (
+          <KpiCard key={k.label} kpi={k} index={i} loading={loading} maxValue={maxValue} placeholderHint={placeholderHint} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── KPI Row ───────────────────────────────────────────────────────────────────
+
 function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const { t: adminT } = useAdminLanguage();
   const kpis: KpiDef[] = [
     { label: adminT.dashboard.kpi.valleyVisitors,      value: data?.valleyTotal,       icon: TrendingUp,   accent: 'text-ember' },
     { label: adminT.dashboard.kpi.startedAssessment,   value: data?.startedAssessment, icon: Activity,     accent: 'text-sky-400' },
@@ -338,50 +433,20 @@ function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; 
   ];
 
   return (
-    <div className="mb-6">
-      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
-        {adminT.dashboard.kpi.title}
-      </p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
-        {kpis.map((k, i) => {
-          const Icon = k.icon;
-          return (
-            <motion.div
-              key={k.label}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="p-4 bg-[#161b22] border border-white/6 rounded-xl"
-            >
-              <Icon className={`size-4 ${k.accent} mb-3`} />
-              <div className={`text-xl font-serif-display tabular-nums mb-1 ${k.accent}`}>
-                {loading ? (
-                  <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
-                ) : k.placeholder ? (
-                  '—'
-                ) : k.isCurrency ? (
-                  `$${(k.value ?? 0).toLocaleString()}`
-                ) : k.isPercent ? (
-                  `${k.value ?? 0}%`
-                ) : (
-                  k.value ?? 0
-                )}
-              </div>
-              <p className="text-[10px] text-white/35 font-arabic leading-snug">{k.label}</p>
-              {k.placeholder && !loading && (
-                <p className="text-[8px] text-white/20 font-arabic mt-1">{adminT.dashboard.kpi.placeholderHint}</p>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
+    <KpiGrid
+      title={adminT.dashboard.kpi.title}
+      kpis={kpis}
+      loading={loading}
+      placeholderHint={adminT.dashboard.kpi.placeholderHint}
+      columns="grid-cols-2 sm:grid-cols-4 xl:grid-cols-7"
+    />
   );
 }
 
 // ── Fail Kit KPI Row ──────────────────────────────────────────────────────────
 
 function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const { t: adminT } = useAdminLanguage();
   const kpis: KpiDef[] = [
     { label: adminT.dashboard.kpi.failKitRequests,  value: data?.failKitTotal,        icon: Package,      accent: 'text-amber-400' },
     { label: adminT.dashboard.kpi.failKitDelivered, value: data?.failKitDelivered,    icon: PackageCheck, accent: 'text-recovery' },
@@ -392,45 +457,14 @@ function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats
   ];
 
   return (
-    <div className="mb-6">
-      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic flex items-center gap-2">
-        <Package className="size-3 text-white/20" />
-        {adminT.failKit.title}
-      </p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {kpis.map((k, i) => {
-          const Icon = k.icon;
-          return (
-            <motion.div
-              key={k.label}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="p-4 bg-[#161b22] border border-white/6 rounded-xl"
-            >
-              <Icon className={`size-4 ${k.accent} mb-3`} />
-              <div className={`text-xl font-serif-display tabular-nums mb-1 ${k.accent}`}>
-                {loading ? (
-                  <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
-                ) : k.placeholder ? (
-                  '—'
-                ) : k.isCurrency ? (
-                  `$${(k.value ?? 0).toLocaleString()}`
-                ) : k.isPercent ? (
-                  `${k.value ?? 0}%`
-                ) : (
-                  k.value ?? 0
-                )}
-              </div>
-              <p className="text-[10px] text-white/35 font-arabic leading-snug">{k.label}</p>
-              {k.placeholder && !loading && (
-                <p className="text-[8px] text-white/20 font-arabic mt-1">{adminT.dashboard.kpi.placeholderHint}</p>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
+    <KpiGrid
+      title={adminT.failKit.title}
+      titleIcon={Package}
+      kpis={kpis}
+      loading={loading}
+      placeholderHint={adminT.dashboard.kpi.placeholderHint}
+      columns="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6"
+    />
   );
 }
 
@@ -446,6 +480,7 @@ const FUNNEL_STAGE_STYLES = [
 ];
 
 function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const { t: adminT } = useAdminLanguage();
   const stages = [
     { label: adminT.dashboard.funnel.visitors,        value: data?.valleyTotal,       placeholder: false },
     { label: adminT.dashboard.funnel.started,         value: data?.startedAssessment, placeholder: false },
@@ -463,9 +498,9 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-8 p-5 bg-[#161b22] border border-white/6 rounded-xl"
+      className="mb-8 p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
     >
-      <p className="text-[9px] tracking-[0.2em] uppercase text-white/25 mb-5 font-arabic">
+      <p className="text-[9px] tracking-[0.2em] uppercase text-admin-text-muted/70 mb-5 font-arabic">
         {adminT.dashboard.funnel.title}
       </p>
 
@@ -528,6 +563,7 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
+  const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useStats();
 
   const stats = [
@@ -618,12 +654,12 @@ export default function AdminDashboard() {
   ];
 
   const quickLinks = [
-    { label: 'مركز الإجراءات', to: '/admin/action-center', icon: Zap,         accent: 'text-ember'      },
-    { label: 'طلبات التقارير',  to: '/admin/report-queue',  icon: Inbox,       accent: 'text-violet-400' },
-    { label: 'عملاء الوادي',    to: '/admin/valley-leads',  icon: TrendingUp,  accent: 'text-sky-400'    },
-    { label: 'طلبات الحجز',     to: '/admin/bookings',      icon: CalendarPlus,accent: 'text-amber-400'  },
-    { label: 'الإيرادات',       to: '/admin/revenue',       icon: Activity,    accent: 'text-recovery'   },
-    { label: 'إعادة الاستهداف', to: '/admin/retargeting',   icon: Target,      accent: 'text-violet-400' },
+    { label: adminT.nav.actionCenter, to: '/admin/action-center', icon: Zap,          accent: 'text-ember'      },
+    { label: adminT.nav.reportQueue,  to: '/admin/report-queue',  icon: Inbox,        accent: 'text-violet-400' },
+    { label: adminT.nav.valleyLeads,  to: '/admin/valley-leads',  icon: TrendingUp,   accent: 'text-sky-400'    },
+    { label: adminT.nav.bookings,     to: '/admin/bookings',      icon: CalendarPlus, accent: 'text-amber-400'  },
+    { label: adminT.nav.revenue,      to: '/admin/revenue',       icon: Activity,     accent: 'text-recovery'   },
+    { label: adminT.nav.retargeting,  to: '/admin/retargeting',   icon: Target,       accent: 'text-violet-400' },
   ];
 
   return (
@@ -631,7 +667,7 @@ export default function AdminDashboard() {
 
       {error && (
         <div className="mb-6 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
-          <strong>{adminT.common.error}:</strong> تأكد من تطبيق ترحيل قاعدة البيانات وإضافة معرّف المستخدم في جدول{' '}
+          <strong>{adminT.common.error}:</strong> {adminT.dashboard.errorHint}{' '}
           <code className="font-mono text-xs bg-crimson/15 px-1 rounded">user_roles</code>
         </div>
       )}
@@ -658,7 +694,7 @@ export default function AdminDashboard() {
             >
               <Link
                 to={s.to}
-                className="block p-5 bg-[#161b22] border border-white/6 rounded-xl hover:border-white/12 hover:bg-[#1c2128] transition-all duration-200 group"
+                className="block p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10 hover:border-white/12 hover:bg-admin-card-hover transition-all duration-200 group"
               >
                 <div className="flex items-start justify-between mb-3">
                   <Icon className={`size-4 ${s.accent}`} />
@@ -686,7 +722,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.30, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
+          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -743,7 +779,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.34, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
+          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -802,7 +838,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
+          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -856,7 +892,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.42, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
+          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -926,7 +962,7 @@ export default function AdminDashboard() {
               <Link
                 key={ql.to}
                 to={ql.to}
-                className="flex items-center gap-2 px-3 py-2.5 bg-[#161b22] border border-white/6 rounded-lg hover:border-white/12 hover:bg-[#1c2128] transition-all duration-200 group"
+                className="flex items-center gap-2 px-3 py-2.5 bg-admin-card border border-admin-border rounded-lg hover:border-white/12 hover:bg-admin-card-hover transition-all duration-200 group"
               >
                 <Icon className={`size-3.5 shrink-0 ${ql.accent}`} />
                 <span className="text-[11px] text-white/50 group-hover:text-white/80 transition-colors font-arabic truncate">{ql.label}</span>

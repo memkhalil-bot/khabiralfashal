@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useSearchParams } from 'react-router-dom';
 import { X, Plus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ type FilterTab = typeof FILTER_TABS[number];
 // ── Badges ────────────────────────────────────────────────────────────────────
 
 function PriorityBadge({ priority }: { priority: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!priority) return null;
   const styles: Record<string, string> = {
     urgent: 'bg-crimson/10 text-crimson border-crimson/25',
@@ -48,6 +49,7 @@ function PriorityDot({ priority }: { priority: string | null }) {
 }
 
 function TypeBadge({ type }: { type: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!type) return null;
   const styles: Record<string, string> = {
     check_in: 'bg-sky-950/30 text-sky-400 border-sky-800/30',
@@ -65,6 +67,7 @@ function TypeBadge({ type }: { type: string | null }) {
 }
 
 function StatusBadge({ status }: { status: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!status) return null;
   const styles: Record<string, string> = {
     pending:     'bg-amber-950/30 text-amber-400 border-amber-800/30',
@@ -106,6 +109,7 @@ function useFollowUps(filterTab: FilterTab) {
 // ── Add Follow-up Panel ───────────────────────────────────────────────────────
 
 function AddFollowUpPanel({ onClose }: { onClose: () => void }) {
+  const { t: adminT } = useAdminLanguage();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
@@ -202,7 +206,7 @@ function AddFollowUpPanel({ onClose }: { onClose: () => void }) {
             <button
               onClick={() => mutation.mutate()}
               disabled={mutation.isPending || !title}
-              className="flex-1 py-2.5 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 py-2.5 bg-ember text-[#fff] text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {mutation.isPending ? 'جارٍ الحفظ...' : adminT.followUps.new}
             </button>
@@ -287,6 +291,7 @@ function FollowUpCard({ item }: { item: FollowUp }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminFollowUps() {
+  const { t: adminT } = useAdminLanguage();
   const [filterTab, setFilterTab] = useState<FilterTab>('ALL');
   const [showAddPanel, setShowAddPanel] = useState(false);
 
@@ -322,7 +327,7 @@ export default function AdminFollowUps() {
         </div>
         <button
           onClick={() => setShowAddPanel(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-[#fff] text-xs rounded-lg hover:bg-ember/90 transition-colors shrink-0 font-arabic"
         >
           <Plus className="size-3.5" /> {adminT.followUps.new}
         </button>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, X, AlertTriangle, Shield, Activity, Skull,
@@ -17,16 +17,19 @@ type Assessment = Tables<'founder_assessments'>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const RISK_META: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ElementType }> = {
-  STABLE:               { label: adminT.risk['STABLE'],               color: 'text-recovery',  bg: 'bg-recovery/10',   border: 'border-recovery/25',  icon: Shield },
-  EXPOSED:              { label: adminT.risk['EXPOSED'],              color: 'text-yellow-400', bg: 'bg-yellow-950/30', border: 'border-yellow-800/30', icon: Activity },
-  'INSIDE THE VALLEY':  { label: adminT.risk['INSIDE THE VALLEY'],   color: 'text-orange-400', bg: 'bg-orange-950/30', border: 'border-orange-800/30', icon: AlertTriangle },
-  'COLLAPSE PROXIMITY': { label: adminT.risk['COLLAPSE PROXIMITY'],  color: 'text-crimson',    bg: 'bg-crimson/10',    border: 'border-crimson/25',   icon: Skull },
-};
+function getRiskMeta(t: ReturnType<typeof useAdminLanguage>['t']): Record<string, { label: string; color: string; bg: string; border: string; icon: React.ElementType }> {
+  return {
+    STABLE:               { label: t.risk['STABLE'],               color: 'text-recovery',  bg: 'bg-recovery/10',   border: 'border-recovery/25',  icon: Shield },
+    EXPOSED:              { label: t.risk['EXPOSED'],              color: 'text-yellow-400', bg: 'bg-yellow-950/30', border: 'border-yellow-800/30', icon: Activity },
+    'INSIDE THE VALLEY':  { label: t.risk['INSIDE THE VALLEY'],   color: 'text-orange-400', bg: 'bg-orange-950/30', border: 'border-orange-800/30', icon: AlertTriangle },
+    'COLLAPSE PROXIMITY': { label: t.risk['COLLAPSE PROXIMITY'],  color: 'text-crimson',    bg: 'bg-crimson/10',    border: 'border-crimson/25',   icon: Skull },
+  };
+}
 
 function RiskBadge({ level }: { level: string | null }) {
+  const { t } = useAdminLanguage();
   if (!level) return <span className="text-white/30 text-xs">—</span>;
-  const meta = RISK_META[level] ?? { label: level, color: 'text-white/60', bg: 'bg-white/5', border: 'border-white/10', icon: Activity };
+  const meta = getRiskMeta(t)[level] ?? { label: level, color: 'text-white/60', bg: 'bg-white/5', border: 'border-white/10', icon: Activity };
   const Icon = meta.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] tracking-[0.1em] uppercase font-medium ${meta.color} ${meta.bg} border ${meta.border}`}>
@@ -255,7 +258,7 @@ function DetailPanel({ row, onClose }: { row: Assessment; onClose: () => void })
                     <span className="text-white/40 truncate max-w-[200px]">Q{qid}</span>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((n) => (
-                        <div key={n} className={`size-5 rounded flex items-center justify-center text-[9px] ${n === val ? 'bg-ember text-white font-bold' : 'bg-white/6 text-white/20'}`}>
+                        <div key={n} className={`size-5 rounded flex items-center justify-center text-[9px] ${n === val ? 'bg-ember text-[#fff] font-bold' : 'bg-white/6 text-white/20'}`}>
                           {n}
                         </div>
                       ))}
@@ -280,6 +283,7 @@ function DetailPanel({ row, onClose }: { row: Assessment; onClose: () => void })
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminFounders() {
+  const { t: adminT } = useAdminLanguage();
   const [search, setSearch] = useState('');
   const [riskFilter, setRiskFilter] = useState('');
   const [selected, setSelected] = useState<Assessment | null>(null);

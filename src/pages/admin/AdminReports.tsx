@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -43,6 +43,7 @@ const BLIND_SPOT_LABELS = [
 ] as const;
 
 function StatusPill({ status }: { status: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!status) return null;
   const styles: Record<string, string> = {
     draft:     'bg-white/10 text-white/50 border-white/10',
@@ -175,7 +176,7 @@ function ReportEditor({ report, onBack }: EditorProps) {
           <button
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending || !founderName}
-            className="px-5 py-2 bg-ember text-white text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2 bg-ember text-[#fff] text-sm font-medium rounded-lg hover:bg-ember/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {mutation.isPending ? 'Saving…' : 'Save Report'}
           </button>
@@ -388,7 +389,7 @@ function ReportList({ statusFilter, onNew, onEdit }: ListProps) {
       <div className="mt-6 flex justify-end">
         <button
           onClick={onNew}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs tracking-[0.1em] uppercase rounded-lg hover:bg-ember/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-[#fff] text-xs tracking-[0.1em] uppercase rounded-lg hover:bg-ember/90 transition-colors"
         >
           <Plus className="size-3.5" /> New Report
         </button>
@@ -400,6 +401,7 @@ function ReportList({ statusFilter, onNew, onEdit }: ListProps) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminReports() {
+  const { t: adminT } = useAdminLanguage();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [editingReport, setEditingReport] = useState<AutopsyReport | null | undefined>(undefined);
   // undefined = list view, null = new report, AutopsyReport = editing
@@ -439,7 +441,7 @@ export default function AdminReports() {
         </div>
         <button
           onClick={() => setEditingReport(null)}
-          className="flex items-center gap-2 px-4 py-2 bg-ember text-white text-xs rounded-lg hover:bg-ember/90 transition-colors font-arabic"
+          className="flex items-center gap-2 px-4 py-2 bg-ember text-[#fff] text-xs rounded-lg hover:bg-ember/90 transition-colors font-arabic"
         >
           <Plus className="size-3.5" /> {adminT.reports.new}
         </button>

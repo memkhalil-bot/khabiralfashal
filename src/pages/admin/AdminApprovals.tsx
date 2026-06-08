@@ -1,5 +1,5 @@
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { FileText, HeartPulse, CheckCircle2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -53,6 +53,7 @@ function ApprovalSection({ icon, title, subtitle, emptyMessage, emptyHint, accen
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminApprovals() {
+  const { t: adminT } = useAdminLanguage();
   return (
     <AdminLayout
       title={adminT.approvals.title}

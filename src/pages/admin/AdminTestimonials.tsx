@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import {
   Plus,
   Pencil,
@@ -64,6 +64,7 @@ interface FormModalProps {
 }
 
 function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const isEdit = initial !== null;
 
@@ -267,10 +268,10 @@ function FormModal({ initial, onClose, maxOrder }: FormModalProps) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-ember hover:bg-ember-dim text-white text-sm rounded-lg transition-all disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-ember hover:bg-ember-dim text-[#fff] text-sm rounded-lg transition-all disabled:opacity-50"
             >
               {saving ? (
-                <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="size-4 border-2 border-[#fff] border-t-transparent rounded-full animate-spin" />
               ) : (
                 <Save className="size-4" />
               )}
@@ -292,6 +293,7 @@ function DeleteConfirm({
   row: Testimonial;
   onClose: () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -354,10 +356,10 @@ function DeleteConfirm({
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-crimson hover:bg-crimson-dim text-white text-sm rounded-lg transition-all disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-crimson hover:bg-crimson-dim text-[#fff] text-sm rounded-lg transition-all disabled:opacity-50"
           >
             {deleting ? (
-              <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="size-4 border-2 border-[#fff] border-t-transparent rounded-full animate-spin" />
             ) : (
               <Trash2 className="size-4" />
             )}
@@ -391,6 +393,7 @@ function useTogglePublished() {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminTestimonials() {
+  const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useTestimonials();
   const togglePublished = useTogglePublished();
 
@@ -448,7 +451,7 @@ export default function AdminTestimonials() {
         </div>
         <button
           onClick={() => setModal('add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-ember hover:bg-ember-dim text-white text-[11px] tracking-[0.2em] uppercase transition-all duration-300 rounded-lg"
+          className="flex items-center gap-2 px-4 py-2.5 bg-ember hover:bg-ember-dim text-[#fff] text-[11px] tracking-[0.2em] uppercase transition-all duration-300 rounded-lg"
         >
           <Plus className="size-4" />
           {adminT.testimonials.add}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import {
   Search,
   CalendarPlus,
@@ -63,6 +63,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 function StatusBadge({ status }: { status: string }) {
+  const { t: adminT } = useAdminLanguage();
   const label = adminT.bookings.status[status] ?? status;
   const style = STATUS_STYLE[status] ?? 'bg-white/5 text-white/40 border-white/10';
   return (
@@ -73,6 +74,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function SessionTypeBadge({ type }: { type: string }) {
+  const { t: adminT } = useAdminLanguage();
   const label = adminT.bookings.sessionTypes[type] ?? type;
   const styles: Record<string, string> = {
     founder_call:      'bg-sky-950/30 text-sky-300 border-sky-800/30',
@@ -143,11 +145,12 @@ function buildEmailText(
   duration: number,
   method: string,
   link: string,
+  t: ReturnType<typeof useAdminLanguage>['t'],
 ): string {
-  const typeAr = adminT.bookings.sessionTypes[booking.session_type] ?? booking.session_type;
+  const typeAr = t.bookings.sessionTypes[booking.session_type] ?? booking.session_type;
   const typeEn = booking.session_type.replace(/_/g, ' ');
 
-  return `Subject: ${adminT.bookings.emailPreview.subject}
+  return `Subject: ${t.bookings.emailPreview.subject}
 
 مرحباً ${booking.full_name}،
 
@@ -167,7 +170,7 @@ function buildEmailText(
 
 ──────────────────────────────────────
 
-Subject: ${adminT.bookings.emailPreview.subjectEn}
+Subject: ${t.bookings.emailPreview.subjectEn}
 
 Hi ${booking.full_name},
 
@@ -195,6 +198,7 @@ function ConfirmSessionModal({
   booking: BookingRequest;
   onClose: () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
 
   const [date, setDate]       = useState(booking.preferred_date ?? '');
@@ -269,7 +273,7 @@ function ConfirmSessionModal({
       qc.invalidateQueries({ queryKey: ['admin', 'bookings'] });
       qc.invalidateQueries({ queryKey: ['admin', 'sessions'] });
       qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
-      setEmailText(buildEmailText(booking, result.date, result.time, result.duration, result.method, result.link));
+      setEmailText(buildEmailText(booking, result.date, result.time, result.duration, result.method, result.link, adminT));
       setPhase('success');
     },
   });
@@ -501,6 +505,7 @@ function DetailPanel({
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const [notes, setNotes]       = useState(booking.admin_notes ?? '');
   const [savingNotes, setSavingNotes] = useState(false);
   const update = useUpdateBooking();
@@ -667,6 +672,7 @@ const STATUS_FILTERS = ['ALL','PENDING','APPROVED','SCHEDULED','COMPLETED','CANC
 const TYPE_FILTERS   = ['ALL','founder_call','startup_autopsy','emergency_session'] as const;
 
 export default function AdminBookings() {
+  const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useBookings();
 
   const [search, setSearch]           = useState('');

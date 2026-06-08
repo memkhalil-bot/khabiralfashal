@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { UserCheck, Plus, X, Shield, Users } from 'lucide-react';
@@ -43,6 +43,7 @@ function useTeam() {
 }
 
 function RoleBadge({ role }: { role: string }) {
+  const { t: adminT } = useAdminLanguage();
   const style = ROLE_COLORS[role] ?? 'bg-white/5 text-white/35 border-white/8';
   const label = adminT.team.roles[role] ?? role;
   return (
@@ -56,6 +57,7 @@ function RoleBadge({ role }: { role: string }) {
 // ── Add Member Modal ──────────────────────────────────────────────────────────
 
 function AddMemberModal({ onClose }: { onClose: () => void }) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const [userId, setUserId] = useState('');
   const [name, setName] = useState('');
@@ -196,6 +198,7 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function AdminTeam() {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const { data: members = [], isLoading } = useTeam();
   const [showAdd, setShowAdd] = useState(false);

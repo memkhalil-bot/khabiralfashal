@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -61,6 +61,7 @@ function useReportQueue() {
 }
 
 function WorkflowBadge({ status }: { status: string }) {
+  const { t: adminT } = useAdminLanguage();
   const styles: Record<string, string> = {
     pending_review: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
     draft_ready:    'bg-sky-950/30 text-sky-400 border-sky-800/30',
@@ -79,6 +80,7 @@ function WorkflowBadge({ status }: { status: string }) {
 }
 
 function PaymentBadge({ status }: { status: string }) {
+  const { t: adminT } = useAdminLanguage();
   const styles: Record<string, string> = {
     pending: 'text-amber-400',
     paid:    'text-recovery',
@@ -94,6 +96,7 @@ function PaymentBadge({ status }: { status: string }) {
 }
 
 function RiskBadge({ level }: { level: string | null }) {
+  const { t: adminT } = useAdminLanguage();
   if (!level) return <span className="text-white/25 text-[10px]">—</span>;
   const colors: Record<string, string> = {
     STABLE:               'text-recovery',
@@ -139,6 +142,7 @@ function DetailPanel({
   report: ReportRequest;
   onClose: () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const [notes, setNotes] = useState(report.admin_notes ?? '');
   const [copied, setCopied] = useState(false);
@@ -352,6 +356,7 @@ function DetailPanel({
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function AdminReportQueue() {
+  const { t: adminT } = useAdminLanguage();
   const { data: reports = [], isLoading } = useReportQueue();
   const [search, setSearch] = useState('');
   const [wFilter, setWFilter] = useState<WorkflowKey>('ALL');

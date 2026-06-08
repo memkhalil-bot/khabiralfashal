@@ -26,9 +26,14 @@ export const adminT = {
     activityLog:     'سجل النشاط',
     failKit:         'حقيبة الفشل',
   },
+  actionCenter: {
+    title:    'مركز الإجراءات',
+    subtitle: 'كل ما يتطلب اتخاذ إجراء فوري',
+  },
   dashboard: {
-    title:    'نظرة عامة',
-    subtitle: 'خبير الفشل — لوحة التحكم',
+    title:     'نظرة عامة',
+    subtitle:  'خبير الفشل — لوحة التحكم',
+    errorHint: 'تأكد من تطبيق ترحيل قاعدة البيانات وإضافة معرّف المستخدم في جدول',
     funnel: {
       title:             'مسار وادي الموت',
       visitors:          'زوار الوادي',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { adminT } from '@/i18n/adminTranslations';
+import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Tag, Plus, Search, Copy, CheckCheck, X, ToggleLeft, ToggleRight } from 'lucide-react';
@@ -73,6 +73,7 @@ function isExpired(code: PromoCode): boolean {
 }
 
 function StatusBadge({ code }: { code: PromoCode }) {
+  const { t: adminT } = useAdminLanguage();
   if (isExpired(code)) {
     return (
       <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border bg-white/4 text-white/25 border-white/6 font-arabic">
@@ -94,8 +95,8 @@ function StatusBadge({ code }: { code: PromoCode }) {
   );
 }
 
-function discountLabel(code: PromoCode): string {
-  if (code.discount_type === 'free') return adminT.promoCodes.discountTypes.free;
+function discountLabel(code: PromoCode, t: ReturnType<typeof useAdminLanguage>['t']): string {
+  if (code.discount_type === 'free') return t.promoCodes.discountTypes.free;
   if (code.discount_type === 'percentage') return `${code.discount_value}%`;
   return `$${code.discount_value}`;
 }
@@ -109,6 +110,7 @@ function CodeModal({
   editCode: PromoCode | null;
   onClose: () => void;
 }) {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const [form, setForm] = useState<FormState>(
     editCode
@@ -342,7 +344,7 @@ function CodeModal({
                 className="sr-only"
               />
               <div className={cn('w-10 h-5 rounded-full transition-colors relative', form.active ? 'bg-recovery' : 'bg-white/15')}>
-                <div className={cn('absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform', form.active ? 'translate-x-1' : 'translate-x-5')} />
+                <div className={cn('absolute top-0.5 w-4 h-4 bg-[#fff] rounded-full shadow transition-transform', form.active ? 'translate-x-1' : 'translate-x-5')} />
               </div>
               <span className="text-sm text-white/70 font-arabic">{adminT.promoCodes.form.active}</span>
             </label>
@@ -372,6 +374,7 @@ function CodeModal({
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function AdminPromoCodes() {
+  const { t: adminT } = useAdminLanguage();
   const qc = useQueryClient();
   const { data: codes = [], isLoading } = usePromoCodes();
   const [search, setSearch] = useState('');
@@ -488,7 +491,7 @@ export default function AdminPromoCodes() {
 
               {/* Discount + service */}
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-base font-semibold text-ember">{discountLabel(code)}</span>
+                <span className="text-base font-semibold text-ember">{discountLabel(code, adminT)}</span>
                 <span className="text-[10px] text-white/30 font-arabic">
                   {adminT.promoCodes.services[code.service_key] ?? code.service_key}
                 </span>
