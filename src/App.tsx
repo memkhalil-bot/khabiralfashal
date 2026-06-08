@@ -51,6 +51,7 @@ const AdminReportQueue  = lazy(() => import("./pages/admin/AdminReportQueue"));
 const AdminPromoCodes   = lazy(() => import("./pages/admin/AdminPromoCodes"));
 const AdminTeam          = lazy(() => import("./pages/admin/AdminTeam"));
 const AdminRevenue       = lazy(() => import("./pages/admin/AdminRevenue"));
+const AdminWorkflowAnalytics = lazy(() => import("./pages/admin/AdminWorkflowAnalytics"));
 const AdminDebug         = lazy(() => import("./pages/admin/AdminDebug"));
 const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
 const AdminActionCenter     = lazy(() => import("./pages/admin/AdminActionCenter"));
@@ -171,6 +172,7 @@ function RootRouter() {
           <Route path="/admin/promo-codes"  element={<ProtectedAdminRoute><AdminPromoCodes /></ProtectedAdminRoute>} />
           <Route path="/admin/team"         element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
           <Route path="/admin/revenue"         element={<ProtectedAdminRoute><AdminRevenue /></ProtectedAdminRoute>} />
+          <Route path="/admin/workflow-analytics" element={<ProtectedAdminRoute><AdminWorkflowAnalytics /></ProtectedAdminRoute>} />
           <Route path="/admin/debug"           element={<ProtectedAdminRoute><AdminDebug /></ProtectedAdminRoute>} />
           <Route path="/admin/email-templates" element={<ProtectedAdminRoute><AdminEmailTemplates /></ProtectedAdminRoute>} />
           <Route path="/admin/action-center"     element={<ProtectedAdminRoute><AdminActionCenter /></ProtectedAdminRoute>} />
