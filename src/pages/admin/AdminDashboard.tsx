@@ -29,6 +29,8 @@ import {
   Minus,
   Workflow,
   ArrowDownRight,
+  Video,
+  AlertCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
@@ -688,12 +690,180 @@ function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof use
   );
 }
 
+// ── Session Snapshot ──────────────────────────────────────────────────────────
+
+function useSessionSnapshot() {
+  return useQuery({
+    queryKey: ['admin', 'session-snapshot'],
+    queryFn: async () => {
+      const now = new Date();
+      const todayStart = new Date(now); todayStart.setHours(0,0,0,0);
+      const todayEnd   = new Date(now); todayEnd.setHours(23,59,59,999);
+
+      const [todayRes, upcomingRes, missingRes, completedRes, cancelledRes, recentRes] =
+        await Promise.all([
+          (supabase as any).from('advisory_sessions')
+            .select('id', { count: 'exact' })
+            .gte('scheduled_at', todayStart.toISOString())
+            .lte('scheduled_at', todayEnd.toISOString()),
+          (supabase as any).from('advisory_sessions')
+            .select('id', { count: 'exact' })
+            .gt('scheduled_at', todayEnd.toISOString())
+            .in('status', ['pending', 'confirmed']),
+          (supabase as any).from('advisory_sessions')
+            .select('id', { count: 'exact' })
+            .in('status', ['pending', 'confirmed'])
+            .is('meeting_link', null),
+          (supabase as any).from('advisory_sessions')
+            .select('id', { count: 'exact' })
+            .eq('status', 'completed'),
+          (supabase as any).from('advisory_sessions')
+            .select('id', { count: 'exact' })
+            .eq('status', 'cancelled'),
+          (supabase as any).from('advisory_sessions')
+            .select('id, founder_name, company, session_type, scheduled_at, status, meeting_link, meeting_method')
+            .in('status', ['pending', 'confirmed'])
+            .order('scheduled_at', { ascending: true, nullsFirst: false })
+            .limit(4),
+        ]);
+
+      return {
+        todayCount:    todayRes.count   ?? 0,
+        upcomingCount: upcomingRes.count ?? 0,
+        missingLinks:  missingRes.count  ?? 0,
+        completedCount: completedRes.count ?? 0,
+        cancelledCount: cancelledRes.count ?? 0,
+        upcomingSessions: (recentRes.data ?? []) as {
+          id: string; founder_name: string; company: string | null;
+          session_type: string | null; scheduled_at: string | null;
+          status: string | null; meeting_link: string | null; meeting_method: string | null;
+        }[],
+      };
+    },
+    staleTime: 30_000,
+  });
+}
+
+function TypeBadgeSmall({ type }: { type: string | null }) {
+  if (!type) return null;
+  const styles: Record<string, string> = {
+    initial:   'text-sky-400',
+    followup:  'text-violet-400',
+    intensive: 'text-amber-400',
+    emergency: 'text-crimson',
+  };
+  const labels: Record<string, string> = {
+    initial: 'Initial', followup: 'Follow-up', intensive: 'Intensive', emergency: 'Emergency',
+  };
+  return <span className={`text-[10px] font-arabic ${styles[type] ?? 'text-white/35'}`}>{labels[type] ?? type}</span>;
+}
+
+function SessionSnapshotWidget({
+  data,
+  loading,
+}: {
+  data: ReturnType<typeof useSessionSnapshot>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const ss = adminT.dashboard.sessionSnapshot;
+
+  const chips = [
+    { label: ss.todaySessions,  value: data?.todayCount,     accent: 'text-sky-400',    bg: 'bg-sky-950/25 border-sky-800/20'    },
+    { label: ss.upcoming,       value: data?.upcomingCount,  accent: 'text-ember',       bg: 'bg-ember/8 border-ember/20'         },
+    { label: ss.missingLinks,   value: data?.missingLinks,   accent: 'text-amber-400',  bg: 'bg-amber-950/25 border-amber-800/20' },
+    { label: ss.completed,      value: data?.completedCount, accent: 'text-recovery',   bg: 'bg-recovery/8 border-recovery/20'   },
+    { label: ss.cancelled,      value: data?.cancelledCount, accent: 'text-white/35',   bg: 'bg-white/4 border-white/8'          },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.38, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <CalendarClock className="size-4 text-sky-400" />
+          <h2 className="text-[11px] text-white/60 font-arabic">{ss.title}</h2>
+        </div>
+        <Link
+          to="/admin/sessions"
+          className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1"
+        >
+          {ss.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      {/* KPI chips */}
+      <div className="grid grid-cols-5 gap-0 border-b border-white/5">
+        {chips.map((c) => (
+          <div key={c.label} className={`flex flex-col items-center justify-center py-3 border-e border-white/5 last:border-e-0`}>
+            {loading ? (
+              <span className="inline-block w-6 h-5 bg-white/6 rounded animate-pulse mb-1" />
+            ) : (
+              <span className={`text-lg font-serif-display tabular-nums ${c.accent}`}>{c.value ?? 0}</span>
+            )}
+            <span className="text-[9px] text-white/25 font-arabic text-center leading-tight px-1">{c.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Upcoming sessions list */}
+      {loading ? (
+        <div className="p-5 space-y-2.5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
+          ))}
+        </div>
+      ) : !data?.upcomingSessions.length ? (
+        <div className="px-6 py-10 text-center">
+          <p className="text-white/25 text-sm font-arabic">{ss.noSessions}</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {data.upcomingSessions.map((s) => (
+            <Link
+              key={s.id}
+              to="/admin/sessions"
+              className="flex items-center gap-3 px-5 py-3 hover:bg-white/3 transition-colors group"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white/80 truncate font-arabic">{s.founder_name}</p>
+                {s.company && (
+                  <p className="text-[11px] text-white/30 truncate font-arabic">{s.company}</p>
+                )}
+              </div>
+              <div className="shrink-0 text-right space-y-0.5">
+                <TypeBadgeSmall type={s.session_type} />
+                {s.scheduled_at ? (
+                  <p className="text-[10px] text-white/25 block">
+                    {format(new Date(s.scheduled_at), 'MMM d, HH:mm')}
+                  </p>
+                ) : null}
+              </div>
+              {s.meeting_link ? (
+                <Video className="size-3 text-sky-400/50 shrink-0" />
+              ) : (
+                <AlertCircle className="size-3 text-amber-400/40 shrink-0" />
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useStats();
   const { data: revenueExtra, isLoading: revenueExtraLoading } = useRevenueSnapshotExtra();
+  const { data: sessionSnap, isLoading: sessionSnapLoading } = useSessionSnapshot();
 
   const stats = [
     {
@@ -968,59 +1138,8 @@ export default function AdminDashboard() {
           )}
         </motion.div>
 
-        {/* Upcoming Sessions */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <CalendarClock className="size-4 text-sky-400" />
-              <h2 className="text-[11px] text-white/60 font-arabic">
-                {adminT.dashboard.panels.upcomingSessions}
-              </h2>
-            </div>
-            <Link to="/admin/sessions" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
-              {adminT.common.viewAll}
-              <ChevronLeft className="size-3" />
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
-              ))}
-            </div>
-          ) : !data?.upcomingSessions.length ? (
-            <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.sessions}</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-white/5">
-              {data.upcomingSessions.map((s) => (
-                <div key={s.id} className="flex items-center gap-4 px-6 py-3.5">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/80 truncate">{s.founder_name}</p>
-                    {s.company && (
-                      <p className="text-[11px] text-white/35 truncate">{s.company}</p>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0 space-y-1">
-                    <TypeBadge type={s.session_type} />
-                    {s.scheduled_at && (
-                      <p className="text-[10px] text-white/25 block">
-                        {format(new Date(s.scheduled_at), 'MMM d, HH:mm')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+        {/* Session Snapshot */}
+        <SessionSnapshotWidget data={sessionSnap} loading={isLoading || sessionSnapLoading} />
 
         {/* Pending Follow-ups */}
         <motion.div

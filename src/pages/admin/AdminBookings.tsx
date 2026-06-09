@@ -134,7 +134,8 @@ const DEFAULT_DURATION: Record<string, number> = {
   emergency_session: 90,
 };
 
-const MEETING_METHODS = ['Zoom', 'Google Meet', 'WhatsApp Call', 'Phone Call', 'Other'] as const;
+const MEETING_METHODS = ['Google Meet', 'Zoom', 'Microsoft Teams', 'Phone Call', 'Other'] as const;
+const LINK_REQUIRED_METHODS = ['Google Meet', 'Zoom', 'Microsoft Teams'];
 
 // ── Email builder ─────────────────────────────────────────────────────────────
 
@@ -145,10 +146,13 @@ function buildEmailText(
   duration: number,
   method: string,
   link: string,
+  instructions: string,
   t: ReturnType<typeof useAdminLanguage>['t'],
 ): string {
   const typeAr = t.bookings.sessionTypes[booking.session_type] ?? booking.session_type;
   const typeEn = booking.session_type.replace(/_/g, ' ');
+  const instrAr = instructions ? `\n• التعليمات: ${instructions}` : '';
+  const instrEn = instructions ? `\n• Instructions: ${instructions}` : '';
 
   return `Subject: ${t.bookings.emailPreview.subject}
 
@@ -161,7 +165,7 @@ function buildEmailText(
 • التاريخ: ${date}
 • الوقت: ${time}
 • المدة: ${duration} دقيقة
-• طريقة الاجتماع: ${method}${link ? `\n• الرابط: ${link}` : ''}
+• طريقة الاجتماع: ${method}${link ? `\n• الرابط: ${link}` : ''}${instrAr}
 
 هذه الجلسة سرية تماماً. لن تتم مشاركة أي معلومات مع المستثمرين أو أي طرف ثالث.
 
@@ -181,7 +185,7 @@ Session Details:
 • Date: ${date}
 • Time: ${time}
 • Duration: ${duration} minutes
-• Meeting: ${method}${link ? `\n• Link: ${link}` : ''}
+• Meeting: ${method}${link ? `\n• Link: ${link}` : ''}${instrEn}
 
 This session is strictly confidential. No information will be shared with investors or third parties.
 
@@ -204,9 +208,10 @@ function ConfirmSessionModal({
   const [date, setDate]       = useState(booking.preferred_date ?? '');
   const [time, setTime]       = useState(booking.preferred_time ?? '');
   const [duration, setDuration] = useState(DEFAULT_DURATION[booking.session_type] ?? 60);
-  const [method, setMethod]   = useState<string>('Zoom');
+  const [method, setMethod]   = useState<string>('Google Meet');
   const [link, setLink]       = useState('');
   const [notes, setNotes]     = useState(booking.admin_notes ?? '');
+  const [sessionInstructions, setSessionInstructions] = useState('');
 
   const [phase, setPhase]     = useState<'form' | 'success'>('form');
   const [emailText, setEmailText] = useState('');
@@ -220,18 +225,19 @@ function ConfirmSessionModal({
       const { data: session, error: sessionErr } = await (supabase as any)
         .from('advisory_sessions')
         .insert({
-          founder_name:      booking.full_name,
-          founder_email:     booking.email,
-          company:           booking.company ?? null,
-          session_type:      sessionType,
-          scheduled_at:      scheduledAt,
-          duration_minutes:  duration,
-          status:            'confirmed',
-          workflow_status:   'scheduled',
-          notes:             notes || null,
-          source_booking_id: booking.id,
-          meeting_method:    method,
-          meeting_link:      link || null,
+          founder_name:         booking.full_name,
+          founder_email:        booking.email,
+          company:              booking.company ?? null,
+          session_type:         sessionType,
+          scheduled_at:         scheduledAt,
+          duration_minutes:     duration,
+          status:               'confirmed',
+          workflow_status:      'scheduled',
+          notes:                notes || null,
+          source_booking_id:    booking.id,
+          meeting_method:       method,
+          meeting_link:         link || null,
+          session_instructions: sessionInstructions || null,
         })
         .select('id')
         .single();
@@ -267,13 +273,14 @@ function ConfirmSessionModal({
         .then(() => {})
         .catch(() => {});
 
-      return { date, time, duration, method, link };
+      return { date, time, duration, method, link, instructions: sessionInstructions };
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['admin', 'bookings'] });
       qc.invalidateQueries({ queryKey: ['admin', 'sessions'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'session-snapshot'] });
       qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
-      setEmailText(buildEmailText(booking, result.date, result.time, result.duration, result.method, result.link, adminT));
+      setEmailText(buildEmailText(booking, result.date, result.time, result.duration, result.method, result.link, result.instructions, adminT));
       setPhase('success');
     },
   });
@@ -387,11 +394,11 @@ function ConfirmSessionModal({
                 </select>
               </div>
 
-              {/* Meeting link — shown for Zoom/Google Meet */}
+              {/* Meeting link */}
               <div>
                 <label className={labelCls}>
                   {adminT.bookings.confirmForm.meetingLink}
-                  {(method === 'Zoom' || method === 'Google Meet') && (
+                  {LINK_REQUIRED_METHODS.includes(method) && (
                     <span className="text-ember/70 ms-1">*</span>
                   )}
                 </label>
@@ -401,6 +408,18 @@ function ConfirmSessionModal({
                   onChange={(e) => setLink(e.target.value)}
                   placeholder={adminT.bookings.confirmForm.linkPlaceholder}
                   className={inputCls}
+                />
+              </div>
+
+              {/* Session instructions */}
+              <div>
+                <label className={labelCls}>{adminT.bookings.confirmForm.sessionInstructions}</label>
+                <textarea
+                  value={sessionInstructions}
+                  onChange={(e) => setSessionInstructions(e.target.value)}
+                  placeholder={adminT.bookings.confirmForm.instructionsPlaceholder}
+                  rows={3}
+                  className={cn(inputCls, 'resize-none')}
                 />
               </div>
 
