@@ -29,6 +29,11 @@ import {
   Minus,
   Workflow,
   ArrowDownRight,
+  Mail,
+  CreditCard,
+  Clock,
+  XCircle,
+  RotateCcw,
   Video,
   AlertCircle,
 } from 'lucide-react';
@@ -36,6 +41,9 @@ import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { KpiCard, KpiGrid, type KpiDef } from '@/components/admin/KpiCard';
+import {
+  type ActivityRecord, CATEGORY_ICONS, CATEGORY_ACCENTS, ENTITY_ROUTES, enrichActivity,
+} from '@/lib/activityMeta';
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -300,6 +308,145 @@ function useRevenueSnapshotExtra() {
   });
 }
 
+// Supplementary query for the homepage Promo Snapshot widget — minimal columns
+// needed to compute "active codes", "most used code" and "revenue impact"
+// (mirrors the linked-order pattern established for promo analytics).
+function usePromoSnapshotExtra() {
+  return useQuery({
+    queryKey: ['admin', 'promo-snapshot-extra'],
+    queryFn: async () => {
+      const [codesRes, bookingsRes, failKitsRes] = await Promise.all([
+        (supabase as any).from('promo_codes').select('id, code, used_count, active, starts_at, ends_at'),
+        (supabase as any).from('booking_requests').select('final_price, payment_status, promo_code_id').not('promo_code_id', 'is', null),
+        (supabase as any).from('fail_kit_requests').select('final_price, payment_status, promo_code_id').not('promo_code_id', 'is', null),
+      ]);
+      if (codesRes.error) throw codesRes.error;
+      if (bookingsRes.error) throw bookingsRes.error;
+      if (failKitsRes.error) throw failKitsRes.error;
+
+      const codes = (codesRes.data ?? []) as { id: string; code: string; used_count: number; active: boolean; starts_at: string | null; ends_at: string | null }[];
+      const now = new Date();
+      const activeCount = codes.filter((c) => {
+        if (!c.active) return false;
+        if (c.ends_at && new Date(c.ends_at) < now) return false;
+        if (c.starts_at && new Date(c.starts_at) > now) return false;
+        return true;
+      }).length;
+
+      const mostUsed = codes.filter((c) => c.used_count > 0).sort((a, b) => b.used_count - a.used_count)[0] ?? null;
+
+      const linkedOrders = [...(bookingsRes.data ?? []), ...(failKitsRes.data ?? [])] as { final_price: number | null; payment_status: string | null }[];
+      const revenueImpact = linkedOrders
+        .filter((o) => o.payment_status === 'paid')
+        .reduce((acc, o) => acc + (o.final_price ?? 0), 0);
+
+      return {
+        activeCount,
+        mostUsed: mostUsed as { code: string; used_count: number } | null,
+        revenueImpact,
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
+// ── Email queue stats ─────────────────────────────────────────────────────────
+
+function useEmailQueueStats() {
+  return useQuery({
+    queryKey: ['admin', 'email-queue-stats'],
+    queryFn: async () => {
+      const [pendingRes, scheduledRes, readyRes, recentRes] = await Promise.all([
+        (supabase as any).from('email_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        (supabase as any).from('email_queue').select('id', { count: 'exact', head: true }).eq('status', 'scheduled'),
+        (supabase as any).from('email_queue').select('id', { count: 'exact', head: true }).eq('status', 'ready'),
+        (supabase as any)
+          .from('email_queue')
+          .select('id, recipient_name, recipient_email, template_key, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ]);
+      return {
+        pending:   pendingRes.count   ?? 0,
+        scheduled: scheduledRes.count ?? 0,
+        ready:     readyRes.count     ?? 0,
+        recent:    (recentRes.data ?? []) as {
+          id: string; recipient_name: string | null; recipient_email: string;
+          template_key: string; status: string; created_at: string;
+        }[],
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
+// ── Payment snapshot stats ────────────────────────────────────────────────────
+
+function usePaymentSnapshot() {
+  return useQuery({
+    queryKey: ['admin', 'payment-snapshot'],
+    queryFn: async () => {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const [pendingRes, failedRes, refundedRes, todayRes, recentRes] = await Promise.all([
+        (supabase as any).from('payments').select('id', { count: 'exact', head: true }).eq('payment_status', 'pending'),
+        (supabase as any).from('payments').select('id', { count: 'exact', head: true }).eq('payment_status', 'failed'),
+        (supabase as any).from('payments').select('final_amount').eq('payment_status', 'refunded'),
+        (supabase as any).from('payments').select('final_amount, currency').eq('payment_status', 'paid')
+          .gte('created_at', todayStart.toISOString()),
+        (supabase as any)
+          .from('payments')
+          .select('id, payment_reference, customer_name, service_key, final_amount, currency, payment_status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ]);
+
+      const paidTodayAmount = (todayRes.data ?? []).reduce(
+        (acc: number, r: { final_amount: number }) => acc + (r.final_amount ?? 0), 0
+      );
+      const refundedAmount = (refundedRes.data ?? []).reduce(
+        (acc: number, r: { final_amount: number }) => acc + (r.final_amount ?? 0), 0
+      );
+      const currency = (todayRes.data?.[0]?.currency) ?? 'SAR';
+
+      return {
+        pending:          pendingRes.count ?? 0,
+        failed:           failedRes.count  ?? 0,
+        paidTodayAmount,
+        refundedAmount,
+        currency,
+        recent: (recentRes.data ?? []) as {
+          id: string; payment_reference: string; customer_name: string;
+          service_key: string; final_amount: number; currency: string;
+          payment_status: string; created_at: string;
+        }[],
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
+// Last 10 activity_log rows for the homepage "Recent Activity" widget —
+// every logged event here is already a meaningful business action (no page
+// views / trivial pings exist in this table), so the most recent 10 rows
+// are, by construction, the 10 most recent important actions.
+function useRecentActivity() {
+  return useQuery({
+    queryKey: ['admin', 'recent-activity'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('activity_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return ((data ?? []) as ActivityRecord[]).map(enrichActivity);
+    },
+    staleTime: 60_000,
+  });
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
@@ -423,6 +570,254 @@ function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats
       placeholderHint={adminT.dashboard.kpi.placeholderHint}
       columns="grid-cols-2 sm:grid-cols-3 xl:grid-cols-6"
     />
+  );
+}
+
+// ── Email KPI ────────────────────────────────────────────────────────────────
+
+function EmailKpiSection({
+  data,
+  loading,
+}: {
+  data:    ReturnType<typeof useEmailQueueStats>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const kpis: KpiDef[] = [
+    { label: adminT.dashboard.stats.emailPending,   value: data?.pending,   icon: Mail,          accent: 'text-amber-400' },
+    { label: adminT.dashboard.stats.emailScheduled, value: data?.scheduled, icon: CalendarClock, accent: 'text-sky-400'   },
+    { label: adminT.dashboard.stats.emailReady,     value: data?.ready,     icon: CheckCircle2,  accent: 'text-recovery'  },
+  ];
+
+  return (
+    <KpiGrid
+      title={adminT.nav.emailQueue}
+      titleIcon={Mail}
+      kpis={kpis}
+      loading={loading}
+      placeholderHint={adminT.dashboard.kpi.placeholderHint}
+      columns="grid-cols-1 sm:grid-cols-3"
+    />
+  );
+}
+
+// ── Email Queue Snapshot ──────────────────────────────────────────────────────
+
+function EmailQueueSnapshotWidget({
+  data,
+  loading,
+}: {
+  data:    ReturnType<typeof useEmailQueueStats>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const es = adminT.dashboard.emailSnapshot;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <Mail className="size-3 text-admin-text-muted/50" />
+          {es.title}
+        </p>
+        <Link
+          to="/admin/email-queue"
+          className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0"
+        >
+          {es.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      {/* Count chips */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {([
+          { label: es.pending,   value: data?.pending,   color: 'text-amber-400' },
+          { label: es.scheduled, value: data?.scheduled, color: 'text-sky-400'   },
+          { label: es.ready,     value: data?.ready,     color: 'text-recovery'  },
+        ] as const).map((item) => (
+          <div key={item.label} className="text-center p-2.5 bg-white/3 rounded-xl border border-white/5">
+            {loading ? (
+              <div className="h-6 w-8 bg-white/6 rounded animate-pulse mx-auto mb-1" />
+            ) : (
+              <p className={cn('text-xl font-serif-display tabular-nums', item.color)}>
+                {item.value ?? 0}
+              </p>
+            )}
+            <p className="text-[9px] text-admin-text-muted/60 font-arabic mt-0.5">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent events */}
+      <p className="text-[9px] tracking-[0.15em] uppercase text-admin-text-muted/50 mb-2 font-arabic">{es.recentEvents}</p>
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-8 bg-white/4 rounded animate-pulse" />
+          ))}
+        </div>
+      ) : !data?.recent.length ? (
+        <p className="text-[11px] text-admin-text-muted/40 font-arabic text-center py-3">{es.noEvents}</p>
+      ) : (
+        <div className="space-y-1">
+          {data.recent.map((r) => (
+            <div key={r.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/3 transition-colors">
+              <Mail className="size-3 text-admin-text-muted/35 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-admin-text/80 truncate">
+                  {r.recipient_name ?? r.recipient_email}
+                </p>
+                <p className="text-[10px] text-admin-text-muted/50 font-mono truncate">{r.template_key}</p>
+              </div>
+              <span className={cn(
+                'shrink-0 text-[9px] font-arabic px-1.5 py-0.5 rounded border',
+                r.status === 'pending'   ? 'text-amber-400 bg-amber-950/20 border-amber-800/20' :
+                r.status === 'scheduled' ? 'text-sky-400 bg-sky-950/20 border-sky-800/20' :
+                r.status === 'ready'     ? 'text-recovery bg-recovery/8 border-recovery/20' :
+                'text-white/40 bg-white/5 border-white/10',
+              )}>
+                {adminT.emailQueue.statuses[r.status] ?? r.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ── Payment KPI ───────────────────────────────────────────────────────────────
+
+function PaymentKpiSection({
+  data,
+  loading,
+}: {
+  data:    ReturnType<typeof usePaymentSnapshot>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const kpis: KpiDef[] = [
+    { label: adminT.dashboard.stats.paymentPending,   value: data?.pending,          icon: Clock,       accent: 'text-amber-400' },
+    { label: adminT.dashboard.stats.paymentPaidToday, value: data?.paidTodayAmount,  icon: CheckCircle2, accent: 'text-recovery',  isCurrency: true },
+    { label: adminT.dashboard.stats.paymentFailed,    value: data?.failed,           icon: XCircle,      accent: 'text-crimson'   },
+  ];
+
+  return (
+    <KpiGrid
+      title={adminT.nav.payments}
+      titleIcon={CreditCard}
+      kpis={kpis}
+      loading={loading}
+      placeholderHint={adminT.dashboard.kpi.placeholderHint}
+      columns="grid-cols-1 sm:grid-cols-3"
+    />
+  );
+}
+
+// ── Payment Snapshot ──────────────────────────────────────────────────────────
+
+function PaymentSnapshotWidget({
+  data,
+  loading,
+}: {
+  data:    ReturnType<typeof usePaymentSnapshot>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const ps = adminT.dashboard.paymentSnapshot;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <CreditCard className="size-3 text-admin-text-muted/50" />
+          {ps.title}
+        </p>
+        <Link
+          to="/admin/payments"
+          className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0"
+        >
+          {ps.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      {/* Count chips */}
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        {([
+          { label: ps.paidToday, value: data?.paidTodayAmount ?? 0, color: 'text-recovery',  isCurrency: true  },
+          { label: ps.pending,   value: data?.pending          ?? 0, color: 'text-amber-400', isCurrency: false },
+          { label: ps.failed,    value: data?.failed           ?? 0, color: 'text-crimson',   isCurrency: false },
+          { label: ps.refunded,  value: data?.refundedAmount   ?? 0, color: 'text-sky-400',   isCurrency: true  },
+        ] as const).map((item) => (
+          <div key={item.label} className="text-center p-2.5 bg-white/3 rounded-xl border border-white/5">
+            {loading ? (
+              <div className="h-6 w-8 bg-white/6 rounded animate-pulse mx-auto mb-1" />
+            ) : (
+              <p className={cn('text-base font-serif-display tabular-nums', item.color)}>
+                {item.isCurrency
+                  ? `$${(item.value as number).toLocaleString()}`
+                  : item.value}
+              </p>
+            )}
+            <p className="text-[9px] text-admin-text-muted/60 font-arabic mt-0.5 truncate">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent payments list */}
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => <div key={i} className="h-8 bg-white/4 rounded animate-pulse" />)}
+        </div>
+      ) : !data?.recent.length ? (
+        <p className="text-[11px] text-admin-text-muted/40 font-arabic text-center py-3">
+          {ps.noPayments}
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          <p className="text-[9px] uppercase tracking-[0.15em] text-admin-text-muted/50 font-arabic mb-2">
+            {ps.recentPayments}
+          </p>
+          {data.recent.map((r) => (
+            <Link
+              key={r.id}
+              to="/admin/payments"
+              className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/3 transition-colors group"
+            >
+              <div className="min-w-0">
+                <p className="text-[11px] text-admin-text truncate font-arabic">{r.customer_name}</p>
+                <code className="text-[9px] text-admin-text-muted/50 font-mono">{r.payment_reference}</code>
+              </div>
+              <div className="text-end shrink-0">
+                <p className={cn(
+                  'text-[11px] font-mono tabular-nums',
+                  r.payment_status === 'paid'     ? 'text-recovery' :
+                  r.payment_status === 'failed'   ? 'text-crimson'  :
+                  r.payment_status === 'pending'  ? 'text-amber-400' : 'text-white/40'
+                )}>
+                  ${r.final_amount.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-admin-text-muted/40 tabular-nums">
+                  {format(new Date(r.created_at), 'MMM d')}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }
 
@@ -690,6 +1085,86 @@ function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof use
   );
 }
 
+// ── Promo Snapshot ────────────────────────────────────────────────────────────
+
+function PromoSnapshotWidget({
+  data, extra, loading,
+}: {
+  data:    ReturnType<typeof useStats>['data'];
+  extra:   ReturnType<typeof usePromoSnapshotExtra>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const ps = adminT.dashboard.promoSnapshot;
+  const mostUsed = extra?.mostUsed ?? null;
+  const expiring = data?.promoCodesExpiring ?? 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <Tag className="size-3 text-admin-text-muted/50" />
+          {ps.title}
+        </p>
+        <Link to="/admin/promo-codes" className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0">
+          {ps.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.activeCodes}</p>
+          {loading ? (
+            <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">{extra?.activeCount ?? 0}</p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.expiringSoon}</p>
+          {loading ? (
+            <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className={cn('text-base font-serif-display tabular-nums', expiring > 0 ? 'text-amber-400' : 'text-admin-text')}>
+              {expiring}
+            </p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.mostUsedCode}</p>
+          {loading ? (
+            <span className="inline-block w-16 h-5 bg-white/6 rounded animate-pulse" />
+          ) : mostUsed ? (
+            <p className="flex items-center gap-1.5 text-sm text-admin-text">
+              <code className="font-mono text-xs bg-white/6 px-1.5 py-0.5 rounded">{mostUsed.code}</code>
+              <span className="text-[10px] text-admin-text-muted tabular-nums">×{mostUsed.used_count}</span>
+            </p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">{ps.noData}</span>
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.revenueImpact}</p>
+          {loading ? (
+            <span className="inline-block w-14 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">${(extra?.revenueImpact ?? 0).toLocaleString()}</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Session Snapshot ──────────────────────────────────────────────────────────
 
 function useSessionSnapshot() {
@@ -769,11 +1244,11 @@ function SessionSnapshotWidget({
   const ss = adminT.dashboard.sessionSnapshot;
 
   const chips = [
-    { label: ss.todaySessions,  value: data?.todayCount,     accent: 'text-sky-400',    bg: 'bg-sky-950/25 border-sky-800/20'    },
-    { label: ss.upcoming,       value: data?.upcomingCount,  accent: 'text-ember',       bg: 'bg-ember/8 border-ember/20'         },
-    { label: ss.missingLinks,   value: data?.missingLinks,   accent: 'text-amber-400',  bg: 'bg-amber-950/25 border-amber-800/20' },
-    { label: ss.completed,      value: data?.completedCount, accent: 'text-recovery',   bg: 'bg-recovery/8 border-recovery/20'   },
-    { label: ss.cancelled,      value: data?.cancelledCount, accent: 'text-white/35',   bg: 'bg-white/4 border-white/8'          },
+    { label: ss.todaySessions,  value: data?.todayCount,     accent: 'text-sky-400'   },
+    { label: ss.upcoming,       value: data?.upcomingCount,  accent: 'text-ember'      },
+    { label: ss.missingLinks,   value: data?.missingLinks,   accent: 'text-amber-400' },
+    { label: ss.completed,      value: data?.completedCount, accent: 'text-recovery'  },
+    { label: ss.cancelled,      value: data?.cancelledCount, accent: 'text-white/35'  },
   ];
 
   return (
@@ -798,9 +1273,12 @@ function SessionSnapshotWidget({
       </div>
 
       {/* KPI chips */}
-      <div className="grid grid-cols-5 gap-0 border-b border-white/5">
-        {chips.map((c) => (
-          <div key={c.label} className={`flex flex-col items-center justify-center py-3 border-e border-white/5 last:border-e-0`}>
+      <div className="grid grid-cols-5 border-b border-white/5">
+        {chips.map((c, i) => (
+          <div key={c.label} className={cn(
+            'flex flex-col items-center justify-center py-3',
+            i < chips.length - 1 && 'border-e border-white/5'
+          )}>
             {loading ? (
               <span className="inline-block w-6 h-5 bg-white/6 rounded animate-pulse mb-1" />
             ) : (
@@ -838,11 +1316,11 @@ function SessionSnapshotWidget({
               </div>
               <div className="shrink-0 text-right space-y-0.5">
                 <TypeBadgeSmall type={s.session_type} />
-                {s.scheduled_at ? (
+                {s.scheduled_at && (
                   <p className="text-[10px] text-white/25 block">
                     {format(new Date(s.scheduled_at), 'MMM d, HH:mm')}
                   </p>
-                ) : null}
+                )}
               </div>
               {s.meeting_link ? (
                 <Video className="size-3 text-sky-400/50 shrink-0" />
@@ -863,7 +1341,11 @@ export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useStats();
   const { data: revenueExtra, isLoading: revenueExtraLoading } = useRevenueSnapshotExtra();
-  const { data: sessionSnap, isLoading: sessionSnapLoading } = useSessionSnapshot();
+  const { data: promoExtra, isLoading: promoExtraLoading } = usePromoSnapshotExtra();
+  const { data: recentActivity, isLoading: recentActivityLoading } = useRecentActivity();
+  const { data: emailStats,     isLoading: emailStatsLoading     } = useEmailQueueStats();
+  const { data: paymentSnapshot, isLoading: paymentSnapshotLoading } = usePaymentSnapshot();
+  const { data: sessionSnap,    isLoading: sessionSnapLoading    } = useSessionSnapshot();
 
   const stats = [
     {
@@ -977,13 +1459,26 @@ export default function AdminDashboard() {
       {/* Fail Kit KPI row */}
       <FailKitKpiSection data={data} loading={isLoading} />
 
+      {/* Email Queue KPI row */}
+      <EmailKpiSection data={emailStats} loading={isLoading || emailStatsLoading} />
+
+      {/* Payment KPI row */}
+      <PaymentKpiSection data={paymentSnapshot} loading={isLoading || paymentSnapshotLoading} />
+
       {/* Valley Funnel */}
       <FunnelSection data={data} loading={isLoading} />
 
-      {/* Revenue & Workflow snapshots */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-8">
+      {/* Revenue, Workflow & Promo snapshots */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 mb-8">
         <RevenueSnapshotWidget data={data} extra={revenueExtra} loading={isLoading || revenueExtraLoading} />
         <WorkflowSnapshotWidget data={data} loading={isLoading} />
+        <PromoSnapshotWidget data={data} extra={promoExtra} loading={isLoading || promoExtraLoading} />
+      </div>
+
+      {/* Email Queue & Payment snapshots */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-8">
+        <EmailQueueSnapshotWidget data={emailStats} loading={isLoading || emailStatsLoading} />
+        <PaymentSnapshotWidget data={paymentSnapshot} loading={isLoading || paymentSnapshotLoading} />
       </div>
 
       {/* Stat cards */}
@@ -1191,6 +1686,73 @@ export default function AdminDashboard() {
                         </p>
                       )}
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.46, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-admin-card border border-admin-border rounded-2xl overflow-hidden shadow-sm shadow-black/10"
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <Activity className="size-4 text-recovery" />
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.recentActivity}
+              </h2>
+            </div>
+            <Link to="/admin/activity-log" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
+              {adminT.common.viewAll}
+              <ChevronLeft className="size-3" />
+            </Link>
+          </div>
+
+          {recentActivityLoading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : !recentActivity?.length ? (
+            <div className="px-6 py-12 text-center">
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.activity}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {recentActivity.map(({ record, category, actionKey, isCritical }) => {
+                const Icon = CATEGORY_ICONS[category];
+                const route = record.entity_type ? ENTITY_ROUTES[record.entity_type] : undefined;
+                const content = (
+                  <>
+                    <span className={cn('inline-flex items-center justify-center size-8 rounded-lg bg-white/5 shrink-0', CATEGORY_ACCENTS[category])}>
+                      <Icon className="size-3.5" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn('text-sm truncate font-arabic', isCritical ? 'text-crimson font-medium' : 'text-white/80')}>
+                        {adminT.activityLog.actions[actionKey] ?? actionKey}
+                      </p>
+                      <p className="text-[11px] text-white/35 truncate">
+                        {record.admin_email ?? adminT.activityLog.systemActor}
+                      </p>
+                    </div>
+                    <p className="text-[10px] text-white/25 shrink-0">
+                      {format(new Date(record.created_at), 'MMM d, HH:mm')}
+                    </p>
+                  </>
+                );
+                return route ? (
+                  <Link key={record.id} to={route} className="flex items-center gap-3 px-6 py-3 hover:bg-white/3 transition-colors">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={record.id} className="flex items-center gap-3 px-6 py-3">
+                    {content}
                   </div>
                 );
               })}
