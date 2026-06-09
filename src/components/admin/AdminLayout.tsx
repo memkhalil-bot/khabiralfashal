@@ -160,8 +160,12 @@ export function AdminLayout({ children, title, subtitle }: Props) {
 
   const handleSignOut = async () => {
     setSigningOut(true);
-    await signOut();
-    navigate('/admin/login');
+    try {
+      await signOut();
+      navigate('/admin/login');
+    } catch {
+      setSigningOut(false);
+    }
   };
 
   useEffect(() => {

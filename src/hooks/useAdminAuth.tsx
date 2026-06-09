@@ -64,28 +64,29 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // ── Initial session ────────────────────────────────────────────────────────
-    supabase.auth.getSession()
-      .then(async ({ data: { session } }) => {
-        console.log('[AdminAuth] getSession → user:', session?.user?.email ?? 'none');
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          const admin = await checkAdmin(session.user.id);
-          setIsAdmin(admin);
-        }
-        setLoading(false);
-        console.log('[AdminAuth] getSession → loading cleared, isAdmin will update');
-      })
-      .catch((err) => {
-        console.error('[AdminAuth] getSession threw:', err);
-        setLoading(false);
-      });
-
-    // ── Auth state changes (fires on signIn / signOut / token refresh) ─────────
+    // ── Auth state changes ─────────────────────────────────────────────────────
+    // We rely solely on onAuthStateChange (fires INITIAL_SESSION on mount with
+    // the persisted localStorage session, then SIGNED_IN / SIGNED_OUT / etc.).
+    // A separate getSession() call would run checkAdmin() concurrently and
+    // create a race where the slower of the two overwrites isAdmin last.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         console.log('[AdminAuth] onAuthStateChange → event:', _event, '| user:', session?.user?.email ?? 'none');
+
+        // TOKEN_REFRESHED / USER_UPDATED: the JWT rotated but the user and their
+        // role are unchanged — skip the DB round-trip so a transient query error
+        // can never flip isAdmin to false mid-session.
+        if (_event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+          return;
+        }
+
+        // All other events (INITIAL_SESSION, SIGNED_IN, SIGNED_OUT …) need a
+        // fresh role check. Hold loading=true so ProtectedAdminRoute shows the
+        // spinner rather than redirecting while checkAdmin is in-flight.
+        setLoading(true);
         try {
           setSession(session);
           setUser(session?.user ?? null);
