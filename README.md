@@ -1,6 +1,6 @@
 # خبير الفشل — Khabir Al Fashal
 
-A cinematic, dark-themed website for a "Startup Failure Intelligence" practice. Includes a forensic landing page, an in-site psychological founder assessment ("Valley of Death"), a founder-to-founder testimonials rotator, and a Supabase-backed backend (managed via Lovable Cloud).
+A cinematic, dark-themed website for a "Startup Failure Intelligence" practice. Includes a forensic landing page, an in-site psychological founder assessment ("Valley of Death"), a founder-to-founder testimonials rotator, and a Supabase-backed backend.
 
 > **Stack:** React 18 · Vite 5 · TypeScript 5 · Tailwind CSS v3 · shadcn/ui · framer-motion · Supabase (Auth, Postgres, RLS) · React Router v6 · TanStack Query
 
@@ -106,7 +106,7 @@ Two Postgres tables in the `public` schema. Both have RLS enabled and explicit G
 ### `founder_assessments` — submissions from the Valley of Death diagnostic
 
 | Column        | Type        | Notes                                          |
-| ------------- | ----------- | ---------------------------------------------- |
+| ------------- | ----------- | ----------------------------------------------- |
 | `id`          | uuid PK     | `gen_random_uuid()`                            |
 | `email`       | text NOT NULL |                                              |
 | `name`        | text        |                                                |
@@ -146,11 +146,11 @@ Seeded with 5 founder-tone placeholder quotes — replace these any time from th
 
 ## Admin access / viewing submissions
 
-This project **does not ship an in-app admin dashboard**. All admin tasks are performed in the Supabase / Lovable Cloud dashboard for the linked project.
+This project **does not ship an in-app admin dashboard**. All admin tasks are performed in the Supabase dashboard for the linked project.
 
 ### To view assessment submissions
 
-1. Open the Supabase dashboard for project `jdbydwyzydjuyjhgepvz` (in Lovable: **Cloud → Open backend**; in Claude Code: log in at <https://supabase.com/dashboard>).
+1. Open the Supabase dashboard for project `shkdcquwpeexfwmkdnxq` at <https://supabase.com/dashboard>.
 2. Go to **Table Editor → `founder_assessments`** to browse rows.
 3. Or **SQL Editor** for queries / CSV export, e.g.:
    ```sql
@@ -174,7 +174,7 @@ Recommended approach when you build it in Claude Code:
 3. Add SELECT policies on `founder_assessments` that use `public.has_role(auth.uid(), 'admin')`.
 4. Build a protected `/admin` route that lists submissions and lets you edit testimonials.
 
-There's a fuller pattern for this in the original Lovable system prompt; happy to scaffold it on request.
+See `ADMIN_SETUP.md` and `src/hooks/useAdminAuth.tsx` for the implemented pattern (RPC-based role check via `is_current_user_admin()`).
 
 ---
 
@@ -232,22 +232,14 @@ Vite produces a fully static `dist/` folder — deploy it anywhere.
 - **Netlify:** add a `public/_redirects` file with `/* /index.html 200`.
 - **Cloudflare Pages:** add `public/_redirects` with `/* /index.html 200`.
 
-### Lovable
-
-If you want to keep deploying via Lovable instead, just hit **Publish** in the Lovable UI — it handles everything (build, host, custom domain).
-
 ---
 
-## Handing the project to GitHub / Claude Code
-
-From the Lovable UI (top-right): **GitHub → Connect to GitHub → Create Repository**. This pushes the full source — every file in this README's tree, including `supabase/migrations/`, `src/integrations/supabase/*` (auto-generated but committed), `.env` is **not** synced (Lovable manages it; you'll create your own locally).
-
-Then in Claude Code:
+## Cloning this repo
 
 ```bash
 git clone git@github.com:<you>/<repo>.git
 cd <repo>
-cp .env.example .env   # if you create one; otherwise paste the values above
+cp .env.example .env   # then fill in the VITE_SUPABASE_* values
 npm install
 npm run dev
 ```
