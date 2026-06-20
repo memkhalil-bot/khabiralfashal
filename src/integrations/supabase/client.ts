@@ -8,6 +8,10 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error('Missing Supabase environment variables');
 }
 
+if (import.meta.env.DEV) {
+  console.log('[Supabase] active project URL:', SUPABASE_URL);
+}
+
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

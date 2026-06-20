@@ -222,6 +222,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         setLastAuthEvent(_event);
         console.log('[AdminAuth] event:', _event, '| user:', newSession?.user?.email ?? 'none',
           '| current isAdmin:', isAdminRef.current);
+        if (import.meta.env.DEV) {
+          console.log('[AdminAuth] session exists:', !!newSession, '| user id:', newSession?.user?.id ?? 'none');
+        }
 
         // ── Fast path: token rotation does not change admin role ──────────────
         if (_event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED') {
