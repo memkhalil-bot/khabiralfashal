@@ -16,7 +16,7 @@ Condensed pointer doc. Full detail is in [`README.md`](./README.md).
 
 ## 2. Backend (Supabase)
 
-- Project ref: `kryiituxmejqfszinicu`
+- Project ref: `shkdcquwpeexfwmkdnxq`
 - Migrations: `supabase/migrations/` (run in order on any fresh DB)
 - Tables:
   - `founder_assessments` — diagnostic submissions, anon `INSERT` only, no public read
@@ -29,8 +29,8 @@ Condensed pointer doc. Full detail is in [`README.md`](./README.md).
 Create `.env` at project root:
 
 ```env
-VITE_SUPABASE_URL=https://kryiituxmejqfszinicu.supabase.co
-VITE_SUPABASE_PROJECT_ID=kryiituxmejqfszinicu
+VITE_SUPABASE_URL=https://shkdcquwpeexfwmkdnxq.supabase.co
+VITE_SUPABASE_PROJECT_ID=shkdcquwpeexfwmkdnxq
 VITE_SUPABASE_PUBLISHABLE_KEY=<anon key from Supabase dashboard → Settings → API>
 ```
 
@@ -54,6 +54,6 @@ If a real admin UI is needed, scaffold it using a `user_roles` table + `has_role
 
 Static build (`npm run build` → `dist/`) deploys to Vercel / Netlify / Cloudflare Pages. SPA fallback to `/index.html` required. Set the three `VITE_SUPABASE_*` env vars in the host.
 
-## 7. Sync to GitHub
+## 7. Repository
 
-In the Lovable UI: top-right **GitHub → Connect to GitHub → Create Repository**. Then `git clone` in Claude Code and continue.
+This project lives on GitHub. `git clone` it and continue from there.
