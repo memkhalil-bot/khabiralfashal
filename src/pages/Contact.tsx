@@ -94,6 +94,16 @@ export default function Contact() {
       } catch {
         /* fall through to confirmation regardless — never block the founder */
       }
+    } else if (intent && reportContext?.valleyLeadId) {
+      // Non-report Valley CTA (monitor / autopsy / recovery / founder-call / emergency)
+      // — record session interest against the originating valley_lead.
+      (supabase as any)
+        .from('valley_leads')
+        .update({ requested_session: true, session_intent: intent })
+        .eq('id', reportContext.valleyLeadId)
+        .then(() => {})
+        .catch(() => {});
+      await new Promise((r) => setTimeout(r, 900));
     } else {
       await new Promise((r) => setTimeout(r, 900));
     }
