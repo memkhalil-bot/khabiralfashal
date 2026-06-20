@@ -168,9 +168,10 @@ export function AssessmentResult({
   labels,
   onReset,
 }: Props) {
-  // CTAs with intent "report" carry the assessment context to /contact so the
-  // submission can be linked back to this exact valley_lead / assessment row.
-  const ctaState = (intent: string) => (intent === 'report' ? reportContext : undefined);
+  // Every CTA carries the assessment context to /contact so the submission
+  // (report request, or session-intent tracking) can be linked back to this
+  // exact valley_lead / assessment row.
+  const ctaState = (_intent: string) => reportContext;
 
   const accent =
     riskBucket === 'high'   ? 'text-red-400'
