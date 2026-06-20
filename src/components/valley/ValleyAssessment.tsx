@@ -679,6 +679,9 @@ export function ValleyAssessment() {
             sector: form.sector || null,
             startup_stage: form.stageField || null,
             last_question_index: 0,
+            current_step: 0,
+            progress_percentage: 0,
+            risk_score_so_far: 0,
             completed: false,
           })
           .select('id')
@@ -721,6 +724,22 @@ export function ValleyAssessment() {
 
     const newAnswers = { ...answers, [q.id]: weight };
     setAnswers(newAnswers);
+
+    // Fire-and-forget: persist step progress after every answer
+    if (valleyLeadId.current) {
+      const stepReached = idx + 1;
+      const scoreSoFar = Object.values(newAnswers).reduce((s, v) => s + v, 0);
+      void (supabase as any)
+        .from('valley_leads')
+        .update({
+          current_step: stepReached,
+          last_question_index: stepReached,
+          progress_percentage: Math.round((stepReached / total) * 100),
+          risk_score_so_far: scoreSoFar,
+        })
+        .eq('id', valleyLeadId.current);
+    }
+
     setTimeout(() => {
       if (idx + 1 >= total) doFinalize(newAnswers);
       else setIdx(i => i + 1);
@@ -776,6 +795,9 @@ export function ValleyAssessment() {
             completed: true,
             completed_at: new Date().toISOString(),
             last_question_index: QUESTIONS.length,
+            current_step: QUESTIONS.length,
+            progress_percentage: 100,
+            risk_score_so_far: fs,
             risk_score: fs,
             risk_level: v.level,
             primary_failure_mode: bs[0] ?? null,
