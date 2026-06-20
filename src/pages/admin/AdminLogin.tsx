@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AuthDebugOverlay } from '@/components/admin/AuthDebugOverlay';
 import { Flame, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -178,6 +179,7 @@ export default function AdminLogin() {
           </a>
         </p>
       </motion.div>
+      <AuthDebugOverlay />
     </div>
   );
 }

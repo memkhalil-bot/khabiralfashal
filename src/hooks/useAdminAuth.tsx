@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
+import { recordSignOutCall } from '@/lib/adminAuthDebugLog';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -258,6 +259,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   // ── signOut ───────────────────────────────────────────────────────────────────
   const signOut = async (): Promise<void> => {
+    recordSignOutCall('useAdminAuth.tsx:signOut');
     await supabase.auth.signOut();
     // SIGNED_OUT event will clean up the rest; these are immediate safeguards.
     setIsAdmin(false);

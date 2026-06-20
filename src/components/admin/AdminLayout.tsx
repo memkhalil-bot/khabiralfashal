@@ -4,6 +4,7 @@ import { useAdminTheme } from '@/hooks/useAdminTheme';
 import { useAdminLanguage, type AdminLanguage } from '@/hooks/useAdminLanguage';
 import { adminT as adminTAr } from '@/i18n/adminTranslations';
 import { AuthDebugOverlay } from '@/components/admin/AuthDebugOverlay';
+import { recordSignOutCall } from '@/lib/adminAuthDebugLog';
 import {
   LayoutDashboard,
   MessageSquareQuote,
@@ -160,6 +161,7 @@ export function AdminLayout({ children, title, subtitle }: Props) {
   };
 
   const handleSignOut = async () => {
+    recordSignOutCall('AdminLayout.tsx:handleSignOut (user clicked Sign Out)');
     setSigningOut(true);
     try {
       await signOut();

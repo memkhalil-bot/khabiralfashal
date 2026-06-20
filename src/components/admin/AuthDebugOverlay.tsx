@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { getLastRedirect } from '@/lib/adminAuthDebugLog';
 
 /**
  * Temporary auth debug overlay.
@@ -49,6 +50,7 @@ export function AuthDebugOverlay() {
   const lastCheckAgo = lastRoleCheckAt != null
     ? Math.floor((Date.now() - lastRoleCheckAt) / 1000)
     : null;
+  const lastRedirect = getLastRedirect();
 
   type Row = [string, string, string?];
   const rows: Row[] = [
@@ -68,6 +70,9 @@ export function AuthDebugOverlay() {
     ['expiresIn',     expiresIn != null ? `${expiresIn}s` : '—',
                       expiresIn != null && expiresIn < 300 ? 'warn' : undefined],
     ['refreshCount',  String(tokenRefreshCount)],
+    ['lastRedirect',  lastRedirect ? lastRedirect.reason : '—', lastRedirect ? 'err' : 'ok'],
+    ['redirectRoute', lastRedirect ? lastRedirect.route : '—'],
+    ['redirectTime',  lastRedirect ? new Date(lastRedirect.timestamp).toLocaleTimeString() : '—'],
   ];
 
   const colorOf = (status?: string) => {

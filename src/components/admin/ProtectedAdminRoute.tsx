@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AuthDebugOverlay } from '@/components/admin/AuthDebugOverlay';
+import { recordRedirect } from '@/lib/adminAuthDebugLog';
 
 function VerifyingSpinner() {
   return (
@@ -86,15 +87,15 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
 
   if (!user || !isAdmin) {
     const reason = !user ? 'no-user' : 'not-admin';
-    console.warn('[ProtectedAdminRoute] → /admin/login', {
+    recordRedirect('ProtectedAdminRoute.tsx', {
       reason,
-      path: location.pathname,
-      userExists: !!user,
-      sessionExists: !!session,
+      route: location.pathname,
+      user: user?.email ?? null,
+      session: !!session,
       isAdmin,
       loading,
-      sessionChecked,
       roleChecked,
+      sessionChecked,
       roleCheckError,
       lastAuthEvent,
       lastRoleError,
