@@ -113,7 +113,7 @@ function ProgressBar({ current }: { current: number | null }) {
 
 export default function AdminValleyLeads() {
   const { t: adminT } = useAdminLanguage();
-  const { data: leads = [], isLoading } = useValleyLeads();
+  const { data: leads = [], isLoading, error } = useValleyLeads();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('ALL');
 
@@ -140,6 +140,12 @@ export default function AdminValleyLeads() {
 
   return (
     <AdminLayout title={adminT.valleyLeads.title} subtitle={adminT.valleyLeads.subtitle}>
+
+      {error && (
+        <div className="mb-6 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
+          <strong>{adminT.common.error}:</strong> {(error as Error)?.message}
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
