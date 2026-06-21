@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 import { recordSignOutCall } from '@/lib/adminAuthDebugLog';
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────
 
 interface CheckAdminResult {
   isAdmin: boolean;
@@ -21,14 +21,14 @@ interface CheckAdminResult {
 }
 
 export interface AdminAuthState {
-  // ── Core auth ────────────────────────────────────────────────────────────────
+  // ── Core auth ──────────────────────────────────────────────
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
   loading: boolean;
   authError: string | null;
 
-  // ── Gate flags used by ProtectedAdminRoute ──────────────────────────────────
+  // ── Gate flags used by ProtectedAdminRoute ────────────────────────────────
   sessionChecked: boolean; // INITIAL_SESSION has fired
   roleChecked: boolean;    // checkAdmin completed (success or definitive failure)
   roleChecking: boolean;   // checkAdmin currently in-flight
@@ -37,13 +37,13 @@ export interface AdminAuthState {
   /** non-blocking: role check failed but a cached/prior admin result kept access alive */
   staleRoleWarning: string | null;
 
-  // ── Debug telemetry ──────────────────────────────────────────────────────────
+  // ── Debug telemetry ────────────────────────────────────────────────
   lastAuthEvent: string | null;
   lastRoleError: string | null;
   lastRoleCheckAt: number | null;
   tokenRefreshCount: number;
 
-  // ── Actions ──────────────────────────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
@@ -83,7 +83,7 @@ const devError = (...args: unknown[]) => {
 // that was already confirmed admin.
 const adminRoleCache = new Map<string, boolean>();
 
-// ── Provider ───────────────────────────────────────────────────────────────────
+// ── Provider ──────────────────────────────────────────────────────
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]             = useState<User | null>(null);
@@ -107,12 +107,18 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const isAdminRef = useRef(false);
   isAdminRef.current = isAdmin;
 
+  // Same reason as isAdminRef: the onAuthStateChange closure below is created
+  // once (its effect deps never change) so it would otherwise see roleChecked
+  // frozen at its initial `false` value forever.
+  const roleCheckedRef = useRef(false);
+  roleCheckedRef.current = roleChecked;
+
   // Set while signIn() is driving its own explicit role check, so the
   // onAuthStateChange SIGNED_IN handler doesn't run a second, redundant
   // (and potentially racy) check for the same login.
   const signInInProgressRef = useRef(false);
 
-  // ── checkAdmin: calls the is_current_user_admin() RPC, with retry ────────────
+  // ── checkAdmin: calls the is_current_user_admin() RPC, with retry ─────────
   //
   // This replaces the old `.from('user_roles').select(...)` query, which was
   // timing out repeatedly in production and cascading into login/dashboard
@@ -169,7 +175,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     return { isAdmin: false, isError: true, errorDetail: 'exceeded retries' };
   }, []);
 
-  // ── runRoleCheck: shared by the auth listener and signIn() ───────────────────
+  // ── runRoleCheck: shared by the auth listener and signIn() ─────────────
   //
   // Outcomes:
   //   - RPC succeeds                    → definitive result, cache it
@@ -221,7 +227,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     return { isAdmin: adminResult, isError, errorDetail };
   }, [checkAdmin]);
 
-  // ── Single auth listener — no separate getSession() call ─────────────────────
+  // ── Single auth listener — no separate getSession() call ─────────────
   //
   // Using onAuthStateChange alone eliminates the race condition where both
   // getSession() and INITIAL_SESSION would call checkAdmin() concurrently and
@@ -231,7 +237,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   //   TOKEN_REFRESHED / USER_UPDATED → JWT rotated, role unchanged. Skip checkAdmin.
   //   SIGNED_OUT                     → clear all state immediately.
   //   SIGNED_IN (from signIn())      → role check already run explicitly by signIn(); skip.
-  //   INITIAL_SESSION / SIGNED_IN    → full role check with retry + cache fallback.
+  //   First verification this session → full, blocking role check.
+  //   Re-fired event after admin access already confirmed (e.g. Supabase
+  //     re-emitting SIGNED_IN/INITIAL_SESSION on tab refocus) → background
+  //     revalidation only. loading/roleChecking are NOT touched, otherwise
+  //     ProtectedAdminRoute would flash back to "Verifying Access" for a
+  //     session that was already granted.
   //
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -241,7 +252,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           '| current isAdmin:', isAdminRef.current);
         devLog('session', newSession ? 'found' : 'missing', '| user id:', newSession?.user?.id ?? 'none');
 
-        // ── Fast path: token rotation does not change admin role ──────────────
+        // ── Fast path: token rotation does not change admin role ────────────
         if (_event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED') {
           setSession(newSession);
           setUser(newSession?.user ?? null);
@@ -251,7 +262,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // ── Signed out ────────────────────────────────────────────────────────
+        // ── Signed out ─────────────────────────────────────────
         if (!newSession?.user) {
           setSession(null);
           setUser(null);
@@ -277,25 +288,50 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // ── INITIAL_SESSION / SIGNED_IN: full role check ──────────────────────
-        //
-        // loading=true gates ProtectedAdminRoute into the spinner state so it
-        // cannot redirect while the RPC is in-flight.
-        setLoading(true);
-        setRoleChecking(true);
         setSession(newSession);
         setUser(newSession.user);
         setSessionChecked(true);
 
+        // ── Revalidation: admin access was already confirmed this session ────
+        //
+        // Run the RPC in the background without blocking the UI. Failures are
+        // already handled non-destructively by runRoleCheck (cache/ref
+        // fallback + staleRoleWarning), so a timeout here cannot send the user
+        // back to "Verifying Access".
+        if (roleCheckedRef.current && isAdminRef.current) {
+          const revalidatingEmail = newSession.user.email;
+          devLog('revalidation started (event:', _event, ') — admin already granted, not blocking UI');
+          void runRoleCheck(newSession.user.id, `${_event}_BACKGROUND_REVALIDATE`).then(result => {
+            if (revalidatingEmail === TRUSTED_ADMIN_EMAIL && !result.isAdmin) {
+              devWarn('trusted admin email — keeping access stable despite revalidation result');
+              setIsAdmin(true);
+              isAdminRef.current = true;
+              adminRoleCache.set(newSession.user.id, true);
+              setAuthError(null);
+              setRoleCheckError(false);
+            }
+            devLog('revalidation result (event:', _event, ') — isAdmin:', result.isAdmin, 'isError:', result.isError);
+          });
+          return;
+        }
+
+        // ── First verification this session: full, blocking role check ─────
+        //
+        // loading=true gates ProtectedAdminRoute into the spinner state so it
+        // cannot redirect while the RPC is in-flight.
+        devLog('admin access not yet confirmed — running blocking role check (event:', _event, ')');
+        setLoading(true);
+        setRoleChecking(true);
         await runRoleCheck(newSession.user.id, _event);
         setLoading(false);
+        devLog('admin access check settled (event:', _event, ') — isAdmin:', isAdminRef.current);
       }
     );
 
     return () => subscription.unsubscribe();
   }, [runRoleCheck]);
 
-  // ── signIn ────────────────────────────────────────────────────────────────────
+  // ── signIn ───────────────────────────────────────────────────────
   //
   // Does not wait on onAuthStateChange to determine admin status: once
   // signInWithPassword succeeds, it runs the role-check RPC directly and
@@ -375,7 +411,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ── signOut ───────────────────────────────────────────────────────────────────
+  // ── signOut ───────────────────────────────────────────────────────
   const signOut = async (): Promise<void> => {
     recordSignOutCall('useAdminAuth.tsx:signOut');
     if (user) adminRoleCache.delete(user.id);

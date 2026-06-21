@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AuthDebugOverlay } from '@/components/admin/AuthDebugOverlay';
 import { recordRedirect } from '@/lib/adminAuthDebugLog';
+
+// Dev-only step logging — no-ops in production builds.
+const devLog = (...args: unknown[]) => {
+  if (import.meta.env.DEV) console.log('[ProtectedAdminRoute]', ...args);
+};
 
 function VerifyingSpinner() {
   return (
@@ -60,6 +66,11 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
   } = useAdminAuth();
   const location = useLocation();
 
+  useEffect(() => {
+    devLog('route guard mounted for', location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Auth is settled only when:
   // 1. loading is false
   // 2. INITIAL_SESSION has fired (sessionChecked)
@@ -67,6 +78,10 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
   const authSettled = !loading && sessionChecked && (!session || roleChecked);
 
   if (!authSettled || roleChecking) {
+    devLog('showing Verifying Access —', {
+      reason: !authSettled ? 'auth not settled' : 'role check in-flight',
+      loading, sessionChecked, roleChecked, roleChecking, session: !!session,
+    });
     return (
       <>
         <VerifyingSpinner />
