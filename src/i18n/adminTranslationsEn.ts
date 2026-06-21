@@ -36,7 +36,12 @@ export const adminTEn = {
   dashboard: {
     title:     'Overview',
     subtitle:  'Failure Expert — Admin Dashboard',
-    errorHint: 'Make sure the database migration has been applied and the user ID added to the table',
+    errorHint: 'Something went wrong while loading the dashboard data. Try refreshing the page, and contact technical support if the issue continues.',
+    quickLinksTitle: 'Quick Links',
+    sections: {
+      quickStats:     'Quick Stats',
+      recentActivity: 'Recent Activity',
+    },
     funnel: {
       title:             'Death Valley Funnel',
       visitors:          'Valley Visitors',
@@ -141,6 +146,12 @@ export const adminTEn = {
       ready:        'Ready',
       recentEvents: 'Recent Events',
       noEvents:     'No events yet',
+    },
+    emptyHint: {
+      submissions: 'New founder submissions will appear here as soon as they come in',
+      sessions:    'Upcoming scheduled sessions will appear here',
+      followUps:   'Pending follow-ups will appear here once added',
+      reportQueue: 'New report requests will appear here automatically',
     },
     revenueSnapshot: {
       title:         'Revenue Snapshot',
@@ -573,6 +584,7 @@ export const adminTEn = {
     emptyHint: 'Valley leads will be tracked automatically once diagnostics begin',
     progress: 'Question',
     of: 'of',
+    resultsLabel: 'leads',
   },
   reportQueue: {
     title:    'Report Queue',

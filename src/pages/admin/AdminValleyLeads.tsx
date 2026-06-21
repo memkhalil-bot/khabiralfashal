@@ -12,6 +12,7 @@ import {
   FileText,
   CalendarPlus,
   ChevronDown,
+  Minus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -180,9 +181,10 @@ export default function AdminValleyLeads() {
       {/* Table */}
       <div className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_80px_80px_80px] gap-4 px-6 py-3 border-b border-white/5 text-[10px] text-white/30 uppercase tracking-wider font-arabic">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px_80px_80px] gap-4 px-6 py-3 border-b border-white/5 text-[10px] text-white/30 uppercase tracking-wider font-arabic">
           <span>{adminT.valleyLeads.table.lead}</span>
           <span>{adminT.valleyLeads.table.company}</span>
+          <span>{adminT.valleyLeads.table.country}</span>
           <span>{adminT.valleyLeads.table.progress}</span>
           <span>{adminT.valleyLeads.table.status}</span>
           <span>{adminT.valleyLeads.table.risk}</span>
@@ -210,7 +212,7 @@ export default function AdminValleyLeads() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.03 }}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_80px_80px_80px] gap-4 px-6 py-4 items-center hover:bg-white/2 transition-colors"
+                className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px_80px_80px] gap-4 px-6 py-4 items-center hover:bg-white/2 transition-colors"
               >
                 {/* Lead */}
                 <div className="min-w-0">
@@ -232,6 +234,11 @@ export default function AdminValleyLeads() {
                   {lead.company || '—'}
                 </span>
 
+                {/* Country */}
+                <span className="text-sm text-white/50 truncate font-arabic">
+                  {lead.country || '—'}
+                </span>
+
                 {/* Progress */}
                 <ProgressBar current={lead.last_question_index} />
 
@@ -242,13 +249,13 @@ export default function AdminValleyLeads() {
                 <RiskBadge level={lead.risk_level} />
 
                 {/* Report */}
-                <span className={cn('text-[10px] font-arabic text-center', lead.requested_report ? 'text-violet-400' : 'text-white/20')}>
-                  {lead.requested_report ? '✓' : '—'}
+                <span className={cn('flex items-center justify-center', lead.requested_report ? 'text-violet-400' : 'text-white/20')}>
+                  {lead.requested_report ? <CheckCircle2 className="size-3.5" /> : <Minus className="size-3.5" />}
                 </span>
 
                 {/* Session */}
-                <span className={cn('text-[10px] font-arabic text-center', lead.requested_session ? 'text-recovery' : 'text-white/20')}>
-                  {lead.requested_session ? '✓' : '—'}
+                <span className={cn('flex items-center justify-center', lead.requested_session ? 'text-recovery' : 'text-white/20')}>
+                  {lead.requested_session ? <CheckCircle2 className="size-3.5" /> : <Minus className="size-3.5" />}
                 </span>
               </motion.div>
             ))}
@@ -259,7 +266,7 @@ export default function AdminValleyLeads() {
         {!isLoading && filtered.length > 0 && (
           <div className="px-6 py-3 border-t border-white/5">
             <p className="text-[10px] text-white/20 font-arabic">
-              {filtered.length} من {leads.length} عميل
+              {filtered.length} {adminT.valleyLeads.of} {leads.length} {adminT.valleyLeads.resultsLabel}
             </p>
           </div>
         )}
