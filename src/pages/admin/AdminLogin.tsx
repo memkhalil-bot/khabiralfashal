@@ -4,8 +4,14 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Flame, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// If onAuthStateChange doesn't resolve within this many ms after signIn, reset UI.
-const SUBMIT_TIMEOUT_MS = 12_000;
+// Hard ceiling on the whole sign-in attempt (signInWithPassword + role check).
+// Races against signIn() itself — must exceed useAdminAuth's own worst-case
+// RPC retry budget (~13.5s) so a slow-but-successful check isn't cut off.
+const SUBMIT_TIMEOUT_MS = 16_000;
+
+const devLog = (...args: unknown[]) => {
+  if (import.meta.env.DEV) console.log('[AdminLogin]', ...args);
+};
 
 export default function AdminLogin() {
   const { signIn, user, isAdmin, loading, authError } = useAdminAuth();
@@ -20,7 +26,7 @@ export default function AdminLogin() {
   // ── Redirect when authenticated as admin ────────────────────────────────────
   useEffect(() => {
     if (!loading && user && isAdmin) {
-      console.log('[AdminLogin] redirect → /admin (loading:', loading, 'user:', user.email, 'isAdmin:', isAdmin, ')');
+      devLog('navigation start → /admin (user:', user.email, ')');
       navigate('/admin', { replace: true });
     }
   }, [user, isAdmin, loading, navigate]);
@@ -30,21 +36,32 @@ export default function AdminLogin() {
   // was never shown while the form was in the submitting state.
   useEffect(() => {
     if (!loading && authError) {
-      console.log('[AdminLogin] authError effect →', authError);
+      devLog('authError effect →', authError);
       setError(authError);
       setSubmitting(false);
     }
   }, [authError, loading]);
 
   // ── Submit ───────────────────────────────────────────────────────────────────
+  //
+  // signIn() always settles with a definitive { error } result (see
+  // useAdminAuth.tsx), but as a hard backstop this races it against
+  // SUBMIT_TIMEOUT_MS so the button can never be stuck on "Signing In…"
+  // indefinitely, even if something upstream regresses.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    console.log('[AdminLogin] handleSubmit → calling signIn for:', email);
+    devLog('submit → calling signIn for:', email);
 
-    const { error: signInError } = await signIn(email, password);
-    console.log('[AdminLogin] handleSubmit → signIn resolved | error:', signInError ?? 'none');
+    const timeout = new Promise<{ error: string }>((resolve) => {
+      setTimeout(() => {
+        resolve({ error: 'Authentication is taking too long. Check your network connection and try again.' });
+      }, SUBMIT_TIMEOUT_MS);
+    });
+
+    const { error: signInError } = await Promise.race([signIn(email, password), timeout]);
+    devLog('submit settled → error:', signInError ?? 'none');
 
     if (signInError) {
       setError(signInError);
@@ -52,16 +69,9 @@ export default function AdminLogin() {
       return;
     }
 
-    // onAuthStateChange will pick up the new session and call setLoading(false).
-    // Guard against it never firing (network stall, etc.).
-    const bailout = setTimeout(() => {
-      console.warn('[AdminLogin] submit timeout → onAuthStateChange did not resolve in', SUBMIT_TIMEOUT_MS, 'ms');
-      setError('Authentication timed out. Check your network connection and try again.');
-      setSubmitting(false);
-    }, SUBMIT_TIMEOUT_MS);
-
-    // Clear the bailout if the component unmounts (successful redirect).
-    return () => clearTimeout(bailout);
+    // Success: the redirect effect above will navigate once isAdmin/user
+    // are reflected in context (typically already true by this point).
+    setSubmitting(false);
   };
 
   return (
