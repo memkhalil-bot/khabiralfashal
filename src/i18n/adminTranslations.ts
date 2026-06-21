@@ -28,6 +28,16 @@ export const adminT = {
     workflowAnalytics: 'تحليلات سير العمل',
     emailQueue:      'قائمة البريد',
     payments:        'المدفوعات',
+    calendar:        'التقويم',
+  },
+  calendar: {
+    title:          'التقويم',
+    subtitle:       'جدول الجلسات المؤكدة',
+    today:          'اليوم',
+    empty:          'لا توجد جلسات مجدولة',
+    emptyHint:      'ستظهر الجلسات المؤكدة هنا بعد جدولتها من صفحة طلبات الحجز',
+    errorHint:      'تعذّر تحميل بيانات التقويم. حاول تحديث الصفحة.',
+    viewInBookings: 'عرض في طلبات الحجز',
   },
   actionCenter: {
     title:    'مركز الإجراءات',
