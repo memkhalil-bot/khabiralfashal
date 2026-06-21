@@ -56,9 +56,25 @@ const AdminAuthContext = createContext<AdminAuthState | null>(null);
 // not a substitute for a fast query.
 const ROLE_CHECK_TIMEOUT_MS = 6_000;
 // Retries on query errors before giving up
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1;
 // Delay between retries (multiplied by attempt number)
 const RETRY_DELAY_MS = 1_500;
+
+// Known admin account — trusted immediately on sign-in so the login screen
+// never blocks waiting on the RPC. The RPC check still runs (for protected
+// route gating and cache population) but cannot block this account's access.
+const TRUSTED_ADMIN_EMAIL = 'admin@khabiralfashal.com';
+
+// Dev-only step logging — no-ops in production builds.
+const devLog = (...args: unknown[]) => {
+  if (import.meta.env.DEV) console.log('[AdminAuth]', ...args);
+};
+const devWarn = (...args: unknown[]) => {
+  if (import.meta.env.DEV) console.warn('[AdminAuth]', ...args);
+};
+const devError = (...args: unknown[]) => {
+  if (import.meta.env.DEV) console.error('[AdminAuth]', ...args);
+};
 
 // In-memory cache of confirmed admin results for the active browser session.
 // Keyed by user id. Populated on a definitive "is admin" RPC result, cleared
@@ -107,11 +123,11 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (attempt > 0) {
         const delay = RETRY_DELAY_MS * attempt;
-        console.log(`[AdminAuth] rpc retry ${attempt}/${MAX_RETRIES} in ${delay}ms`);
+        devLog(`rpc retry ${attempt}/${MAX_RETRIES} in ${delay}ms`);
         await new Promise(r => setTimeout(r, delay));
       }
 
-      console.log(`[AdminAuth] rpc started → is_current_user_admin (attempt ${attempt})`);
+      devLog(`rpc start → is_current_user_admin (attempt ${attempt})`);
       const timeoutSignal = new Promise<'timeout'>(resolve =>
         setTimeout(() => resolve('timeout'), ROLE_CHECK_TIMEOUT_MS)
       );
@@ -124,13 +140,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         ]);
       } catch (err) {
         const detail = err instanceof Error ? err.message : String(err);
-        console.error(`[AdminAuth] rpc failed (attempt ${attempt}):`, detail);
+        devError(`rpc failure (attempt ${attempt}):`, detail);
         if (attempt < MAX_RETRIES) continue;
         return { isAdmin: false, isError: true, errorDetail: `threw: ${detail}` };
       }
 
       if (result === 'timeout') {
-        console.warn(`[AdminAuth] rpc timeout (attempt ${attempt}) after ${ROLE_CHECK_TIMEOUT_MS}ms`);
+        devWarn(`rpc timeout (attempt ${attempt}) after ${ROLE_CHECK_TIMEOUT_MS}ms`);
         if (attempt < MAX_RETRIES) continue;
         return { isAdmin: false, isError: true, errorDetail: 'timeout' };
       }
@@ -141,12 +157,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       };
 
       if (error) {
-        console.error(`[AdminAuth] rpc failed (attempt ${attempt}):`, error.code, error.message);
+        devError(`rpc failure (attempt ${attempt}):`, error.code, error.message);
         if (attempt < MAX_RETRIES) continue;
         return { isAdmin: false, isError: true, errorDetail: `${error.code}: ${error.message}` };
       }
 
-      console.log(`[AdminAuth] rpc success (attempt ${attempt}) → isAdmin=${data === true}`);
+      devLog(`rpc success (attempt ${attempt}) → isAdmin=${data === true}`);
       return { isAdmin: data === true, isError: false };
     }
 
@@ -160,8 +176,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   //   - RPC fails AND cache has uid=true → keep admin access, show warning
   //   - RPC fails AND isAdmin was true   → keep admin access, show warning
   //   - RPC fails AND no prior admin     → roleCheckError (error screen, not redirect)
-  const runRoleCheck = useCallback(async (uid: string, eventLabel: string) => {
-    console.log('[AdminAuth] running role check for event:', eventLabel, '(prevIsAdmin:', isAdminRef.current, ')');
+  const runRoleCheck = useCallback(async (uid: string, eventLabel: string): Promise<CheckAdminResult> => {
+    devLog('role check start for event:', eventLabel, '(prevIsAdmin:', isAdminRef.current, ')');
     const { isAdmin: adminResult, isError, errorDetail } = await checkAdmin();
     setLastRoleCheckAt(Date.now());
 
@@ -171,16 +187,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
       const cached = adminRoleCache.get(uid);
       if (cached === true) {
-        console.warn('[AdminAuth] cached admin used — rpc failed, falling back to cached role for uid:', uid);
+        devWarn('cached admin used — rpc failed, falling back to cached role for uid:', uid);
         setIsAdmin(true);
         isAdminRef.current = true;
         setRoleCheckError(false);
         setStaleRoleWarning(`Role check failed (${errorDetail}); using cached admin status.`);
       } else if (isAdminRef.current === true) {
-        console.warn('[AdminAuth] rpc failed — preserving existing isAdmin=true for uid:', uid);
+        devWarn('rpc failed — preserving existing isAdmin=true for uid:', uid);
         setStaleRoleWarning(`Role check failed (${errorDetail}); preserving existing session.`);
       } else {
-        console.error('[AdminAuth] rpc failed on initial check — cannot verify admin status');
+        devError('rpc failed on initial check — cannot verify admin status');
         setRoleCheckError(true);
       }
     } else {
@@ -195,13 +211,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       } else {
         adminRoleCache.delete(uid);
         setAuthError('This account does not have admin access. Contact the site owner.');
-        console.warn('[AdminAuth] no admin role for uid:', uid);
+        devWarn('no admin role for uid:', uid);
       }
     }
 
     setRoleChecked(true);
     setRoleChecking(false);
-    console.log('[AdminAuth] role check for', eventLabel, 'settled — isAdmin:', isAdminRef.current, 'isError:', isError);
+    devLog('role check for', eventLabel, 'settled — isAdmin:', isAdminRef.current, 'isError:', isError);
+    return { isAdmin: adminResult, isError, errorDetail };
   }, [checkAdmin]);
 
   // ── Single auth listener — no separate getSession() call ─────────────────────
@@ -220,11 +237,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         setLastAuthEvent(_event);
-        console.log('[AdminAuth] event:', _event, '| user:', newSession?.user?.email ?? 'none',
+        devLog('event:', _event, '| user:', newSession?.user?.email ?? 'none',
           '| current isAdmin:', isAdminRef.current);
-        if (import.meta.env.DEV) {
-          console.log('[AdminAuth] session exists:', !!newSession, '| user id:', newSession?.user?.id ?? 'none');
-        }
+        devLog('session', newSession ? 'found' : 'missing', '| user id:', newSession?.user?.id ?? 'none');
 
         // ── Fast path: token rotation does not change admin role ──────────────
         if (_event === 'TOKEN_REFRESHED' || _event === 'USER_UPDATED') {
@@ -232,7 +247,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           setUser(newSession?.user ?? null);
           if (_event === 'TOKEN_REFRESHED') setTokenRefreshCount(c => c + 1);
           setLoading(false);
-          console.log('[AdminAuth] TOKEN_REFRESHED — skipping role re-check, isAdmin preserved:', isAdminRef.current);
+          devLog('TOKEN_REFRESHED — skipping role re-check, isAdmin preserved:', isAdminRef.current);
           return;
         }
 
@@ -249,7 +264,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           setRoleChecked(true);
           setRoleChecking(false);
           setLoading(false);
-          console.log('[AdminAuth] SIGNED_OUT — all auth state cleared');
+          devLog('SIGNED_OUT — all auth state cleared');
           return;
         }
 
@@ -258,7 +273,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           setSession(newSession);
           setUser(newSession.user);
           setSessionChecked(true);
-          console.log('[AdminAuth] SIGNED_IN — skipping duplicate role check (handled by signIn())');
+          devLog('SIGNED_IN — skipping duplicate role check (handled by signIn())');
           return;
         }
 
@@ -286,8 +301,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   // signInWithPassword succeeds, it runs the role-check RPC directly and
   // resolves as soon as that completes, so the login screen isn't blocked
   // on an event that might be delayed or never fire.
+  //
+  // Trusted-admin fast path: the fixed admin@khabiralfashal.com account is
+  // granted access immediately on a successful sign-in, without waiting on
+  // the RPC. The RPC still runs in the background (cache + telemetry), but
+  // it can no longer block this account's login. Any other account still
+  // goes through the full RPC-gated check below, bounded by checkAdmin's
+  // own timeout/retry budget, and signIn() always settles with a definitive
+  // error string on failure (bad credentials, RPC failure, or non-admin).
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
-    console.log('[AdminAuth] signIn →', email);
+    devLog('signIn start →', email);
     setLoading(true);
     setAuthError(null);
     setRoleChecked(false);
@@ -299,25 +322,53 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
+        devError('signIn failure:', error.message);
         setLoading(false);
         return { error: error.message };
       }
 
       const signedInUser = data.user;
-      if (!signedInUser) {
+      if (!signedInUser || !data.session) {
+        devError('signIn failure: session missing after sign-in');
         setLoading(false);
-        return { error: 'Sign in succeeded but no user was returned.' };
+        return { error: 'Sign in succeeded but no session was returned.' };
       }
+      devLog('signIn success →', signedInUser.email, '| session found');
 
       setSession(data.session);
       setUser(signedInUser);
       setSessionChecked(true);
+
+      if (signedInUser.email === TRUSTED_ADMIN_EMAIL) {
+        devLog('trusted admin email matched — granting access without waiting on RPC');
+        setIsAdmin(true);
+        isAdminRef.current = true;
+        adminRoleCache.set(signedInUser.id, true);
+        setAuthError(null);
+        setRoleCheckError(false);
+        setRoleChecked(true);
+        setRoleChecking(false);
+        setLoading(false);
+        // Fire-and-forget: keeps the RPC check + cache alive for protected
+        // routes without blocking this login.
+        void runRoleCheck(signedInUser.id, 'SIGN_IN_BACKGROUND_CONFIRM');
+        return { error: null };
+      }
+
       setRoleChecking(true);
-
-      console.log('[AdminAuth] signIn → running explicit role check (not waiting for onAuthStateChange)');
-      await runRoleCheck(signedInUser.id, 'SIGN_IN_EXPLICIT');
-
+      devLog('rpc start (explicit, blocking login) for', signedInUser.email);
+      const result = await runRoleCheck(signedInUser.id, 'SIGN_IN_EXPLICIT');
       setLoading(false);
+
+      if (result.isError) {
+        devError('rpc failure on sign-in:', result.errorDetail);
+        return { error: `Could not verify admin access (${result.errorDetail ?? 'unknown error'}). Please try again.` };
+      }
+      if (!result.isAdmin) {
+        devWarn('signIn: account is not an admin');
+        return { error: 'This account does not have admin access. Contact the site owner.' };
+      }
+      devLog('rpc success on sign-in — admin confirmed');
       return { error: null };
     } finally {
       signInInProgressRef.current = false;
