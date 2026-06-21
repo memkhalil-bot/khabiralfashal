@@ -34,7 +34,12 @@ export const adminT = {
   dashboard: {
     title:     'نظرة عامة',
     subtitle:  'خبير الفشل — لوحة التحكم',
-    errorHint: 'تأكد من تطبيق ترحيل قاعدة البيانات وإضافة معرّف المستخدم في جدول',
+    errorHint: 'حدث خطأ أثناء تحميل بيانات لوحة التحكم. حاول تحديث الصفحة، وإذا تكررت المشكلة تواصل مع الدعم التقني.',
+    quickLinksTitle: 'روابط سريعة',
+    sections: {
+      quickStats:     'إحصائيات سريعة',
+      recentActivity: 'النشاط الأخير',
+    },
     funnel: {
       title:             'مسار وادي الموت',
       visitors:          'زوار الوادي',
@@ -97,6 +102,12 @@ export const adminT = {
       bookings:    'لا توجد طلبات حجز',
       reports:     'لا توجد طلبات تقارير',
       reportQueue: 'لا توجد طلبات تقارير معلقة',
+    },
+    emptyHint: {
+      submissions: 'ستظهر تقييمات المؤسسين الجديدة هنا فور تقديمها',
+      sessions:    'ستظهر الجلسات المجدولة القادمة هنا',
+      followUps:   'ستظهر المتابعات المعلقة هنا عند إضافتها',
+      reportQueue: 'ستظهر طلبات التقارير الجديدة هنا تلقائياً',
     },
     revenueSnapshot: {
       title:         'لمحة الإيرادات',
@@ -502,6 +513,7 @@ export const adminT = {
     emptyHint: 'سيتم تتبع عملاء الوادي تلقائياً عند بدء التشخيص',
     progress: 'سؤال',
     of: 'من',
+    resultsLabel: 'عميل',
   },
   reportQueue: {
     title:    'طلبات التقارير',

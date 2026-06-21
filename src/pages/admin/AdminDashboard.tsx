@@ -35,7 +35,7 @@ import { format, isPast, isToday, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { KpiCard, KpiGrid, type KpiDef } from '@/components/admin/KpiCard';
 
-// ── Queries ─────────────────────────────────────────────────────────────────────────
+// ── Queries ───────────────────────────────────────────────────────────
 
 function useStats() {
   return useQuery({
@@ -169,7 +169,7 @@ function useStats() {
         ...((reportRevenueRes.data ?? []) as { final_price: number | null }[]),
       ].reduce((acc, r) => acc + (r.final_price ?? 0), 0);
 
-      // ── Fail Kit derived stats ──────────────────────────────────────────────────────────
+      // ── Fail Kit derived stats ───────────────────────────────────────────────────────────
       const failKitRequests = (failKitRes.data ?? []) as {
         email: string; status: string; risk_score: number | null;
         payment_status: string; final_price: number | null; price: number;
@@ -340,7 +340,7 @@ function usePromoSnapshotExtra() {
   });
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
   STABLE:               'text-recovery',
@@ -416,7 +416,7 @@ function WorkflowBadge({ status }: { status: string | null }) {
   );
 }
 
-// ── KPI Row ─────────────────────────────────────────────────────────────────────
+// ── KPI Row ──────────────────────────────────────────────────────────
 
 function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -441,7 +441,7 @@ function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; 
   );
 }
 
-// ── Fail Kit KPI Row ─────────────────────────────────────────────────────────────────────────────────────────
+// ── Fail Kit KPI Row ─────────────────────────────────────────────────────────────────────────────────────────────
 
 function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -466,7 +466,7 @@ function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats
   );
 }
 
-// ── Valley Funnel ──────────────────────────────────────────────────────────────────────────────
+// ── Valley Funnel ────────────────────────────────────────────────────────────────────────────────
 
 const FUNNEL_STAGE_STYLES = [
   { text: 'text-ember',      bar: 'bg-ember/20 border-ember/35' },
@@ -558,7 +558,7 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
   );
 }
 
-// ── Revenue Snapshot ───────────────────────────────────────────────────────────────────────────
+// ── Revenue Snapshot ────────────────────────────────────────────────────────────────────────────────────────────
 
 function RevenueSnapshotWidget({
   data, extra, loading,
@@ -633,7 +633,7 @@ function RevenueSnapshotWidget({
   );
 }
 
-// ── Workflow Snapshot ──────────────────────────────────────────────────────────────────────────────────
+// ── Workflow Snapshot ────────────────────────────────────────────────────────────────────────────────────────────
 
 function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -730,7 +730,7 @@ function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof use
   );
 }
 
-// ── Promo Snapshot ─────────────────────────────────────────────────────────────────────────────
+// ── Promo Snapshot ─────────────────────────────────────────────────────────────────────────────────────────────
 
 function PromoSnapshotWidget({
   data, extra, loading,
@@ -810,7 +810,7 @@ function PromoSnapshotWidget({
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
@@ -919,8 +919,7 @@ export default function AdminDashboard() {
 
       {error && (
         <div className="mb-6 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
-          <strong>{adminT.common.error}:</strong>{' '}
-          {(error as Error)?.message || adminT.dashboard.errorHint}
+          <strong>{adminT.common.error}:</strong> {adminT.dashboard.errorHint}
         </div>
       )}
 
@@ -941,6 +940,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat cards */}
+      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
+        {adminT.dashboard.sections.quickStats}
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">
         {stats.map((s, i) => {
           const Icon = s.icon;
@@ -974,6 +976,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Panels row */}
+      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
+        {adminT.dashboard.sections.recentActivity}
+      </p>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
         {/* Recent submissions */}
@@ -1004,7 +1009,9 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.recent.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.submissions}</p>
+              <Activity className="size-8 text-white/8 mx-auto mb-3" />
+              <p className="text-white/30 text-sm font-arabic mb-1">{adminT.dashboard.empty.submissions}</p>
+              <p className="text-white/15 text-xs font-arabic">{adminT.dashboard.emptyHint.submissions}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -1061,7 +1068,9 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.recentReportQueue?.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.reportQueue}</p>
+              <Inbox className="size-8 text-white/8 mx-auto mb-3" />
+              <p className="text-white/30 text-sm font-arabic mb-1">{adminT.dashboard.empty.reportQueue}</p>
+              <p className="text-white/15 text-xs font-arabic">{adminT.dashboard.emptyHint.reportQueue}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -1120,7 +1129,9 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.upcomingSessions.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.sessions}</p>
+              <CalendarClock className="size-8 text-white/8 mx-auto mb-3" />
+              <p className="text-white/30 text-sm font-arabic mb-1">{adminT.dashboard.empty.sessions}</p>
+              <p className="text-white/15 text-xs font-arabic">{adminT.dashboard.emptyHint.sessions}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -1174,7 +1185,9 @@ export default function AdminDashboard() {
             </div>
           ) : !data?.pendingFollowUpsList.length ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.followUps}</p>
+              <Bell className="size-8 text-white/8 mx-auto mb-3" />
+              <p className="text-white/30 text-sm font-arabic mb-1">{adminT.dashboard.empty.followUps}</p>
+              <p className="text-white/15 text-xs font-arabic">{adminT.dashboard.emptyHint.followUps}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -1212,7 +1225,7 @@ export default function AdminDashboard() {
         className="mt-6"
       >
         <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
-          روابط سريعة
+          {adminT.dashboard.quickLinksTitle}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
           {quickLinks.map((ql) => {
