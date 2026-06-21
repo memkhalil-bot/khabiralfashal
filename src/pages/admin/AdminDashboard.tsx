@@ -35,7 +35,7 @@ import { format, isPast, isToday, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { KpiCard, KpiGrid, type KpiDef } from '@/components/admin/KpiCard';
 
-// ── Queries ──────────────────────────────────────────────────────────────────
+// ── Queries ─────────────────────────────────────────────────────────────────────────
 
 function useStats() {
   return useQuery({
@@ -169,7 +169,7 @@ function useStats() {
         ...((reportRevenueRes.data ?? []) as { final_price: number | null }[]),
       ].reduce((acc, r) => acc + (r.final_price ?? 0), 0);
 
-      // ── Fail Kit derived stats ──────────────────────────────────────────────
+      // ── Fail Kit derived stats ──────────────────────────────────────────────────────────
       const failKitRequests = (failKitRes.data ?? []) as {
         email: string; status: string; risk_score: number | null;
         payment_status: string; final_price: number | null; price: number;
@@ -340,7 +340,7 @@ function usePromoSnapshotExtra() {
   });
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
   STABLE:               'text-recovery',
@@ -416,7 +416,7 @@ function WorkflowBadge({ status }: { status: string | null }) {
   );
 }
 
-// ── KPI Row ───────────────────────────────────────────────────────────────────
+// ── KPI Row ─────────────────────────────────────────────────────────────────────
 
 function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -441,7 +441,7 @@ function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; 
   );
 }
 
-// ── Fail Kit KPI Row ──────────────────────────────────────────────────────────
+// ── Fail Kit KPI Row ─────────────────────────────────────────────────────────────────────────────────────────
 
 function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -466,7 +466,7 @@ function FailKitKpiSection({ data, loading }: { data: ReturnType<typeof useStats
   );
 }
 
-// ── Valley Funnel ─────────────────────────────────────────────────────────────
+// ── Valley Funnel ──────────────────────────────────────────────────────────────────────────────
 
 const FUNNEL_STAGE_STYLES = [
   { text: 'text-ember',      bar: 'bg-ember/20 border-ember/35' },
@@ -558,7 +558,7 @@ function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['d
   );
 }
 
-// ── Revenue Snapshot ──────────────────────────────────────────────────────────
+// ── Revenue Snapshot ───────────────────────────────────────────────────────────────────────────
 
 function RevenueSnapshotWidget({
   data, extra, loading,
@@ -633,7 +633,7 @@ function RevenueSnapshotWidget({
   );
 }
 
-// ── Workflow Snapshot ─────────────────────────────────────────────────────────
+// ── Workflow Snapshot ──────────────────────────────────────────────────────────────────────────────────
 
 function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
   const { t: adminT } = useAdminLanguage();
@@ -730,7 +730,7 @@ function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof use
   );
 }
 
-// ── Promo Snapshot ────────────────────────────────────────────────────────────
+// ── Promo Snapshot ─────────────────────────────────────────────────────────────────────────────
 
 function PromoSnapshotWidget({
   data, extra, loading,
@@ -810,7 +810,7 @@ function PromoSnapshotWidget({
   );
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
@@ -919,8 +919,8 @@ export default function AdminDashboard() {
 
       {error && (
         <div className="mb-6 p-4 bg-crimson/10 border border-crimson/25 rounded-lg text-crimson text-sm font-arabic">
-          <strong>{adminT.common.error}:</strong> {adminT.dashboard.errorHint}{' '}
-          <code className="font-mono text-xs bg-crimson/15 px-1 rounded">user_roles</code>
+          <strong>{adminT.common.error}:</strong>{' '}
+          {(error as Error)?.message || adminT.dashboard.errorHint}
         </div>
       )}
 
