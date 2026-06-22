@@ -143,6 +143,18 @@ Deno.serve(async (req: Request) => {
         service_type: invoice.service_type,
         customer_email: invoice.customer_email,
       },
+      // Mirrored onto the underlying PaymentIntent too — payment_intent.payment_failed
+      // events only carry the PaymentIntent, not the Checkout Session, so the
+      // webhook (PR3) needs this copy to match a failed payment back to the invoice.
+      payment_intent_data: {
+        metadata: {
+          invoice_id: invoice.id,
+          source_table: invoice.source_table,
+          source_id: invoice.source_id,
+          service_type: invoice.service_type,
+          customer_email: invoice.customer_email,
+        },
+      },
       success_url: `${PUBLIC_SITE_URL}/en/thank-you?invoice=${encodeURIComponent(invoice.invoice_number)}`,
       cancel_url: PUBLIC_SITE_URL,
     });
