@@ -307,35 +307,6 @@ export default function AdminCalendar() {
 
   return (
     <AdminLayout title={adminT.calendar.title} subtitle={adminT.calendar.subtitle}>
-      {/* Month navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setMonth((m) => subMonths(m, 1))}
-            className="size-8 flex items-center justify-center text-white/40 hover:text-white/80 rounded-lg hover:bg-white/5 transition-colors"
-            aria-label="Previous month"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-          <p className="text-sm text-white/70 font-medium min-w-[140px] text-center select-none">
-            {format(month, 'MMMM yyyy')}
-          </p>
-          <button
-            onClick={() => setMonth((m) => addMonths(m, 1))}
-            className="size-8 flex items-center justify-center text-white/40 hover:text-white/80 rounded-lg hover:bg-white/5 transition-colors"
-            aria-label="Next month"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-        </div>
-        <button
-          onClick={() => setMonth(startOfMonth(new Date()))}
-          className="px-3 py-1.5 text-[11px] tracking-wide rounded-lg border border-white/10 text-white/50 hover:text-white/80 hover:border-white/20 transition-colors font-arabic"
-        >
-          {adminT.calendar.today}
-        </button>
-      </div>
-
       {error && (
         <div className="flex items-center gap-3 p-4 mb-6 bg-crimson/8 border border-crimson/20 rounded-lg">
           <AlertCircle className="size-4 text-crimson shrink-0" />
@@ -343,97 +314,128 @@ export default function AdminCalendar() {
         </div>
       )}
 
-      {!isLoading && !hasAnyEvents ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 border border-white/6 rounded-xl">
-          <CalendarDays className="size-10 text-white/10" />
-          <p className="text-white/30 text-sm font-arabic">{adminT.calendar.empty}</p>
-          <p className="text-white/20 text-xs font-arabic max-w-sm text-center px-6">
-            {adminT.calendar.emptyHint}
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Calendar grid */}
-          <div className="flex-1 min-w-0 rounded-xl border border-white/6 overflow-hidden">
-            {/* Weekday header */}
-            <div className="grid grid-cols-7 border-b border-white/5 bg-[#0a0a0a]">
-              {days.slice(0, 7).map((d) => (
-                <div
-                  key={d.toISOString()}
-                  className="px-2 py-2 text-[10px] tracking-[0.15em] uppercase text-white/30 text-center"
-                >
-                  {format(d, 'EEE')}
-                </div>
-              ))}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Calendar card: toolbar + grid (or empty state) */}
+        <div className="flex-1 min-w-0 rounded-xl border border-white/6 overflow-hidden flex flex-col">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#0a0a0a]">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setMonth((m) => subMonths(m, 1))}
+                className="size-8 flex items-center justify-center text-white/40 hover:text-white/80 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+                aria-label="Previous month"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+              <p className="text-sm text-white/70 font-medium min-w-[140px] text-center select-none">
+                {format(month, 'MMMM yyyy')}
+              </p>
+              <button
+                onClick={() => setMonth((m) => addMonths(m, 1))}
+                className="size-8 flex items-center justify-center text-white/40 hover:text-white/80 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+                aria-label="Next month"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
             </div>
+            <button
+              onClick={() => setMonth(startOfMonth(new Date()))}
+              className="px-3 py-1.5 text-[11px] tracking-wide rounded-lg border border-white/10 text-white/50 hover:text-white/80 hover:border-white/20 transition-colors font-arabic"
+            >
+              {adminT.calendar.today}
+            </button>
+          </div>
 
-            {/* Day cells */}
-            <div className="grid grid-cols-7">
-              {isLoading
-                ? [...Array(35)].map((_, i) => (
-                    <div key={i} className="h-24 border-b border-e border-white/4 bg-white/2 animate-pulse" />
-                  ))
-                : days.map((day) => {
-                    const key = format(day, 'yyyy-MM-dd');
-                    const dayEvents = eventsByDay.get(key) ?? [];
-                    const inMonth = isSameMonth(day, month);
-                    return (
-                      <div
-                        key={key}
-                        className={cn(
-                          'min-h-24 p-1.5 border-b border-e border-white/4 last:border-e-0',
-                          !inMonth && 'bg-white/[0.015]'
-                        )}
-                      >
-                        <p
+          {!isLoading && !hasAnyEvents ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-24 gap-3">
+              <CalendarDays className="size-10 text-white/10" />
+              <p className="text-white/30 text-sm font-arabic">{adminT.calendar.empty}</p>
+              <p className="text-white/20 text-xs font-arabic max-w-sm text-center px-6">
+                {adminT.calendar.emptyHint}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Weekday header */}
+              <div className="grid grid-cols-7 border-b border-white/5 bg-[#0a0a0a]">
+                {days.slice(0, 7).map((d) => (
+                  <div
+                    key={d.toISOString()}
+                    className="px-2 py-2 text-[10px] tracking-[0.15em] uppercase text-white/30 text-center"
+                  >
+                    {format(d, 'EEE')}
+                  </div>
+                ))}
+              </div>
+
+              {/* Day cells */}
+              <div className="grid grid-cols-7">
+                {isLoading
+                  ? [...Array(35)].map((_, i) => (
+                      <div key={i} className="h-24 border-b border-e border-white/4 bg-white/2 animate-pulse" />
+                    ))
+                  : days.map((day) => {
+                      const key = format(day, 'yyyy-MM-dd');
+                      const dayEvents = eventsByDay.get(key) ?? [];
+                      const inMonth = isSameMonth(day, month);
+                      return (
+                        <div
+                          key={key}
                           className={cn(
-                            'text-[11px] mb-1',
-                            isToday(day)
-                              ? 'text-ember font-semibold'
-                              : inMonth
-                                ? 'text-white/50'
-                                : 'text-white/15'
+                            'min-h-24 p-1.5 border-b border-e border-white/4 last:border-e-0',
+                            !inMonth && 'bg-white/[0.015]'
                           )}
                         >
-                          {format(day, 'd')}
-                        </p>
-                        <div className="space-y-1">
-                          {dayEvents.slice(0, 3).map((e) => (
-                            <button
-                              key={e.booking.id}
-                              onClick={() => selectEvent(e)}
-                              title={`${e.booking.full_name} — ${sessionTypeLabel(e.booking.session_type)}`}
-                              className={cn(
-                                'w-full text-start px-1.5 py-1 rounded-md text-[10px] truncate border transition-colors',
-                                STATUS_STYLE[e.booking.status] ?? 'bg-white/5 text-white/40 border-white/10',
-                                selectedId === e.booking.id && 'ring-1 ring-ember/40'
-                              )}
-                            >
-                              {e.booking.full_name}
-                            </button>
-                          ))}
-                          {dayEvents.length > 3 && (
-                            <p className="text-[9px] text-white/25 px-1.5">+{dayEvents.length - 3}</p>
-                          )}
+                          <p
+                            className={cn(
+                              'text-[11px] mb-1',
+                              isToday(day)
+                                ? 'text-ember font-semibold'
+                                : inMonth
+                                  ? 'text-white/50'
+                                  : 'text-white/15'
+                            )}
+                          >
+                            {format(day, 'd')}
+                          </p>
+                          <div className="space-y-1">
+                            {dayEvents.slice(0, 3).map((e) => (
+                              <button
+                                key={e.booking.id}
+                                onClick={() => selectEvent(e)}
+                                title={`${e.booking.full_name} — ${sessionTypeLabel(e.booking.session_type)}`}
+                                className={cn(
+                                  'w-full text-start px-1.5 py-1 rounded-md text-[10px] truncate border transition-colors',
+                                  STATUS_STYLE[e.booking.status] ?? 'bg-white/5 text-white/40 border-white/10',
+                                  selectedId === e.booking.id && 'ring-1 ring-ember/40'
+                                )}
+                              >
+                                {e.booking.full_name}
+                              </button>
+                            ))}
+                            {dayEvents.length > 3 && (
+                              <p className="text-[9px] text-white/25 px-1.5">+{dayEvents.length - 3}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-            </div>
-          </div>
-
-          {/* Right column: selected booking + upcoming sessions */}
-          <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-6">
-            <DetailCard
-              booking={selected?.booking ?? null}
-              date={selected?.date ?? null}
-              onClear={() => setSelectedId(null)}
-              adminT={adminT}
-            />
-            <UpcomingPanel events={upcoming} selectedId={selectedId} onSelect={selectEvent} adminT={adminT} />
-          </div>
+                      );
+                    })}
+              </div>
+            </>
+          )}
         </div>
-      )}
+
+        {/* Right column: selected booking + upcoming sessions — always visible */}
+        <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-6">
+          <DetailCard
+            booking={selected?.booking ?? null}
+            date={selected?.date ?? null}
+            onClear={() => setSelectedId(null)}
+            adminT={adminT}
+          />
+          <UpcomingPanel events={upcoming} selectedId={selectedId} onSelect={selectEvent} adminT={adminT} />
+        </div>
+      </div>
     </AdminLayout>
   );
 }
