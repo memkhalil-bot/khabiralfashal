@@ -16,6 +16,7 @@ import {
   CalendarClock,
   Bell,
   CalendarPlus,
+  Calendar as CalendarIcon,
   TrendingUp,
   Inbox,
   Tag,
@@ -56,13 +57,14 @@ interface NavGroup {
 // Section labels aren't part of the per-key translation namespaces (they were
 // historically Arabic-only literals in this file), so they're kept here —
 // translated for both languages — rather than expanding adminTranslations.
-const SECTION_LABELS: Record<AdminLanguage, Record<'operations' | 'clients' | 'sales' | 'content' | 'admin', string>> = {
+const SECTION_LABELS: Record<AdminLanguage, Record<'operations' | 'clients' | 'sales' | 'content' | 'admin' | 'apps', string>> = {
   ar: {
     operations: 'العمليات',
     clients:    'العملاء',
     sales:      'المبيعات',
     content:    'المحتوى',
     admin:      'الإدارة',
+    apps:       'التطبيقات',
   },
   en: {
     operations: 'Operations',
@@ -70,6 +72,7 @@ const SECTION_LABELS: Record<AdminLanguage, Record<'operations' | 'clients' | 's
     sales:      'Sales',
     content:    'Content',
     admin:      'Admin',
+    apps:       'Apps',
   },
 };
 
@@ -115,6 +118,12 @@ function buildNavGroups(t: typeof adminTAr, language: AdminLanguage): NavGroup[]
       items: [
         { to: '/admin/email-templates',  label: t.nav.emailTemplates,  icon: Mail           },
         { to: '/admin/report-templates', label: t.nav.reportTemplates, icon: LayoutTemplate },
+      ],
+    },
+    {
+      label: s.apps,
+      items: [
+        { to: '/admin/calendar', label: t.nav.calendar, icon: CalendarIcon },
       ],
     },
     {

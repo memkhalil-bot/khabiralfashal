@@ -26,6 +26,16 @@ export const adminTEn = {
     activityLog:     'Activity Log',
     failKit:         'Fail Kit',
     workflowAnalytics: 'Workflow Analytics',
+    calendar:        'Calendar',
+  },
+  calendar: {
+    title:          'Calendar',
+    subtitle:       'Confirmed session schedule',
+    today:          'Today',
+    empty:          'No scheduled sessions',
+    emptyHint:      'Confirmed sessions will appear here once scheduled from the bookings page',
+    errorHint:      'Could not load calendar data. Try refreshing the page.',
+    viewInBookings: 'View in Bookings',
   },
   actionCenter: {
     title:    'Action Center',
