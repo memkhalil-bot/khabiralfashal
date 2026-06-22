@@ -124,6 +124,7 @@ function buildNavGroups(t: typeof adminTAr, language: AdminLanguage): NavGroup[]
       label: s.apps,
       items: [
         { to: '/admin/calendar', label: t.nav.calendar, icon: CalendarIcon },
+        { to: '/admin/email',    label: t.nav.email,    icon: Mail        },
       ],
     },
     {

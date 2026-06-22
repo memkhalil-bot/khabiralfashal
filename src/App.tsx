@@ -61,6 +61,7 @@ const AdminRetargeting      = lazy(() => import("./pages/admin/AdminRetargeting"
 const AdminActivityLog      = lazy(() => import("./pages/admin/AdminActivityLog"));
 const AdminFailKit          = lazy(() => import("./pages/admin/AdminFailKit"));
 const AdminCalendar         = lazy(() => import("./pages/admin/AdminCalendar"));
+const AdminEmail            = lazy(() => import("./pages/admin/AdminEmail"));
 const BookSession           = lazy(() => import("./pages/BookSession"));
 const FailKitRequest        = lazy(() => import("./pages/FailKitRequest"));
 
@@ -183,6 +184,7 @@ function RootRouter() {
           <Route path="/admin/activity-log"      element={<ProtectedAdminRoute><AdminActivityLog /></ProtectedAdminRoute>} />
           <Route path="/admin/fail-kit"          element={<ProtectedAdminRoute><AdminFailKit /></ProtectedAdminRoute>} />
           <Route path="/admin/calendar"          element={<ProtectedAdminRoute><AdminCalendar /></ProtectedAdminRoute>} />
+          <Route path="/admin/email"             element={<ProtectedAdminRoute><AdminEmail /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
         </AdminLanguageProvider>
