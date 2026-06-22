@@ -36,6 +36,7 @@ import {
   Languages,
   PanelLeftClose,
   PanelLeftOpen,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
@@ -125,6 +126,7 @@ function buildNavGroups(t: typeof adminTAr, language: AdminLanguage): NavGroup[]
       items: [
         { to: '/admin/calendar', label: t.nav.calendar, icon: CalendarIcon },
         { to: '/admin/email',    label: t.nav.email,    icon: Mail        },
+        { to: '/admin/invoices', label: t.nav.invoices, icon: Receipt     },
       ],
     },
     {
