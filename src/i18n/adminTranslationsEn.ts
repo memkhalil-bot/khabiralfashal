@@ -164,6 +164,15 @@ export const adminTEn = {
       notAvailable:      'Not available',
       noStripeLink:      'No link available',
       open:              'Open',
+      checkoutUrl:       'Payment Link',
+    },
+    actions: {
+      createPaymentLink: 'Create Payment Link',
+      creating:          'Creating link...',
+      copyLink:          'Copy link',
+      linkCopied:        'Link copied',
+      createError:       'Could not create the payment link. Please try again.',
+      createSuccess:     'Payment link created successfully',
     },
   },
   actionCenter: {

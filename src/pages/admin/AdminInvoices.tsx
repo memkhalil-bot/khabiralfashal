@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   Receipt, Search, X, ChevronDown, FileText, User, Mail, Building2,
   Tag, Calendar, Clock, DollarSign, ExternalLink, Sparkles, Hash,
-  CheckCircle2, RotateCcw, Wallet,
+  CheckCircle2, RotateCcw, Wallet, Link2, Copy, Loader2, Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -95,6 +95,32 @@ function useInvoices() {
       return (data ?? []) as Invoice[];
     },
     staleTime: 30_000,
+  });
+}
+
+// ── Payment link creation ────────────────────────────────────────────────────
+//
+// Statuses for which an admin may (re)generate a Stripe Checkout link.
+// Paid/cancelled/refunded invoices are final and never get a new link.
+const CAN_CREATE_LINK_STATUSES = new Set<InvoiceStatus>(['draft', 'payment_pending', 'failed']);
+
+interface CreateCheckoutSessionResult {
+  checkout_url: string;
+  checkout_session_id: string;
+}
+
+function useCreateCheckoutSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoiceId: string): Promise<CreateCheckoutSessionResult> => {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { invoice_id: invoiceId },
+      });
+      if (error) throw error;
+      if (!data?.checkout_url) throw new Error('No checkout URL returned');
+      return data as CreateCheckoutSessionResult;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'invoices'] }),
   });
 }
 
@@ -337,9 +363,75 @@ function StripeLinkRow({ label, url }: { label: string; url: string | null }) {
   );
 }
 
+// ── Payment link action (create checkout session via Edge Function) ─────────
+
+function PaymentLinkSection({ invoice }: { invoice: Invoice }) {
+  const { t: adminT } = useAdminLanguage();
+  const dr = adminT.invoices.drawer;
+  const ac = adminT.invoices.actions;
+  const [copied, setCopied] = useState(false);
+
+  const { mutate, isPending, error, reset } = useCreateCheckoutSession();
+
+  const handleCopy = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  if (invoice.stripe_checkout_url) {
+    return (
+      <div className="flex items-center justify-between gap-3 p-3 bg-white/4 border border-white/8 rounded-lg">
+        <a
+          href={invoice.stripe_checkout_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 transition-colors truncate"
+        >
+          {dr.checkoutUrl} <ExternalLink className="size-3 shrink-0" />
+        </a>
+        <button
+          onClick={() => handleCopy(invoice.stripe_checkout_url!)}
+          className="flex items-center gap-1.5 text-[11px] text-admin-text-muted hover:text-admin-text transition-colors shrink-0"
+        >
+          {copied ? <Check className="size-3 text-recovery" /> : <Copy className="size-3" />}
+          {copied ? ac.linkCopied : ac.copyLink}
+        </button>
+      </div>
+    );
+  }
+
+  if (!CAN_CREATE_LINK_STATUSES.has(invoice.status)) {
+    return (
+      <div className="flex items-center justify-between gap-3 p-3 bg-white/4 border border-white/8 rounded-lg">
+        <span className="text-[11px] text-admin-text-muted/60 font-arabic">{dr.checkoutUrl}</span>
+        <span className="text-[11px] text-admin-text-muted/40 font-arabic">{dr.noStripeLink}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={() => { reset(); mutate(invoice.id); }}
+        disabled={isPending}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-ember/10 text-ember border border-ember/25 rounded-lg text-xs font-medium font-arabic hover:bg-ember/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Link2 className="size-3.5" />}
+        {isPending ? ac.creating : ac.createPaymentLink}
+      </button>
+      {error && (
+        <p className="text-[11px] text-crimson font-arabic">{ac.createError}</p>
+      )}
+    </div>
+  );
+}
+
 function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const { t: adminT } = useAdminLanguage();
   const dr = adminT.invoices.drawer;
+  const ac = adminT.invoices.actions;
 
   return (
     <>
@@ -420,7 +512,15 @@ function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose:
             </div>
           </div>
 
-          {/* Stripe references — display only, no live integration yet */}
+          {/* Payment link — the only live Stripe action in this dashboard.
+              Creating it calls the create-checkout-session Edge Function;
+              the invoice is never marked "paid" from here. */}
+          <div>
+            <SectionLabel icon={Link2}>{ac.createPaymentLink}</SectionLabel>
+            <PaymentLinkSection invoice={invoice} />
+          </div>
+
+          {/* Stripe references — remaining fields are display-only, no live integration yet */}
           <div>
             <SectionLabel icon={Receipt}>{dr.stripeReferences}</SectionLabel>
             <div className="space-y-3">
@@ -443,9 +543,14 @@ export default function AdminInvoices() {
   const { data, isLoading, isError } = useInvoices();
   const invoices = data ?? [];
 
-  const [search, setSearch]     = useState('');
-  const [filters, setFilters]   = useState<FilterState>(DEFAULT_FILTERS);
-  const [selected, setSelected] = useState<Invoice | null>(null);
+  const [search, setSearch]       = useState('');
+  const [filters, setFilters]     = useState<FilterState>(DEFAULT_FILTERS);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Derived (not a snapshot) so the drawer reflects fresh data — e.g. the
+  // status/checkout URL written right after a payment link is created —
+  // without needing to manually patch local state.
+  const selected = selectedId ? invoices.find((inv) => inv.id === selectedId) ?? null : null;
 
   const summary = useMemo(() => computeSummary(invoices), [invoices]);
 
@@ -465,7 +570,7 @@ export default function AdminInvoices() {
     <AdminLayout title={adminT.invoices.title} subtitle={adminT.invoices.subtitle}>
       <AnimatePresence>
         {selected && (
-          <InvoiceDetailsDrawer invoice={selected} onClose={() => setSelected(null)} />
+          <InvoiceDetailsDrawer invoice={selected} onClose={() => setSelectedId(null)} />
         )}
       </AnimatePresence>
 
@@ -508,7 +613,7 @@ export default function AdminInvoices() {
       )}
 
       {/* Table */}
-      <InvoiceTable rows={filteredInvoices} onSelect={setSelected} loading={isLoading} />
+      <InvoiceTable rows={filteredInvoices} onSelect={(inv) => setSelectedId(inv.id)} loading={isLoading} />
     </AdminLayout>
   );
 }

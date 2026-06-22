@@ -1,1 +1,8 @@
 project_id = "shkdcquwpeexfwmkdnxq"
+
+[functions.create-checkout-session]
+# Gateway-level JWT check: rejects anon/unauthenticated callers before the
+# function runs. The function itself further restricts access to admins
+# only, via the is_current_user_admin() RPC.
+verify_jwt = true
+
