@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
+import { useCreateInvoice, InvoicePriceUnavailableError } from '@/hooks/useCreateInvoice';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -11,6 +13,7 @@ import {
   X,
   Copy,
   CheckCheck,
+  Receipt,
 } from 'lucide-react';
 import { WorkflowStatusManager } from '@/components/admin/WorkflowStatusManager';
 import { WorkflowTimeline } from '@/components/admin/WorkflowTimeline';
@@ -131,6 +134,58 @@ function buildEmailPreview(r: ReportRequest): string {
     'مع تحياتي،',
     'فريق خبير الفشل',
   ].join('\n');
+}
+
+// ── Create Invoice action ─────────────────────────────────────────────────────
+
+function CreateInvoiceAction({ report }: { report: ReportRequest }) {
+  const { t: adminT } = useAdminLanguage();
+  const navigate = useNavigate();
+  const ci = adminT.createInvoice;
+  const { mutate, isPending, error, reset } = useCreateInvoice();
+
+  const handleClick = () => {
+    reset();
+    mutate(
+      {
+        sourceTable:     'report_requests',
+        sourceId:        report.id,
+        customerName:    report.full_name ?? '',
+        customerEmail:   report.email ?? '',
+        company:         report.company,
+        serviceType:     report.report_type,
+        originalAmount:  report.original_price,
+        discountAmount:  report.discount_value,
+        finalAmount:     report.final_price,
+        promoCode:       report.promo_code,
+      },
+      { onSuccess: (result) => navigate(`/admin/invoices?invoice=${result.invoiceId}`) }
+    );
+  };
+
+  if (error instanceof InvoicePriceUnavailableError) {
+    return (
+      <div className="p-3 bg-amber-950/20 border border-amber-800/30 rounded-lg text-[11px] text-amber-400 font-arabic leading-relaxed">
+        {ci.priceUnavailable}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={handleClick}
+        disabled={isPending}
+        className="w-full flex items-center justify-center gap-2 py-2.5 bg-ember/10 hover:bg-ember/20 border border-ember/25 text-ember text-sm font-semibold rounded-lg transition-all font-arabic disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Receipt className="size-4 shrink-0" />
+        {isPending ? ci.creating : ci.button}
+      </button>
+      {error && (
+        <p className="text-[11px] text-crimson font-arabic">{ci.error}</p>
+      )}
+    </div>
+  );
 }
 
 // ── Detail Panel ─────────────────────────────────────────────────────────────
@@ -267,6 +322,9 @@ function DetailPanel({
             </span>
           </div>
         </div>
+
+        {/* Create Invoice */}
+        <CreateInvoiceAction report={report} />
 
         {/* Status row */}
         <div className="flex items-center gap-3 flex-wrap">

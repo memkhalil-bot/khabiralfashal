@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
@@ -614,7 +615,23 @@ export default function AdminInvoices() {
 
   const [search, setSearch]       = useState('');
   const [filters, setFilters]     = useState<FilterState>(DEFAULT_FILTERS);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get('invoice'));
+
+  // Coming from a "Create Invoice" action on a request page (?invoice=<id>)
+  // — open that invoice once, then drop the param so it doesn't re-trigger.
+  useEffect(() => {
+    const fromQuery = searchParams.get('invoice');
+    if (fromQuery) {
+      setSelectedId(fromQuery);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('invoice');
+        return next;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Derived (not a snapshot) so the drawer reflects fresh data — e.g. the
   // status/checkout URL written right after a payment link is created —

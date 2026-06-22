@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
+import { useCreateInvoice, InvoicePriceUnavailableError } from '@/hooks/useCreateInvoice';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   X,
@@ -14,6 +15,7 @@ import {
   Phone,
   Link2,
   CalendarPlus,
+  Receipt,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, isToday, isFuture, isPast, isThisWeek } from 'date-fns';
@@ -209,6 +211,56 @@ function StatusActions({ session }: { session: ExtendedSession }) {
   );
 }
 
+// ── Create Invoice action ─────────────────────────────────────────────────────
+//
+// advisory_sessions has no reliable amount source today — session_value is
+// never populated anywhere in the app. This will always surface the
+// price-unavailable warning rather than guessing a price; it starts working
+// the moment something populates session_value for a given session.
+
+function CreateInvoiceAction({ session }: { session: ExtendedSession }) {
+  const { t: adminT } = useAdminLanguage();
+  const navigate = useNavigate();
+  const ci = adminT.createInvoice;
+  const { mutate, isPending, error, reset } = useCreateInvoice();
+
+  const handleClick = () => {
+    reset();
+    mutate(
+      {
+        sourceTable:   'advisory_sessions',
+        sourceId:      session.id,
+        customerName:  session.founder_name,
+        customerEmail: session.founder_email,
+        company:       session.company,
+        serviceType:   session.session_type ?? 'advisory_session',
+        finalAmount:   session.session_value,
+      },
+      { onSuccess: (result) => navigate(`/admin/invoices?invoice=${result.invoiceId}`) }
+    );
+  };
+
+  if (error instanceof InvoicePriceUnavailableError) {
+    return (
+      <span className="text-[10px] text-amber-400 font-arabic whitespace-nowrap">{ci.priceUnavailable}</span>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        onClick={handleClick}
+        disabled={isPending}
+        className="flex items-center gap-1 px-2 py-1 text-[10px] text-ember/80 hover:text-ember border border-ember/20 hover:border-ember/40 rounded-lg transition-colors font-arabic disabled:opacity-50"
+      >
+        <Receipt className="size-3" />
+        {isPending ? ci.creating : ci.button}
+      </button>
+      {error && <span className="text-[10px] text-crimson font-arabic">{ci.error}</span>}
+    </div>
+  );
+}
+
 // ── Session row (shared between table and calendar card) ──────────────────────
 
 function SessionTableRow({ row }: { row: ExtendedSession }) {
@@ -266,7 +318,10 @@ function SessionTableRow({ row }: { row: ExtendedSession }) {
         <StatusBadge status={row.status} />
       </td>
       <td className="px-4 py-3">
-        <StatusActions session={row} />
+        <div className="flex items-center justify-end gap-2">
+          <CreateInvoiceAction session={row} />
+          <StatusActions session={row} />
+        </div>
       </td>
     </tr>
   );
@@ -361,6 +416,9 @@ function CalendarCard({ session }: { session: ExtendedSession }) {
                   currentStatus={wfStatus}
                   invalidateKeys={[['admin', 'sessions']]}
                 />
+              </div>
+              <div className="flex justify-end">
+                <CreateInvoiceAction session={session} />
               </div>
               <WorkflowTimeline
                 entityType="advisory_session"
