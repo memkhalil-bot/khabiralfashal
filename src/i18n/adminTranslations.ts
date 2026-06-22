@@ -287,6 +287,14 @@ export const adminT = {
       noData:        'لا توجد بيانات بعد',
     },
   },
+  createInvoice: {
+    button:           'إنشاء فاتورة',
+    creating:         'جارٍ الإنشاء...',
+    viewInvoice:      'عرض الفاتورة',
+    alreadyInvoiced:  'تم إنشاء فاتورة لهذا الطلب',
+    priceUnavailable: 'لا يمكن إنشاء فاتورة — السعر النهائي غير متوفر',
+    error:            'تعذّر إنشاء الفاتورة. حاول مرة أخرى.',
+  },
   risk: {
     STABLE:               'مستقر',
     EXPOSED:              'مكشوف',

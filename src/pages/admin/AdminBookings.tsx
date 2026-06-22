@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
+import { useCreateInvoice, InvoicePriceUnavailableError } from '@/hooks/useCreateInvoice';
 import {
   Search,
   CalendarPlus,
@@ -20,6 +22,7 @@ import {
   Copy,
   X,
   Video,
+  Receipt,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -48,6 +51,10 @@ interface BookingRequest {
   meeting_method:       string | null;
   meeting_link:         string | null;
   converted_session_id: string | null;
+  original_price:       number | null;
+  discount_value:       number | null;
+  final_price:          number | null;
+  promo_code:           string | null;
   created_at:           string;
   updated_at:           string;
 }
@@ -494,6 +501,58 @@ function ConfirmSessionModal({
   );
 }
 
+// ── Create Invoice action ─────────────────────────────────────────────────────
+
+function CreateInvoiceAction({ booking }: { booking: BookingRequest }) {
+  const { t: adminT } = useAdminLanguage();
+  const navigate = useNavigate();
+  const ci = adminT.createInvoice;
+  const { mutate, isPending, error, reset } = useCreateInvoice();
+
+  const handleClick = () => {
+    reset();
+    mutate(
+      {
+        sourceTable:     'booking_requests',
+        sourceId:        booking.id,
+        customerName:    booking.full_name,
+        customerEmail:   booking.email,
+        company:         booking.company,
+        serviceType:     booking.session_type,
+        originalAmount:  booking.original_price,
+        discountAmount:  booking.discount_value,
+        finalAmount:     booking.final_price,
+        promoCode:       booking.promo_code,
+      },
+      { onSuccess: (result) => navigate(`/admin/invoices?invoice=${result.invoiceId}`) }
+    );
+  };
+
+  if (error instanceof InvoicePriceUnavailableError) {
+    return (
+      <div className="p-3 bg-amber-950/20 border border-amber-800/30 rounded-xl text-[11px] text-amber-400 font-arabic leading-relaxed">
+        {ci.priceUnavailable}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={handleClick}
+        disabled={isPending}
+        className="w-full flex items-center justify-center gap-2 py-2.5 bg-ember/10 hover:bg-ember/20 border border-ember/25 text-ember text-sm font-semibold rounded-xl transition-all font-arabic disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Receipt className="size-4 shrink-0" />
+        {isPending ? ci.creating : ci.button}
+      </button>
+      {error && (
+        <p className="text-[11px] text-crimson font-arabic">{ci.error}</p>
+      )}
+    </div>
+  );
+}
+
 // ── Detail panel ──────────────────────────────────────────────────────────────
 
 function DetailPanel({
@@ -549,6 +608,9 @@ function DetailPanel({
           <StatusBadge status={booking.status} />
           <SessionTypeBadge type={booking.session_type} />
         </div>
+
+        {/* Create Invoice */}
+        <CreateInvoiceAction booking={booking} />
 
         {/* Confirm Session CTA */}
         {canConfirm && (

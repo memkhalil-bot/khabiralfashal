@@ -287,6 +287,14 @@ export const adminTEn = {
       noData:        'No data yet',
     },
   },
+  createInvoice: {
+    button:           'Create Invoice',
+    creating:         'Creating...',
+    viewInvoice:      'View Invoice',
+    alreadyInvoiced:  'An invoice already exists for this request',
+    priceUnavailable: 'Cannot create invoice — final price not available',
+    error:            'Failed to create invoice. Try again.',
+  },
   risk: {
     STABLE:               'Stable',
     EXPOSED:              'Exposed',
