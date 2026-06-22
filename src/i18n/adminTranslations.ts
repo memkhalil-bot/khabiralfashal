@@ -165,6 +165,11 @@ export const adminT = {
       noStripeLink:      'لا يوجد رابط',
       open:              'فتح',
       checkoutUrl:       'رابط الدفع',
+      paymentRecord:     'سجل الدفع',
+      noPaymentRecord:   'لا يوجد سجل دفع حتى الآن',
+      provider:          'مزوّد الدفع',
+      eventId:           'رقم حدث Stripe',
+      paymentStatus:     'حالة العملية',
     },
     actions: {
       createPaymentLink: 'إنشاء رابط دفع',

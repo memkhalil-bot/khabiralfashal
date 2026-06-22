@@ -165,6 +165,11 @@ export const adminTEn = {
       noStripeLink:      'No link available',
       open:              'Open',
       checkoutUrl:       'Payment Link',
+      paymentRecord:     'Payment Record',
+      noPaymentRecord:   'No payment record yet',
+      provider:          'Provider',
+      eventId:           'Stripe Event ID',
+      paymentStatus:     'Payment Status',
     },
     actions: {
       createPaymentLink: 'Create Payment Link',

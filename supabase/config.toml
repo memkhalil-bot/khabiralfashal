@@ -6,3 +6,9 @@ project_id = "shkdcquwpeexfwmkdnxq"
 # only, via the is_current_user_admin() RPC.
 verify_jwt = true
 
+[functions.stripe-webhook]
+# Stripe never sends a Supabase auth token, so the gateway-level JWT check
+# must be off here. Authenticity instead comes entirely from verifying the
+# Stripe-Signature header against STRIPE_WEBHOOK_SECRET inside the function.
+verify_jwt = false
+

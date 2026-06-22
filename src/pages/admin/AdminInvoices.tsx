@@ -124,6 +124,35 @@ function useCreateCheckoutSession() {
   });
 }
 
+// ── Payment record (read-only mirror of the latest `payments` row) ──────────
+//
+// Written exclusively by the stripe-webhook Edge Function — this query only
+// ever reads it back for display, never writes.
+interface PaymentRecord {
+  provider: string;
+  status: string;
+  stripe_event_id: string | null;
+  paid_at: string | null;
+}
+
+function usePaymentRecord(invoiceId: string) {
+  return useQuery({
+    queryKey: ['admin', 'invoice-payment-record', invoiceId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('payments')
+        .select('provider, status, stripe_event_id, paid_at')
+        .eq('invoice_id', invoiceId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as PaymentRecord | null;
+    },
+    staleTime: 30_000,
+  });
+}
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 interface InvoiceSummary {
@@ -428,6 +457,39 @@ function PaymentLinkSection({ invoice }: { invoice: Invoice }) {
   );
 }
 
+function PaymentRecordSection({ invoiceId }: { invoiceId: string }) {
+  const { t: adminT } = useAdminLanguage();
+  const dr = adminT.invoices.drawer;
+  const { data: record, isLoading } = usePaymentRecord(invoiceId);
+
+  if (isLoading) {
+    return <div className="h-16 bg-white/4 rounded-lg animate-pulse" />;
+  }
+
+  if (!record) {
+    return (
+      <div className="flex items-center justify-between gap-3 p-3 bg-white/4 border border-white/8 rounded-lg">
+        <span className="text-[11px] text-admin-text-muted/40 font-arabic">{dr.noPaymentRecord}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <FieldBlock icon={Wallet} label={dr.provider} value={record.provider} />
+      <FieldBlock icon={CheckCircle2} label={dr.paymentStatus} value={record.status} />
+      <FieldBlock icon={Hash} label={dr.eventId} value={record.stripe_event_id || dr.notAvailable} placeholder={!record.stripe_event_id} mono={!!record.stripe_event_id} />
+      <FieldBlock
+        icon={Clock}
+        label={dr.paidAt}
+        value={record.paid_at ? format(new Date(record.paid_at), 'MMM d, yyyy · HH:mm') : dr.notPaidYet}
+        placeholder={!record.paid_at}
+        mono={!!record.paid_at}
+      />
+    </div>
+  );
+}
+
 function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const { t: adminT } = useAdminLanguage();
   const dr = adminT.invoices.drawer;
@@ -529,6 +591,13 @@ function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose:
               <StripeLinkRow label={dr.invoiceUrl} url={invoice.stripe_invoice_url} />
               <StripeLinkRow label={dr.invoicePdf} url={invoice.stripe_invoice_pdf} />
             </div>
+          </div>
+
+          {/* Payment record — written exclusively by the stripe-webhook
+              function; this is a read-only mirror, never a write path. */}
+          <div>
+            <SectionLabel icon={CheckCircle2}>{dr.paymentRecord}</SectionLabel>
+            <PaymentRecordSection invoiceId={invoice.id} />
           </div>
         </div>
       </motion.div>
