@@ -170,6 +170,12 @@ export const adminTEn = {
       provider:          'Provider',
       eventId:           'Stripe Event ID',
       paymentStatus:     'Payment Status',
+      paymentEmailDraft: 'Payment Email Draft',
+      createLinkFirst:   'Create payment link first.',
+      arabic:            'Arabic',
+      english:           'English',
+      copyDraft:         'Copy draft',
+      draftCopied:       'Copied',
     },
     actions: {
       createPaymentLink: 'Create Payment Link',

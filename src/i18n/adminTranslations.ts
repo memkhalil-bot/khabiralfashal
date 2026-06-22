@@ -170,6 +170,12 @@ export const adminT = {
       provider:          'مزوّد الدفع',
       eventId:           'رقم حدث Stripe',
       paymentStatus:     'حالة العملية',
+      paymentEmailDraft: 'رسالة رابط الدفع',
+      createLinkFirst:   'أنشئ رابط الدفع أولًا.',
+      arabic:            'عربي',
+      english:           'إنجليزي',
+      copyDraft:         'نسخ النص',
+      draftCopied:       'تم النسخ',
     },
     actions: {
       createPaymentLink: 'إنشاء رابط دفع',

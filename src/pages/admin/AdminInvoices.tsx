@@ -11,6 +11,7 @@ import {
   Receipt, Search, X, ChevronDown, FileText, User, Mail, Building2,
   Tag, Calendar, Clock, DollarSign, ExternalLink, Sparkles, Hash,
   CheckCircle2, RotateCcw, Wallet, Link2, Copy, Loader2, Check,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -491,6 +492,112 @@ function PaymentRecordSection({ invoiceId }: { invoiceId: string }) {
   );
 }
 
+// ── Payment email draft (text only — never sent, never queued) ──────────────
+//
+// Pure client-side string generation from already-loaded invoice fields.
+// There is no email provider, no queue, and nothing here ever marks the
+// invoice as "sent" — it only produces text for the admin to copy and paste
+// into whatever they actually send it through.
+
+type DraftLanguage = 'ar' | 'en';
+
+function buildPaymentEmailDraft(invoice: Invoice, lang: DraftLanguage, serviceName: string): string {
+  const amount = invoice.final_amount.toLocaleString();
+  const currency = invoice.currency.toUpperCase();
+  const link = invoice.stripe_checkout_url ?? '';
+
+  if (lang === 'ar') {
+    return `مرحبًا ${invoice.customer_name}،
+
+تم تجهيز فاتورة خدمة ${serviceName} رقم ${invoice.invoice_number} بقيمة ${amount} ${currency}.
+
+يمكنك إتمام الدفع بأمان من خلال الرابط التالي:
+${link}
+
+بعد إتمام الدفع، سيتم تحديث حالة الفاتورة تلقائيًا.
+
+شكرًا لك،
+خبير الفشل`;
+  }
+
+  return `Hi ${invoice.customer_name},
+
+Your invoice ${invoice.invoice_number} for ${serviceName} has been prepared for ${amount} ${currency}.
+
+You can complete the payment securely using the link below:
+${link}
+
+Once payment is completed, the invoice status will be updated automatically.
+
+Thank you,
+Khabir Al Fashal`;
+}
+
+function PaymentEmailDraftSection({ invoice }: { invoice: Invoice }) {
+  const { t: adminT } = useAdminLanguage();
+  const dr = adminT.invoices.drawer;
+  const [lang, setLang] = useState<DraftLanguage>('ar');
+  const [copied, setCopied] = useState(false);
+
+  if (!invoice.stripe_checkout_url) {
+    return (
+      <div className="flex items-center justify-between gap-3 p-3 bg-white/4 border border-white/8 rounded-lg">
+        <span className="text-[11px] text-admin-text-muted/60 font-arabic">{dr.paymentEmailDraft}</span>
+        <span className="text-[11px] text-admin-text-muted/40 font-arabic">{dr.createLinkFirst}</span>
+      </div>
+    );
+  }
+
+  const draft = buildPaymentEmailDraft(invoice, lang, serviceLabel(invoice.service_type, adminT));
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(draft).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-0.5 bg-white/4 border border-white/8 rounded-lg p-0.5">
+          <button
+            onClick={() => setLang('ar')}
+            className={cn(
+              'px-2.5 py-1 rounded-md text-[11px] font-arabic transition-colors',
+              lang === 'ar' ? 'bg-white/10 text-admin-text' : 'text-admin-text-muted/60 hover:text-admin-text'
+            )}
+          >
+            {dr.arabic}
+          </button>
+          <button
+            onClick={() => setLang('en')}
+            className={cn(
+              'px-2.5 py-1 rounded-md text-[11px] transition-colors',
+              lang === 'en' ? 'bg-white/10 text-admin-text' : 'text-admin-text-muted/60 hover:text-admin-text'
+            )}
+          >
+            {dr.english}
+          </button>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 text-[11px] text-admin-text-muted hover:text-admin-text transition-colors shrink-0"
+        >
+          {copied ? <Check className="size-3 text-recovery" /> : <Copy className="size-3" />}
+          {copied ? dr.draftCopied : dr.copyDraft}
+        </button>
+      </div>
+      <pre
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        className="w-full p-4 bg-white/4 border border-white/8 rounded-lg text-[11px] text-admin-text-muted whitespace-pre-wrap leading-relaxed font-mono text-start"
+      >
+        {draft}
+      </pre>
+    </div>
+  );
+}
+
 function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const { t: adminT } = useAdminLanguage();
   const dr = adminT.invoices.drawer;
@@ -581,6 +688,14 @@ function InvoiceDetailsDrawer({ invoice, onClose }: { invoice: Invoice; onClose:
           <div>
             <SectionLabel icon={Link2}>{ac.createPaymentLink}</SectionLabel>
             <PaymentLinkSection invoice={invoice} />
+          </div>
+
+          {/* Payment email draft — text generation only, copied by the admin
+              and sent through whatever channel they already use. No email
+              provider, no queue, never marked "sent" from here. */}
+          <div>
+            <SectionLabel icon={MessageSquare}>{dr.paymentEmailDraft}</SectionLabel>
+            <PaymentEmailDraftSection invoice={invoice} />
           </div>
 
           {/* Stripe references — remaining fields are display-only, no live integration yet */}
