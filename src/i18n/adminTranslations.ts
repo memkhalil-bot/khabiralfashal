@@ -164,6 +164,15 @@ export const adminT = {
       notAvailable:      'غير متوفر',
       noStripeLink:      'لا يوجد رابط',
       open:              'فتح',
+      checkoutUrl:       'رابط الدفع',
+    },
+    actions: {
+      createPaymentLink: 'إنشاء رابط دفع',
+      creating:          'جارٍ إنشاء الرابط...',
+      copyLink:          'نسخ الرابط',
+      linkCopied:        'تم نسخ الرابط',
+      createError:       'تعذّر إنشاء رابط الدفع. حاول مرة أخرى.',
+      createSuccess:     'تم إنشاء رابط الدفع بنجاح',
     },
   },
   actionCenter: {
