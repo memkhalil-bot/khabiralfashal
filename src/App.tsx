@@ -23,7 +23,6 @@ const About            = lazy(() => import("./pages/About"));
 const Contact          = lazy(() => import("./pages/Contact"));
 const ValleyOfDeath    = lazy(() => import("./pages/ValleyOfDeath"));
 const Methodology      = lazy(() => import("./pages/Methodology"));
-const CaseFiles        = lazy(() => import("./pages/CaseFiles"));
 const ThankYou         = lazy(() => import("./pages/ThankYou"));
 const NotFound         = lazy(() => import("./pages/NotFound"));
 const RunwaySimulator  = lazy(() => import("./pages/tools/RunwaySimulator"));
@@ -96,7 +95,6 @@ function AnimatedRoutes() {
         <Route path="/en/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/en/contact"         element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/en/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
-        <Route path="/en/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/en/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
         <Route path="/en/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
         <Route path="/en/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
@@ -108,7 +106,6 @@ function AnimatedRoutes() {
         <Route path="/ar/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/ar/contact"         element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/ar/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
-        <Route path="/ar/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/ar/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
         <Route path="/ar/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
         <Route path="/ar/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
