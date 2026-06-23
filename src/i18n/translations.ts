@@ -7,19 +7,6 @@
 export type Lang = 'en' | 'ar';
 export type Dir  = 'ltr' | 'rtl';
 
-export interface CaseFileEntry {
-  id: string;
-  industry: string;
-  stage: string;
-  year: string;
-  failureMode: string;
-  tags: string[];
-  keyMistake: string;
-  lessons: string[];
-  outcome: string;
-  redactedSection?: string;
-}
-
 export interface Question {
   id: string;
   chapter: string;
@@ -44,7 +31,6 @@ interface LangStrings {
     bookSession: string;
     langToggle: string; // "AR" or "EN"
     methodology: string;
-    caseFiles: string;
   };
 
   home: {
@@ -275,28 +261,6 @@ interface LangStrings {
     socialLabel: string;
     copyright: string;
   };
-
-  caseFiles: {
-    metaTitle: string;
-    metaDesc: string;
-    eyebrow: string;
-    heading: string;
-    subheading: string;
-    filterLabel: string;
-    filters: { id: string; label: string }[];
-    allLabel: string;
-    classificationBadge: string;
-    redactedLabel: string;
-    caseIdLabel: string;
-    industryLabel: string;
-    stageLabel: string;
-    failureModeLabel: string;
-    mistakeLabel: string;
-    lessonsLabel: string;
-    outcomeLabel: string;
-    confidentialNote: string;
-    cases: CaseFileEntry[];
-  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,7 +280,6 @@ const en: LangStrings = {
     bookSession: 'Book Session',
     langToggle: 'AR',
     methodology: 'Methodology',
-    caseFiles: 'Case Files',
   },
 
   home: {
@@ -457,7 +420,7 @@ const en: LangStrings = {
       { id: '#042', sector: 'Fintech', stage: 'Seed', pattern: 'Founder Misalignment · Cash Burn' },
       { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'Green Dashboard Collapse · Leadership Isolation' },
     ],
-    caseSnippetsLabel: 'From the case files',
+    caseSnippetsLabel: 'From the Failure Archive',
   },
 
   valley: {
@@ -832,133 +795,7 @@ const en: LangStrings = {
     ],
     directLabel: 'Direct',
     socialLabel: 'Social',
-    copyright: '© {year} · Case Files · All Rights Reserved',
-  },
-
-  caseFiles: {
-    metaTitle: 'Case Files — Khabeer Al Fashal',
-    metaDesc: 'Anonymized intelligence reports from documented startup failures. Confidential. Pattern-based.',
-    eyebrow: 'Intelligence Archive',
-    heading: 'Startup Failure\nCase Files',
-    subheading: 'Anonymized records from documented failure events. Each case is a pattern, not a story.',
-    filterLabel: 'Filter by failure mode',
-    allLabel: 'All Cases',
-    filters: [
-      { id: 'funding', label: 'Funding' },
-      { id: 'cofounder', label: 'Co-founder' },
-      { id: 'pmf', label: 'Product-Market Fit' },
-      { id: 'burnrate', label: 'Burn Rate' },
-      { id: 'sales', label: 'Sales Failure' },
-      { id: 'scaling', label: 'Scaling' },
-    ],
-    classificationBadge: 'CONFIDENTIAL · REDACTED',
-    redactedLabel: 'REDACTED',
-    caseIdLabel: 'Case ID',
-    industryLabel: 'Industry',
-    stageLabel: 'Stage',
-    failureModeLabel: 'Failure Mode',
-    mistakeLabel: 'Key Mistake',
-    lessonsLabel: 'Lessons',
-    outcomeLabel: 'Outcome',
-    confidentialNote: 'All identifying information has been removed. Case IDs are not traceable to specific companies.',
-    cases: [
-      {
-        id: 'KF-0041',
-        industry: 'Fintech',
-        stage: 'Seed',
-        year: '2022',
-        failureMode: 'Co-founder Misalignment',
-        tags: ['cofounder', 'burnrate'],
-        keyMistake: 'The founding team operated with two opposing visions for 14 months without a resolution mechanism. By the time the split became public, the company had burned through 73% of its seed round in misaligned product directions.',
-        lessons: [
-          'Vision alignment must be documented and revisited quarterly — not assumed.',
-          'When co-founders stop sharing the same war room, the company is already splitting.',
-          'A cap table dispute at Series A is almost always a symptom of an unresolved founding-team conflict from 18 months earlier.',
-        ],
-        outcome: 'Company dissolved following lead investor withdrawal. Team split across two competing ventures.',
-        redactedSection: 'The founding team previously worked at [REDACTED] and had built [REDACTED] before this venture.',
-      },
-      {
-        id: 'KF-0088',
-        industry: 'SaaS',
-        stage: 'Series A',
-        year: '2023',
-        failureMode: 'Green Dashboard Collapse',
-        tags: ['sales', 'scaling'],
-        keyMistake: 'Metrics were optimized for investor optics rather than business health. Monthly Active Users were counted as any login event, including internal accounts. When the Series B data room opened, actual paying customer count was 11% of reported MAU.',
-        lessons: [
-          'Vanity metrics are not a strategy — they are a delay mechanism.',
-          'Investors doing Series B due diligence will see what Series A investors did not.',
-          'Dashboard hygiene is a governance issue, not a data issue.',
-        ],
-        outcome: 'Series B rejected after due diligence. CEO replaced. Company pivoted to services model with 40% headcount reduction.',
-        redactedSection: 'The company had raised from [REDACTED] at a valuation of [REDACTED].',
-      },
-      {
-        id: 'KF-0113',
-        industry: 'E-commerce',
-        stage: 'Growth',
-        year: '2021',
-        failureMode: 'Runway Miscalculation',
-        tags: ['burnrate', 'funding'],
-        keyMistake: 'The CFO modeled runway assuming a June fundraising close. The round closed in November. Five months of operating expenses — approximately $1.4M — were not stress-tested against a delayed close scenario. The company ran out of cash in September.',
-        lessons: [
-          'Fundraising timelines should never appear in an operating model as a hard assumption.',
-          'A board that does not stress-test the burn rate against scenario delays is not doing its job.',
-          'The most dangerous number in a startup is the one everyone assumes will be resolved by an upcoming event.',
-        ],
-        outcome: 'Emergency bridge from existing investors at punishing dilution. Two of five board members resigned.',
-        redactedSection: undefined,
-      },
-      {
-        id: 'KF-0157',
-        industry: 'Healthcare Tech',
-        stage: 'Pre-Seed',
-        year: '2023',
-        failureMode: 'Product-Market Fit Illusion',
-        tags: ['pmf', 'sales'],
-        keyMistake: 'Early traction was driven entirely by the founders personal network. When the company attempted to scale beyond warm referrals, the product failed to convert a single cold prospect in 90 days of outbound effort. The market validation had never included a stranger.',
-        lessons: [
-          'Network-driven traction is not product-market fit. It is founder-market relationship.',
-          'The first sale to a stranger is a more important signal than the first 50 sales to friends.',
-          'Pivot decisions delayed by 6 months beyond clear signal failure cost double the time to recover.',
-        ],
-        outcome: 'Pivoted product focus after 8 months. Two of three co-founders left. Company still operating at reduced capacity.',
-        redactedSection: 'The founding team had previously raised [REDACTED] in grant funding from [REDACTED].',
-      },
-      {
-        id: 'KF-0199',
-        industry: 'Logistics',
-        stage: 'Series A',
-        year: '2022',
-        failureMode: 'Leadership Isolation',
-        tags: ['cofounder', 'scaling'],
-        keyMistake: 'The CEO stopped attending the weekly operations review in month 8 of Series A deployment. By month 14, the leadership team had developed a parallel reality — one that protected the CEO from bad news. When the board requested a Q3 operational audit, the gap between reported performance and actual performance was exposed.',
-        lessons: [
-          'When a founder stops hearing bad news, it is not because things are going well.',
-          'The distance between a CEO and the operational floor is inversely proportional to the quality of decisions made.',
-          'A board that only receives curated updates is not governing — it is being managed.',
-        ],
-        outcome: 'CEO replaced by board after failed Series B. Company restructured under new leadership. Current status: operational with 60% of original team.',
-        redactedSection: 'The board included partners from [REDACTED] and [REDACTED].',
-      },
-      {
-        id: 'KF-0234',
-        industry: 'EdTech',
-        stage: 'Seed',
-        year: '2023',
-        failureMode: 'Sales Execution Failure',
-        tags: ['sales', 'burnrate'],
-        keyMistake: 'The company hired a VP of Sales from a Fortune 500 enterprise background to sell a $99/month SaaS product to SMBs. The mismatch between enterprise sales methodology and the actual sales cycle created an 11-month void in revenue generation while burn rate remained constant.',
-        lessons: [
-          'Sales hiring at the wrong level destroys burn rate without producing revenue.',
-          'Enterprise sales professionals rarely succeed in SMB velocity environments without significant retraining.',
-          'The first VP of Sales hire is the highest-risk hire in a seed-stage company.',
-        ],
-        outcome: 'VP Sales departed after 11 months. Company resumed founder-led sales. Revenue recovered but runway was permanently shortened.',
-        redactedSection: undefined,
-      },
-    ],
+    copyright: '© {year} · All Rights Reserved',
   },
 };
 
@@ -980,7 +817,6 @@ const ar: LangStrings = {
     bookSession: 'احجز جلسة',
     langToggle: 'EN',
     methodology: 'المنهجية',
-    caseFiles: 'ملفات الحالات',
   },
 
   home: {
@@ -1121,7 +957,7 @@ const ar: LangStrings = {
       { id: '#042', sector: 'تقنية مالية', stage: 'Seed', pattern: 'خلاف الشركاء الصامت · حرق السيولة العشوائي' },
       { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'وهم المؤشرات الخضراء · عزلة القيادة وانقطاع القرار' },
     ],
-    caseSnippetsLabel: 'من ملفات القضايا الجنائية',
+    caseSnippetsLabel: 'من أرشيف الفشل',
   },
 
   valley: {
@@ -1495,133 +1331,7 @@ const ar: LangStrings = {
     ],
     directLabel: 'تواصل مباشر',
     socialLabel: 'تابعنا',
-    copyright: '© {year} · ملفات القضايا · جميع الحقوق محفوظة',
-  },
-
-  caseFiles: {
-    metaTitle: 'ملفات الحالات — خبير الفشل',
-    metaDesc: 'تقارير استخباراتية مجهولة المصدر من حالات فشل الشركات الموثقة. سرية. قائمة على الأنماط.',
-    eyebrow: 'الأرشيف الاستخباراتي',
-    heading: 'ملفات\nفشل الشركات',
-    subheading: 'سجلات مجهولة المصدر من أحداث الفشل الموثقة. كل حالة هي نمط، وليست مجرد قصة.',
-    filterLabel: 'تصفية حسب نمط الفشل',
-    allLabel: 'جميع الحالات',
-    filters: [
-      { id: 'funding', label: 'التمويل' },
-      { id: 'cofounder', label: 'المؤسس المشارك' },
-      { id: 'pmf', label: 'الملاءمة السوقية' },
-      { id: 'burnrate', label: 'معدل الإنفاق' },
-      { id: 'sales', label: 'فشل المبيعات' },
-      { id: 'scaling', label: 'التوسع' },
-    ],
-    classificationBadge: 'سري · محجوب',
-    redactedLabel: 'محجوب',
-    caseIdLabel: 'رقم الحالة',
-    industryLabel: 'القطاع',
-    stageLabel: 'المرحلة',
-    failureModeLabel: 'نمط الفشل',
-    mistakeLabel: 'الخطأ الجوهري',
-    lessonsLabel: 'الدروس المستخلصة',
-    outcomeLabel: 'النتيجة',
-    confidentialNote: 'تمت إزالة جميع المعلومات التعريفية. أرقام الحالات غير قابلة للتتبع إلى شركات بعينها.',
-    cases: [
-      {
-        id: 'KF-0041',
-        industry: 'التكنولوجيا المالية',
-        stage: 'التمويل الأولي',
-        year: '٢٠٢٢',
-        failureMode: 'تباين رؤية الفريق التأسيسي',
-        tags: ['cofounder', 'burnrate'],
-        keyMistake: 'عمل الفريق التأسيسي برؤيتين متعارضتين لمدة 14 شهراً دون آلية حل. وبحلول وقت الإعلان عن الانفصال، كانت الشركة قد أنفقت 73% من جولة التمويل الأولي في اتجاهات منتجات متضاربة.',
-        lessons: [
-          'يجب توثيق توافق الرؤية ومراجعتها فصلياً — لا افتراضها.',
-          'حين يتوقف المؤسسون عن مشاركة غرفة العمل ذاتها، تكون الشركة قد انقسمت فعلاً.',
-          'النزاع على الحصص في جولة السلسلة A يكاد يكون دائماً عرضاً لصراع قديم من 18 شهراً مضت.',
-        ],
-        outcome: 'انهارت الشركة بعد انسحاب المستثمر الرئيسي. انفصل الفريق في مشروعين متنافسين.',
-        redactedSection: 'سبق للفريق التأسيسي العمل في [محجوب] وبناء [محجوب] قبل هذا المشروع.',
-      },
-      {
-        id: 'KF-0088',
-        industry: 'برمجيات كخدمة',
-        stage: 'السلسلة A',
-        year: '٢٠٢٣',
-        failureMode: 'انهيار لوحة القياسات الخضراء',
-        tags: ['sales', 'scaling'],
-        keyMistake: 'جرى تحسين مؤشرات الأداء لاستعراضها أمام المستثمرين لا لانعكاسها على صحة الأعمال. كانت المستخدمون النشطون شهرياً تُحتسب من أي حدث تسجيل دخول بما فيها الحسابات الداخلية. حين فُتح الغرفة الإلكترونية للسلسلة B، كان عدد العملاء الفعليين المدفوعين 11% فقط من المستخدمين المُبلَّغ عنهم.',
-        lessons: [
-          'المؤشرات الوهمية ليست استراتيجية — إنها آلية تأجيل.',
-          'مستثمرو السلسلة B سيرون ما لم يره مستثمرو السلسلة A.',
-          'نظافة لوحة القياسات مسألة حوكمة لا بيانات.',
-        ],
-        outcome: 'رُفضت السلسلة B بعد التحقق المعمق. أُقيل الرئيس التنفيذي. تحولت الشركة لنموذج خدمات مع خفض 40% من الكوادر.',
-        redactedSection: 'جمعت الشركة تمويلاً من [محجوب] بتقييم [محجوب].',
-      },
-      {
-        id: 'KF-0113',
-        industry: 'التجارة الإلكترونية',
-        stage: 'النمو',
-        year: '٢٠٢١',
-        failureMode: 'خطأ في حساب الرصيد التشغيلي',
-        tags: ['burnrate', 'funding'],
-        keyMistake: 'صمّم المدير المالي النموذج التشغيلي على افتراض إغلاق جولة التمويل في يونيو. أُغلقت الجولة في نوفمبر. لم تخضع خمسة أشهر من مصاريف التشغيل — نحو 1.4 مليون دولار — لأي اختبار ضغط في سيناريو التأخير. نفد السيولة في سبتمبر.',
-        lessons: [
-          'جداول التمويل لا يجب أن تظهر في النموذج التشغيلي كافتراض ثابت.',
-          'مجلس إدارة لا يختبر معدل الإنفاق أمام سيناريوهات التأخير لا يؤدي دوره.',
-          'أخطر رقم في الشركة الناشئة هو الرقم الذي يفترض الجميع حله بحدث قادم.',
-        ],
-        outcome: 'جولة طارئة من المستثمرين الحاليين بتخفيف حصة مؤلم. استقال اثنان من أعضاء مجلس الإدارة الخمسة.',
-        redactedSection: undefined,
-      },
-      {
-        id: 'KF-0157',
-        industry: 'تكنولوجيا الرعاية الصحية',
-        stage: 'ما قبل التمويل الأولي',
-        year: '٢٠٢٣',
-        failureMode: 'وهم الملاءمة السوقية',
-        tags: ['pmf', 'sales'],
-        keyMistake: 'قامت قاعدة العملاء الأولى بالكامل على شبكة علاقات شخصية للمؤسسين. حين حاولت الشركة التوسع خارج الإحالات الدافئة، أخفق المنتج في تحويل أي عميل بارد في 90 يوماً من الاتصال الصادر. لم يشمل التحقق من السوق يوماً شخصاً لا يعرف المؤسسين.',
-        lessons: [
-          'التجربة المبنية على العلاقات ليست ملاءمة سوقية — إنها علاقة المؤسس بالسوق.',
-          'أول عملية بيع لشخص لا تربطه بك علاقة إشارة أهم من أول خمسين عملية بيع للأصدقاء.',
-          'قرارات التحول المتأخرة ستة أشهر بعد الإشارة الواضحة تكلف ضعف وقت التعافي.',
-        ],
-        outcome: 'تحول المنتج بعد ثمانية أشهر. غادر اثنان من ثلاثة مؤسسين. الشركة لا تزال تعمل بطاقة محدودة.',
-        redactedSection: 'سبق للفريق التأسيسي جمع [محجوب] من منح [محجوب].',
-      },
-      {
-        id: 'KF-0199',
-        industry: 'اللوجستيات',
-        stage: 'السلسلة A',
-        year: '٢٠٢٢',
-        failureMode: 'عزلة القيادة',
-        tags: ['cofounder', 'scaling'],
-        keyMistake: 'توقف الرئيس التنفيذي عن حضور مراجعة العمليات الأسبوعية في الشهر الثامن من نشر السلسلة A. وبحلول الشهر 14، طوّر فريق القيادة واقعاً موازياً يحمي الرئيس التنفيذي من الأخبار السيئة. حين طلب المجلس مراجعة تشغيلية للربع الثالث، انكشفت الفجوة بين الأداء المُبلَّغ والأداء الفعلي.',
-        lessons: [
-          'حين يتوقف المؤسس عن سماع الأخبار السيئة، ليس لأن الأمور تسير بخير.',
-          'المسافة بين الرئيس التنفيذي وأرض العمليات تتناسب عكسياً مع جودة القرارات.',
-          'مجلس إدارة يتلقى تقارير منقحة فقط لا يمارس رقابة — بل يُدار.',
-        ],
-        outcome: 'أُقيل الرئيس التنفيذي بقرار من المجلس بعد فشل السلسلة B. أُعيد هيكلة الشركة. الوضع الحالي: تعمل بـ60% من الفريق الأصلي.',
-        redactedSection: 'ضم المجلس شركاء من [محجوب] و[محجوب].',
-      },
-      {
-        id: 'KF-0234',
-        industry: 'تكنولوجيا التعليم',
-        stage: 'التمويل الأولي',
-        year: '٢٠٢٣',
-        failureMode: 'فشل تنفيذ المبيعات',
-        tags: ['sales', 'burnrate'],
-        keyMistake: 'استأجرت الشركة نائب رئيس للمبيعات من خلفية مؤسسية كبيرة لبيع منتج SaaS بـ99 دولاراً شهرياً للشركات الصغيرة. أوجد التباين بين منهجية المبيعات المؤسسية والدورة الفعلية للبيع فراغاً مدته 11 شهراً في توليد الإيرادات بينما ظل معدل الإنفاق ثابتاً.',
-        lessons: [
-          'توظيف فريق مبيعات على المستوى الخطأ يدمر معدل الإنفاق دون توليد إيرادات.',
-          'نادراً ما ينجح محترفو المبيعات المؤسسية في بيئات الشركات الصغيرة دون إعادة تدريب جوهرية.',
-          'أول نائب رئيس للمبيعات هو أعلى خطورة في شركة ناشئة بمرحلة التمويل الأولي.',
-        ],
-        outcome: 'غادر نائب الرئيس للمبيعات بعد 11 شهراً. استُؤنفت المبيعات بقيادة المؤسسين. تعافت الإيرادات لكن الرصيد التشغيلي تقلص بصورة دائمة.',
-        redactedSection: undefined,
-      },
-    ],
+    copyright: '© {year} · جميع الحقوق محفوظة',
   },
 };
 
