@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Site Review — Static HTML Export</title>
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  html, body {
+    margin: 0;
+    background: #000;
+    color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  p.subtitle {
+    color: rgba(245,245,245,0.6);
+    margin: 0 0 32px;
+    font-size: 14px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    vertical-align: top;
+  }
+  th {
+    color: rgba(245,245,245,0.5);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  tr:hover td {
+    background: rgba(255,255,255,0.03);
+  }
+  a {
+    color: #ff6a3d;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  code {
+    background: rgba(255,255,255,0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .notes {
+    color: rgba(245,245,245,0.55);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Site Review — Static HTML Export</h1>
+  <p class="subtitle">
+    Standalone, JS-free HTML snapshots of every public page, rendered server-side from the live
+    React components and current CSS bundle. For visual review only — not wired into the app.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Page</th>
+        <th>Arabic</th>
+        <th>English</th>
+        <th>Route</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Home</td>
+        <td><a href="./home-ar.html">home-ar.html</a></td>
+        <td><a href="./home-en.html">home-en.html</a></td>
+        <td><code>/ar</code> · <code>/en</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>About / Case File</td>
+        <td><a href="./about-ar.html">about-ar.html</a></td>
+        <td><a href="./about-en.html">about-en.html</a></td>
+        <td><code>/ar/about</code> · <code>/en/about</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>Valley of Death</td>
+        <td><a href="./valley-of-death-ar.html">valley-of-death-ar.html</a></td>
+        <td><a href="./valley-of-death-en.html">valley-of-death-en.html</a></td>
+        <td><code>/ar/valley-of-death</code> · <code>/en/valley-of-death</code></td>
+        <td class="notes">Shows the page's default first-load state (entry gate form). The background visual and quiz only appear after a visitor submits the gate, which requires live interaction and isn't shown in a static snapshot.</td>
+      </tr>
+      <tr>
+        <td>Methodology</td>
+        <td><a href="./methodology-ar.html">methodology-ar.html</a></td>
+        <td><a href="./methodology-en.html">methodology-en.html</a></td>
+        <td><code>/ar/methodology</code> · <code>/en/methodology</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>Contact / Report Request</td>
+        <td><a href="./contact-ar.html">contact-ar.html</a></td>
+        <td><a href="./contact-en.html">contact-en.html</a></td>
+        <td><code>/ar/contact</code> · <code>/en/contact</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>Book Session</td>
+        <td><a href="./book-session-ar.html">book-session-ar.html</a></td>
+        <td><a href="./book-session-en.html">book-session-en.html</a></td>
+        <td><code>/ar/book-session</code> · <code>/en/book-session</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>Fail Kit Request</td>
+        <td><a href="./fail-kit-request-ar.html">fail-kit-request-ar.html</a></td>
+        <td><a href="./fail-kit-request-en.html">fail-kit-request-en.html</a></td>
+        <td><code>/ar/fail-kit-request</code> · <code>/en/fail-kit-request</code></td>
+        <td class="notes">Shows the default "no diagnostic context" state — this page normally receives data from the Valley of Death assessment result; visited directly it shows its real fallback screen guiding the visitor back to the assessment.</td>
+      </tr>
+      <tr>
+        <td>Thank You</td>
+        <td><a href="./thank-you-ar.html">thank-you-ar.html</a></td>
+        <td><a href="./thank-you-en.html">thank-you-en.html</a></td>
+        <td><code>/ar/thank-you</code> · <code>/en/thank-you</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>Runway Simulator</td>
+        <td><a href="./runway-simulator-ar.html">runway-simulator-ar.html</a></td>
+        <td><a href="./runway-simulator-en.html">runway-simulator-en.html</a></td>
+        <td><code>/ar/tools/runway-simulator</code> · <code>/en/tools/runway-simulator</code></td>
+        <td class="notes">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>404 Not Found</td>
+        <td colspan="2" style="text-align:center"><a href="./404.html">404.html</a> (single file, no language split)</td>
+        <td><code>/any-unmatched-path</code></td>
+        <td class="notes">Unmatched URLs don't start with <code>/ar</code>, so the app's language logic defaults to English — this is the real fallback behavior, exported as-is.</td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

@@ -1,0 +1,101 @@
+[
+  {
+    "key": "home",
+    "label": "Home",
+    "basePath": "/",
+    "routeEn": "/en",
+    "routeAr": "/ar",
+    "files": {
+      "en": "home-en.html",
+      "ar": "home-ar.html"
+    }
+  },
+  {
+    "key": "about",
+    "label": "About / Case File",
+    "basePath": "/about",
+    "routeEn": "/en/about",
+    "routeAr": "/ar/about",
+    "files": {
+      "en": "about-en.html",
+      "ar": "about-ar.html"
+    }
+  },
+  {
+    "key": "valley-of-death",
+    "label": "Valley of Death",
+    "basePath": "/valley-of-death",
+    "routeEn": "/en/valley-of-death",
+    "routeAr": "/ar/valley-of-death",
+    "files": {
+      "en": "valley-of-death-en.html",
+      "ar": "valley-of-death-ar.html"
+    }
+  },
+  {
+    "key": "methodology",
+    "label": "Methodology",
+    "basePath": "/methodology",
+    "routeEn": "/en/methodology",
+    "routeAr": "/ar/methodology",
+    "files": {
+      "en": "methodology-en.html",
+      "ar": "methodology-ar.html"
+    }
+  },
+  {
+    "key": "contact",
+    "label": "Contact / Report Request",
+    "basePath": "/contact",
+    "routeEn": "/en/contact",
+    "routeAr": "/ar/contact",
+    "files": {
+      "en": "contact-en.html",
+      "ar": "contact-ar.html"
+    }
+  },
+  {
+    "key": "book-session",
+    "label": "Book Session",
+    "basePath": "/book-session",
+    "routeEn": "/en/book-session",
+    "routeAr": "/ar/book-session",
+    "files": {
+      "en": "book-session-en.html",
+      "ar": "book-session-ar.html"
+    }
+  },
+  {
+    "key": "fail-kit-request",
+    "label": "Fail Kit Request",
+    "basePath": "/fail-kit-request",
+    "routeEn": "/en/fail-kit-request",
+    "routeAr": "/ar/fail-kit-request",
+    "files": {
+      "en": "fail-kit-request-en.html",
+      "ar": "fail-kit-request-ar.html"
+    }
+  },
+  {
+    "key": "thank-you",
+    "label": "Thank You",
+    "basePath": "/thank-you",
+    "routeEn": "/en/thank-you",
+    "routeAr": "/ar/thank-you",
+    "files": {
+      "en": "thank-you-en.html",
+      "ar": "thank-you-ar.html"
+    }
+  },
+  {
+    "key": "runway-simulator",
+    "label": "Runway Simulator",
+    "basePath": "/tools/runway-simulator",
+    "routeEn": "/en/tools/runway-simulator",
+    "routeAr": "/ar/tools/runway-simulator",
+    "files": {
+      "en": "runway-simulator-en.html",
+      "ar": "runway-simulator-ar.html"
+    }
+  }
+]
