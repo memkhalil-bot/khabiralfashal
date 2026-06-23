@@ -129,7 +129,7 @@ export default function About() {
                   : 'md:grid-cols-[64px_1fr]'
               )}
             >
-              <div className={cn('md:pt-4', isRTL && 'order-last md:order-first')}>
+              <div className={cn('md:pt-4', isRTL && 'order-last md:order-first md:col-start-2')}>
                 <div className={cn(
                   'text-4xl italic text-ember',
                   isRTL ? 'font-arabic text-right' : 'font-serif-display'
@@ -138,7 +138,7 @@ export default function About() {
                 </div>
                 <div className={cn('mt-2 h-px w-12 bg-white/20', isRTL && 'mr-auto')} />
               </div>
-              <div className="min-w-0">
+              <div className={cn('min-w-0', isRTL && 'md:col-start-1')}>
                 <h2 className={cn(
                   'tracking-tight mb-8 leading-[1.05]',
                   isRTL
