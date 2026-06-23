@@ -64,6 +64,12 @@ function ScoreRing({ pct, accentHsl, isRTL }: { pct: number; accentHsl: string; 
 
 type CTA = { title: string; desc: string; intent: string; urgent?: boolean };
 
+// Intents that correspond to a real bookable advisory session (see
+// BookSession.tsx's session types) go straight to /book-session instead of
+// the generic /contact intake — report/monitor/recovery intents stay on
+// /contact since those are written-deliverable requests, not bookings.
+const SESSION_INTENTS = new Set(['founder-call', 'autopsy', 'emergency']);
+
 export type ReportRequestContext = {
   valleyLeadId: string | null;
   assessmentId: string | null;
@@ -172,6 +178,11 @@ export function AssessmentResult({
   // (report request, or session-intent tracking) can be linked back to this
   // exact valley_lead / assessment row.
   const ctaState = (_intent: string) => reportContext;
+
+  const { getPath } = useLanguage();
+  const bookSessionPath = getPath('/book-session');
+  const ctaHref = (intent: string) =>
+    SESSION_INTENTS.has(intent) ? bookSessionPath : `${contactPath}?intent=${intent}`;
 
   const accent =
     riskBucket === 'high'   ? 'text-red-400'
@@ -419,7 +430,7 @@ export function AssessmentResult({
               />
             )}
             <Link
-              to={`${contactPath}?intent=${primaryCta.intent}`}
+              to={ctaHref(primaryCta.intent)}
               state={ctaState(primaryCta.intent)}
               className={cn(
                 'group inline-flex items-center gap-5 px-8 py-5 transition-all duration-500',
@@ -465,7 +476,7 @@ export function AssessmentResult({
                 transition={{ duration: 0.6, delay: 0.1 + i * 0.1 }}
               >
                 <Link
-                  to={`${contactPath}?intent=${c.intent}`}
+                  to={ctaHref(c.intent)}
                   state={ctaState(c.intent)}
                   className={cn(
                     'group inline-flex items-start gap-4 max-w-sm',

@@ -178,7 +178,7 @@ export default function Home() {
 
               <div className={cn('flex flex-col sm:flex-row gap-3', isRTL && 'sm:flex-row-reverse')}>
                 <Link
-                  to={getPath('/contact')}
+                  to={getPath('/book-session')}
                   className="group inline-flex items-center justify-between gap-8 px-7 py-4 bg-ember text-black hover:bg-white transition-colors duration-500"
                 >
                   <span className={cn(
@@ -481,7 +481,7 @@ export default function Home() {
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
             />
             <Link
-              to={getPath('/contact')}
+              to={getPath('/book-session')}
               className="group inline-flex items-center gap-8 px-10 py-6 bg-ember text-black hover:bg-white transition-colors duration-500"
             >
               <span className={cn(
@@ -493,6 +493,16 @@ export default function Home() {
               <ArrowUpRight className={cn('size-5 transition-transform group-hover:rotate-45', isRTL && 'rotate-180')} />
             </Link>
           </div>
+
+          <Link
+            to={`${getPath('/contact')}?intent=report`}
+            className={cn(
+              'inline-block mt-8 text-sm text-white/45 hover:text-ember transition-colors border-b border-transparent hover:border-ember/40 pb-px',
+              isRTL && 'font-arabic'
+            )}
+          >
+            {h.ctaReportLink}
+          </Link>
         </motion.div>
       </section>
 
