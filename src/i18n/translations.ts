@@ -420,7 +420,7 @@ const en: LangStrings = {
       { id: '#042', sector: 'Fintech', stage: 'Seed', pattern: 'Founder Misalignment · Cash Burn' },
       { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'Green Dashboard Collapse · Leadership Isolation' },
     ],
-    caseSnippetsLabel: 'From the case files',
+    caseSnippetsLabel: 'From the Failure Archive',
   },
 
   valley: {
@@ -795,7 +795,7 @@ const en: LangStrings = {
     ],
     directLabel: 'Direct',
     socialLabel: 'Social',
-    copyright: '© {year} · Case Files · All Rights Reserved',
+    copyright: '© {year} · All Rights Reserved',
   },
 };
 
@@ -957,7 +957,7 @@ const ar: LangStrings = {
       { id: '#042', sector: 'تقنية مالية', stage: 'Seed', pattern: 'خلاف الشركاء الصامت · حرق السيولة العشوائي' },
       { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'وهم المؤشرات الخضراء · عزلة القيادة وانقطاع القرار' },
     ],
-    caseSnippetsLabel: 'من ملفات القضايا الجنائية',
+    caseSnippetsLabel: 'من أرشيف الفشل',
   },
 
   valley: {
@@ -1331,7 +1331,7 @@ const ar: LangStrings = {
     ],
     directLabel: 'تواصل مباشر',
     socialLabel: 'تابعنا',
-    copyright: '© {year} · ملفات القضايا · جميع الحقوق محفوظة',
+    copyright: '© {year} · جميع الحقوق محفوظة',
   },
 };
 
