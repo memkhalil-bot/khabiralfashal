@@ -40,7 +40,8 @@ interface LangStrings {
     home: string;
     caseFile: string;
     valley: string;
-    session: string;
+    contact: string;
+    bookSession: string;
     langToggle: string; // "AR" or "EN"
     methodology: string;
     caseFiles: string;
@@ -85,6 +86,7 @@ interface LangStrings {
     ctaHeading3: string;
     ctaBody: string;
     ctaButton: string;
+    ctaReportLink: string;
   };
 
   about: {
@@ -310,7 +312,8 @@ const en: LangStrings = {
     home: 'Home',
     caseFile: 'Case File',
     valley: 'Valley of Death',
-    session: 'Session',
+    contact: 'Contact',
+    bookSession: 'Book Session',
     langToggle: 'AR',
     methodology: 'Methodology',
     caseFiles: 'Case Files',
@@ -388,6 +391,7 @@ const en: LangStrings = {
     ctaBody:
       'One conversation. Private. Direct. No fake optimism. No startup clichés. Just the truth your team is too close to tell you.',
     ctaButton: 'Request the Session',
+    ctaReportLink: 'Prefer a written diagnosis? Request a report instead →',
   },
 
   about: {
@@ -821,7 +825,9 @@ const en: LangStrings = {
     navLinks: [
       { label: 'Home',               path: '' },
       { label: 'Case File',          path: '/about' },
-      { label: 'Book a Session',     path: '/contact' },
+      { label: 'Valley of Death',    path: '/valley-of-death' },
+      { label: 'Book a Session',     path: '/book-session' },
+      { label: 'Contact',            path: '/contact' },
       { label: 'Runway Simulator',   path: '/tools/runway-simulator' },
     ],
     directLabel: 'Direct',
@@ -970,7 +976,8 @@ const ar: LangStrings = {
     home: 'الرئيسية',
     caseFile: 'الملف',
     valley: 'وادي الموت',
-    session: 'الجلسة',
+    contact: 'تواصل',
+    bookSession: 'احجز جلسة',
     langToggle: 'EN',
     methodology: 'المنهجية',
     caseFiles: 'ملفات الحالات',
@@ -1048,6 +1055,7 @@ const ar: LangStrings = {
     ctaBody:
       'محادثة واحدة. خاصة. مباشرة. لا تفاؤل مصطنع. لا كليشيهات. فقط الحقيقة التي يعجز فريقك القريب منك عن قولها.',
     ctaButton: 'اطلب الجلسة',
+    ctaReportLink: 'تفضّل تقريراً مكتوباً؟ اطلب تقريرك بدلاً من ذلك ←',
   },
 
   about: {
@@ -1480,7 +1488,9 @@ const ar: LangStrings = {
     navLinks: [
       { label: 'الرئيسية',      path: '' },
       { label: 'الملف',         path: '/about' },
-      { label: 'احجز جلسة',    path: '/contact' },
+      { label: 'وادي الموت',   path: '/valley-of-death' },
+      { label: 'احجز جلسة',    path: '/book-session' },
+      { label: 'تواصل',         path: '/contact' },
       { label: 'محاكي الرصيد', path: '/tools/runway-simulator' },
     ],
     directLabel: 'تواصل مباشر',

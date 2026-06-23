@@ -26,7 +26,7 @@ export function Header() {
     { name: t.nav.valley,      basePath: '/valley-of-death' },
     { name: t.nav.methodology, basePath: '/methodology' },
     { name: t.nav.caseFiles,   basePath: '/case-files' },
-    { name: t.nav.session,     basePath: '/contact' },
+    { name: t.nav.contact,     basePath: '/contact' },
   ];
 
   const isRTL = lang === 'ar';
@@ -87,6 +87,17 @@ export function Header() {
               );
             })}
 
+            {/* Book Session — primary conversion CTA, distinct from the text nav links */}
+            <Link
+              to={getPath('/book-session')}
+              className={cn(
+                'inline-flex items-center justify-center px-5 py-2.5 bg-ember text-black hover:bg-white text-[11px] font-semibold uppercase transition-colors duration-300',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.25em]'
+              )}
+            >
+              {t.nav.bookSession}
+            </Link>
+
             {/* Language toggle */}
             <Link
               to={switchPath(lang === 'en' ? 'ar' : 'en')}
@@ -134,6 +145,17 @@ export function Header() {
                   </span>
                 </Link>
               ))}
+              {/* Mobile Book Session CTA */}
+              <Link
+                to={getPath('/book-session')}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  'inline-flex self-start items-center justify-center min-h-[44px] bg-ember text-black hover:bg-white text-[11px] font-semibold uppercase px-5 py-2.5 transition-colors duration-300',
+                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.25em]'
+                )}
+              >
+                {t.nav.bookSession}
+              </Link>
               {/* Mobile language toggle */}
               <Link
                 to={switchPath(lang === 'en' ? 'ar' : 'en')}
