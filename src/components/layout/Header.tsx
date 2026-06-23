@@ -25,7 +25,6 @@ export function Header() {
     { name: t.nav.caseFile,    basePath: '/about' },
     { name: t.nav.valley,      basePath: '/valley-of-death' },
     { name: t.nav.methodology, basePath: '/methodology' },
-    { name: t.nav.contact,     basePath: '/contact' },
   ];
 
   const isRTL = lang === 'ar';
@@ -86,15 +85,15 @@ export function Header() {
               );
             })}
 
-            {/* Book Session — primary conversion CTA, distinct from the text nav links */}
+            {/* Start the Diagnosis — primary conversion CTA, distinct from the text nav links */}
             <Link
-              to={getPath('/book-session')}
+              to={getPath('/valley-of-death')}
               className={cn(
                 'inline-flex items-center justify-center px-5 py-2.5 bg-ember text-black hover:bg-white text-[11px] font-semibold uppercase transition-colors duration-300',
                 isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.25em]'
               )}
             >
-              {t.nav.bookSession}
+              {t.nav.startDiagnosis}
             </Link>
 
             {/* Language toggle */}
@@ -144,16 +143,16 @@ export function Header() {
                   </span>
                 </Link>
               ))}
-              {/* Mobile Book Session CTA */}
+              {/* Mobile Start the Diagnosis CTA */}
               <Link
-                to={getPath('/book-session')}
+                to={getPath('/valley-of-death')}
                 onClick={() => setOpen(false)}
                 className={cn(
                   'inline-flex self-start items-center justify-center min-h-[44px] bg-ember text-black hover:bg-white text-[11px] font-semibold uppercase px-5 py-2.5 transition-colors duration-300',
                   isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.25em]'
                 )}
               >
-                {t.nav.bookSession}
+                {t.nav.startDiagnosis}
               </Link>
               {/* Mobile language toggle */}
               <Link

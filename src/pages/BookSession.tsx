@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, CheckCircle2, AlertCircle, ChevronDown, Tag } from 'lucide-react';
+import { Flame, CheckCircle2, AlertCircle, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SEOHead } from '@/components/seo/SEOHead';
@@ -9,53 +9,36 @@ import { cn } from '@/lib/utils';
 
 // ── Copy ─────────────────────────────────────────────────────────────────────
 
+// Fixed session type for the simplified first-touch form — no longer chosen
+// by the visitor, but still required by the booking_requests schema.
+const SESSION_TYPE = 'founder_call';
+
 const copy = {
   en: {
     metaTitle: 'Book a Session — Khabeer Al Fashal',
-    metaDesc:  'Request a private session with Khabeer Al Fashal. Founder Call, Startup Autopsy, or Emergency Session.',
+    metaDesc:  'Request a private session with Khabeer Al Fashal.',
     eyebrow:   'Session Intake',
     heading:   'Request a Session.',
-    sub:       'Choose your session type, share your situation, and we will reach back with the next step.',
+    sub:       'Tell us where you stand and what worries you most — we will reach back with the next step.',
     privacy:   '100% confidential · No investor disclosure · No spam',
-    sessionTypes: [
-      {
-        id:       'founder_call',
-        name:     'Founder Call',
-        duration: '30 min',
-        desc:     'For quick diagnosis and direction.',
-      },
-      {
-        id:       'startup_autopsy',
-        name:     'Startup Autopsy',
-        duration: '60 min',
-        desc:     'For deep failure-pattern analysis.',
-      },
-      {
-        id:       'emergency_session',
-        name:     'Emergency Session',
-        duration: '90 min',
-        desc:     'For urgent high-risk situations.',
-      },
+    stages: [
+      { v: 'idea',         label: 'Idea / Pre-build' },
+      { v: 'pre-seed',     label: 'Pre-seed' },
+      { v: 'seed',         label: 'Seed' },
+      { v: 'series-a',     label: 'Series A+' },
+      { v: 'post-failure', label: 'Post-failure / Pivot' },
     ],
     fields: {
-      fullName:       'Full Name',
-      email:          'Email',
-      phone:          'Phone',
-      company:        'Company / Project (optional)',
-      country:        'Country',
-      sessionType:    'Session Type',
-      preferredDate:  'Preferred Date (optional)',
-      preferredTime:  'Preferred Time (optional)',
-      description:    'What is the situation?',
-      descHint:       'Be direct. The more honest the intake, the sharper the session.',
+      fullName:      'Full Name',
+      email:         'Email',
+      stage:         'Startup Stage',
+      painPoint:     'Biggest Pain Point',
+      painPointHint: 'What worries you most right now? Be direct — the more honest the intake, the sharper the session.',
     },
     placeholders: {
-      fullName:      'Mohamed K.',
-      email:         'you@company.com',
-      phone:         '+966 5x xxx xxxx',
-      company:       'Name or stealth',
-      country:       'Saudi Arabia',
-      description:   'The numbers say one thing. My gut says another…',
+      fullName:   'Mohamed K.',
+      email:      'you@company.com',
+      painPoint:  'The numbers say one thing. My gut says another…',
     },
     promoCode:         'Promo Code (optional)',
     promoPlaceholder:  'FAIL01',
@@ -70,50 +53,29 @@ const copy = {
   },
   ar: {
     metaTitle: 'احجز جلسة — خبير الفشل',
-    metaDesc:  'اطلب جلسة خاصة مع خبير الفشل. مكالمة المؤسس، تشريح الشركة، أو جلسة طارئة.',
+    metaDesc:  'اطلب جلسة خاصة مع خبير الفشل.',
     eyebrow:   'استمارة الحجز',
     heading:   'اطلب جلسة.',
-    sub:       'اختر نوع الجلسة، شارك وضعك، وسنعود إليك بالخطوة التالية.',
+    sub:       'شاركنا وضعك الحالي وما يقلقك أكثر — وسنعود إليك بالخطوة التالية.',
     privacy:   'سرية كاملة · لا مشاركة مع المستثمرين · لا رسائل مزعجة',
-    sessionTypes: [
-      {
-        id:       'founder_call',
-        name:     'مكالمة المؤسس',
-        duration: '٣٠ دقيقة',
-        desc:     'للتشخيص السريع وتحديد الاتجاه.',
-      },
-      {
-        id:       'startup_autopsy',
-        name:     'تشريح الشركة',
-        duration: '٦٠ دقيقة',
-        desc:     'للتحليل العميق لأنماط الفشل.',
-      },
-      {
-        id:       'emergency_session',
-        name:     'جلسة طارئة',
-        duration: '٩٠ دقيقة',
-        desc:     'للحالات العاجلة عالية المخاطر.',
-      },
+    stages: [
+      { v: 'idea',         label: 'فكرة / ما قبل البناء' },
+      { v: 'pre-seed',     label: 'ما قبل التمويل الأولي' },
+      { v: 'seed',         label: 'التمويل الأولي' },
+      { v: 'series-a',     label: 'الجولة A وما بعدها' },
+      { v: 'post-failure', label: 'ما بعد الانهيار / تحول محوري' },
     ],
     fields: {
-      fullName:       'الاسم الكامل',
-      email:          'البريد الإلكتروني',
-      phone:          'رقم الهاتف',
-      company:        'الشركة / المشروع (اختياري)',
-      country:        'الدولة',
-      sessionType:    'نوع الجلسة',
-      preferredDate:  'التاريخ المفضل (اختياري)',
-      preferredTime:  'الوقت المفضل (اختياري)',
-      description:    'ما هو الوضع؟',
-      descHint:       'كن مباشراً. كلما كان الإدخال أصدق، كانت الجلسة أحدّ.',
+      fullName:      'الاسم الكامل',
+      email:         'البريد الإلكتروني',
+      stage:         'مرحلة الشركة',
+      painPoint:     'أكبر نقطة ألم',
+      painPointHint: 'ما الذي يقلقك أكثر من أي شيء الآن؟ كن مباشراً، كلما كان الإدخال أصدق كانت الجلسة أحدّ.',
     },
     placeholders: {
-      fullName:      'محمد خ.',
-      email:         'you@company.com',
-      phone:         '+966 5x xxx xxxx',
-      company:       'الاسم أو سري',
-      country:       'المملكة العربية السعودية',
-      description:   'الأرقام تقول شيئاً. حدسي يقول شيئاً آخر...',
+      fullName:   'محمد خ.',
+      email:      'you@company.com',
+      painPoint:  'الأرقام تقول شيئاً. حدسي يقول شيئاً آخر...',
     },
     promoCode:         'كود الخصم (اختياري)',
     promoPlaceholder:  'FAIL01',
@@ -133,21 +95,14 @@ type Lang = 'en' | 'ar';
 // ── Form state ────────────────────────────────────────────────────────────────
 
 interface FormState {
-  full_name:      string;
-  email:          string;
-  phone:          string;
-  company:        string;
-  country:        string;
-  session_type:   string;
-  preferred_date: string;
-  preferred_time: string;
-  description:    string;
+  full_name:  string;
+  email:      string;
+  stage:      string;
+  pain_point: string;
 }
 
 const EMPTY: FormState = {
-  full_name: '', email: '', phone: '', company: '',
-  country: '', session_type: '', preferred_date: '',
-  preferred_time: '', description: '',
+  full_name: '', email: '', stage: '', pain_point: '',
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -232,7 +187,7 @@ export default function BookSession() {
       try {
         const { data } = await (supabase as any).rpc('validate_promo_code', {
           input_code:        code.trim().toUpperCase(),
-          input_service_key: form.session_type || 'founder_call',
+          input_service_key: SESSION_TYPE,
           input_email:       form.email.trim() || null,
         });
         if (data && data.valid) {
@@ -256,14 +211,12 @@ export default function BookSession() {
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof FormState, string>> = {};
-    if (!form.full_name.trim())    e.full_name    = isRTL ? 'الاسم مطلوب'          : 'Name is required';
-    if (!form.email.trim())        e.email        = isRTL ? 'البريد مطلوب'         : 'Email is required';
+    if (!form.full_name.trim())   e.full_name  = isRTL ? 'الاسم مطلوب'        : 'Name is required';
+    if (!form.email.trim())       e.email      = isRTL ? 'البريد مطلوب'       : 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-                                   e.email        = isRTL ? 'بريد غير صالح'        : 'Invalid email';
-    if (!form.phone.trim())        e.phone        = isRTL ? 'الهاتف مطلوب'         : 'Phone is required';
-    if (!form.country.trim())      e.country      = isRTL ? 'الدولة مطلوبة'        : 'Country is required';
-    if (!form.session_type)        e.session_type = isRTL ? 'اختر نوع الجلسة'      : 'Select a session type';
-    if (!form.description.trim())  e.description  = isRTL ? 'الوصف مطلوب'         : 'Description is required';
+                                   e.email      = isRTL ? 'بريد غير صالح'      : 'Invalid email';
+    if (!form.stage)               e.stage      = isRTL ? 'اختر مرحلة الشركة'  : 'Select your startup stage';
+    if (!form.pain_point.trim())  e.pain_point = isRTL ? 'هذا الحقل مطلوب'    : 'This field is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -276,7 +229,7 @@ export default function BookSession() {
 
     try {
       // Price the session from live `services` data, then apply the validated promo (if any)
-      const servicePrice = servicePrices?.find((s) => s.service_key === form.session_type)?.price;
+      const servicePrice = servicePrices?.find((s) => s.service_key === SESSION_TYPE)?.price;
       const originalPrice = servicePrice != null ? Number(servicePrice) : null;
       let discountValue = 0;
       if (originalPrice != null && promoResult?.valid) {
@@ -290,16 +243,21 @@ export default function BookSession() {
       }
       const finalPrice = originalPrice != null ? +(originalPrice - discountValue).toFixed(2) : null;
 
+      // The simplified form no longer collects phone/country/session_type —
+      // booking_requests still requires them, so they're sent with safe
+      // hidden defaults. Stage + pain point are folded into `description`
+      // since the table has no dedicated column for either (no schema change).
+      const stageLabel = c.stages.find((s) => s.v === form.stage)?.label ?? form.stage;
       const payload = {
         full_name:      form.full_name.trim(),
         email:          form.email.trim(),
-        phone:          form.phone.trim(),
-        company:        form.company.trim() || null,
-        country:        form.country.trim(),
-        session_type:   form.session_type,
-        preferred_date: form.preferred_date || null,
-        preferred_time: form.preferred_time || null,
-        description:    form.description.trim(),
+        phone:          'Not provided',
+        company:        null,
+        country:        'Not provided',
+        session_type:   SESSION_TYPE,
+        preferred_date: null,
+        preferred_time: null,
+        description:    `Startup Stage: ${stageLabel}\n\n${form.pain_point.trim()}`,
         status:         'pending',
         promo_code:     promoResult?.valid ? promoInput.trim().toUpperCase() : null,
         promo_code_id:  promoResult?.valid ? promoResult.promoCodeId : null,
@@ -340,7 +298,7 @@ export default function BookSession() {
               promo_code_id: promoResult.promoCodeId,
               code:          promoInput.trim().toUpperCase(),
               email:         form.email.trim(),
-              service_key:   form.session_type,
+              service_key:   SESSION_TYPE,
               related_type:  'booking_request',
               related_id:    inserted.id,
               discount_type: promoResult.discountType,
@@ -466,50 +424,6 @@ export default function BookSession() {
           noValidate
         >
 
-          {/* Session type */}
-          <Field label={c.fields.sessionType} error={errors.session_type} isRTL={isRTL}>
-            <div className={cn('grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3', isRTL && 'text-right')}>
-              {c.sessionTypes.map((st) => {
-                const active = form.session_type === st.id;
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => set('session_type', st.id)}
-                    className={cn(
-                      'px-4 py-4 border rounded-xl text-left transition-all duration-200',
-                      isRTL && 'text-right',
-                      active
-                        ? 'border-ember/50 bg-ember/8 text-white'
-                        : 'border-white/10 text-white/55 hover:border-white/25 hover:text-white/80'
-                    )}
-                  >
-                    <div className={cn('flex items-center justify-between mb-1', isRTL && 'flex-row-reverse')}>
-                      <span className={cn(
-                        'text-sm font-medium',
-                        isRTL && 'font-arabic'
-                      )}>{st.name}</span>
-                      <span className={cn(
-                        'text-[10px] px-2 py-0.5 rounded-full border',
-                        active
-                          ? 'border-ember/40 text-ember bg-ember/10'
-                          : 'border-white/10 text-white/30'
-                      )}>
-                        {st.duration}
-                      </span>
-                    </div>
-                    <p className={cn(
-                      'text-xs text-white/40 font-light',
-                      isRTL && 'font-arabic leading-[1.8]'
-                    )}>
-                      {st.desc}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
-
           {/* Name + Email */}
           <div className="grid sm:grid-cols-2 gap-8">
             <Field label={c.fields.fullName} error={errors.full_name} isRTL={isRTL}>
@@ -534,86 +448,43 @@ export default function BookSession() {
             </Field>
           </div>
 
-          {/* Phone + Country */}
-          <div className="grid sm:grid-cols-2 gap-8">
-            <Field label={c.fields.phone} error={errors.phone} isRTL={isRTL}>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(e) => set('phone', e.target.value)}
-                placeholder={c.placeholders.phone}
-                dir="ltr"
-                className={inputClass}
-              />
-            </Field>
-            <Field label={c.fields.country} error={errors.country} isRTL={isRTL}>
-              <input
-                type="text"
-                value={form.country}
-                onChange={(e) => set('country', e.target.value)}
-                placeholder={c.placeholders.country}
-                dir={isRTL ? 'rtl' : 'ltr'}
-                className={inputClass}
-              />
-            </Field>
-          </div>
-
-          {/* Company */}
-          <Field label={c.fields.company} isRTL={isRTL}>
-            <input
-              type="text"
-              value={form.company}
-              onChange={(e) => set('company', e.target.value)}
-              placeholder={c.placeholders.company}
-              dir={isRTL ? 'rtl' : 'ltr'}
-              className={inputClass}
-            />
+          {/* Startup stage */}
+          <Field label={c.fields.stage} error={errors.stage} isRTL={isRTL}>
+            <div className={cn('flex flex-wrap gap-2 mt-3', isRTL && 'justify-end')}>
+              {c.stages.map((s) => {
+                const active = form.stage === s.v;
+                return (
+                  <button
+                    key={s.v}
+                    type="button"
+                    onClick={() => set('stage', s.v)}
+                    className={cn(
+                      'px-4 py-2 border rounded-full text-xs transition-all duration-200',
+                      isRTL && 'font-arabic text-sm',
+                      active
+                        ? 'border-ember/50 bg-ember/8 text-white'
+                        : 'border-white/10 text-white/55 hover:border-white/25 hover:text-white/80'
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
           </Field>
 
-          {/* Preferred date + time */}
-          <div className="grid sm:grid-cols-2 gap-8">
-            <Field label={c.fields.preferredDate} isRTL={isRTL}>
-              <input
-                type="date"
-                value={form.preferred_date}
-                onChange={(e) => set('preferred_date', e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className={cn(inputClass, 'text-white/70')}
-              />
-            </Field>
-            <Field label={c.fields.preferredTime} isRTL={isRTL}>
-              <div className="relative">
-                <select
-                  value={form.preferred_time}
-                  onChange={(e) => set('preferred_time', e.target.value)}
-                  className={cn(
-                    inputClass,
-                    'appearance-none cursor-pointer text-white/70 pe-8',
-                    isRTL && 'font-arabic'
-                  )}
-                >
-                  <option value="">—</option>
-                  {['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'].map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute end-0 top-1/2 -translate-y-1/2 size-4 text-white/30 pointer-events-none" />
-              </div>
-            </Field>
-          </div>
-
-          {/* Description */}
+          {/* Biggest pain point */}
           <Field
-            label={c.fields.description}
-            hint={c.fields.descHint}
-            error={errors.description}
+            label={c.fields.painPoint}
+            hint={c.fields.painPointHint}
+            error={errors.pain_point}
             isRTL={isRTL}
           >
             <textarea
               rows={5}
-              value={form.description}
-              onChange={(e) => set('description', e.target.value)}
-              placeholder={c.placeholders.description}
+              value={form.pain_point}
+              onChange={(e) => set('pain_point', e.target.value)}
+              placeholder={c.placeholders.painPoint}
               dir={isRTL ? 'rtl' : 'ltr'}
               className={cn(inputClass, 'resize-none pt-3')}
             />
