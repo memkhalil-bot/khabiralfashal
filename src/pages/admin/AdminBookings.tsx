@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useCreateInvoice, InvoicePriceUnavailableError } from '@/hooks/useCreateInvoice';
+import { lookupSessionPrice } from '@/lib/sessionPricing';
 import {
   Search,
   CalendarPlus,
@@ -223,6 +224,7 @@ function ConfirmSessionModal({
     mutationFn: async () => {
       const scheduledAt = date && time ? `${date}T${time}:00` : null;
       const sessionType = SESSION_TYPE_MAP[booking.session_type] ?? 'initial';
+      const sessionValue = await lookupSessionPrice(sessionType);
 
       const { data: session, error: sessionErr } = await (supabase as any)
         .from('advisory_sessions')
@@ -231,6 +233,7 @@ function ConfirmSessionModal({
           founder_email:     booking.email,
           company:           booking.company ?? null,
           session_type:      sessionType,
+          session_value:     sessionValue,
           scheduled_at:      scheduledAt,
           duration_minutes:  duration,
           status:            'confirmed',
