@@ -13,9 +13,9 @@ const EXAMPLE_SUBJECTS = {
     'The silent warning signs before revenue collapse.',
   ],
   ar: [
-    'توقّف شريكك المؤسس عن الرد. إليك ما يعنيه ذلك.',
-    'هل تحرق رصيدك التشغيلي في مؤتمرات لا تُحوَّل؟',
-    'الإشارات التحذيرية الصامتة قبل انهيار الإيرادات.',
+    'توقّف شريكك عن الرد؟ إليك ما يعنيه ذلك خلف الكواليس.',
+    'حرق الرصيد التشغيلي: هل تهدر سيولتك في مؤتمرات لا تجلب عملاء؟',
+    'مؤشرات ما قبل الكارثة: الإشارات الصامتة التي تسبق انهيار الإيرادات المفاجئ.',
   ],
 };
 
@@ -63,7 +63,7 @@ export function EmergencyBriefings({ isRTL }: Props) {
           </h2>
           <p className={cn('text-base text-white/45 font-light leading-relaxed mb-10 max-w-xl', isRTL && 'leading-[2]')}>
             {isRTL
-              ? 'إشارات التحذير المبكر ومشاهد الفشل المحددة وما يحدث في شركات مثل شركتك تماماً.'
+              ? 'تحليل صريح لإشارات التحذير الصامتة، ومشاهد الفشل الخفية في شركات تشبه شركتك تماماً.'
               : 'Early warning signals, specific failure scenarios, and what is happening inside companies exactly like yours.'}
           </p>
 
@@ -131,7 +131,7 @@ export function EmergencyBriefings({ isRTL }: Props) {
                 >
                   {status === 'loading'
                     ? (isRTL ? 'جاري...' : 'Joining...')
-                    : (isRTL ? 'اشترك' : 'Subscribe')}
+                    : (isRTL ? 'انضم للاستخبارات الأسبوعية' : 'Subscribe')}
                 </button>
               </motion.form>
             )}
@@ -144,7 +144,7 @@ export function EmergencyBriefings({ isRTL }: Props) {
           )}
 
           <p className={cn('mt-6 text-[9px] text-white/18', isRTL ? 'font-arabic tracking-normal text-xs' : 'uppercase tracking-[0.25em]')}>
-            {isRTL ? 'لا بريد مزعج · إلغاء الاشتراك في أي وقت' : 'No spam · Unsubscribe any time'}
+            {isRTL ? 'بريد محمي بالسرية التامة · إلغاء الاشتراك بنقرة واحدة' : 'No spam · Unsubscribe any time'}
           </p>
         </motion.div>
       </div>

@@ -287,22 +287,22 @@ export default function ValleyOfDeath() {
             className={cn('mb-16', isRTL && 'text-right')}
           >
             <p className={cn('text-[10px] uppercase text-ember mb-4', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]')}>
-              {isRTL ? 'ماذا يحدث بعد الحجز؟' : 'What happens after booking?'}
+              {isRTL ? 'ماذا يحدث بعد تشخيص وادي الموت؟' : 'What happens after booking?'}
             </p>
             <h2 className={cn(
               'text-3xl md:text-5xl leading-tight tracking-tight',
               isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
             )}>
-              {isRTL ? 'أربع خطوات واضحة.' : 'Four clear steps.'}
+              {isRTL ? 'بروتوكول من 4 خطوات واضحة لقراءة المشهد الجنائي لشركتك:' : 'Four clear steps.'}
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-px bg-white/5 border border-white/5">
             {[
-              { n: '01', en: 'Review', ar: 'المراجعة', enBody: 'Your diagnostic results and submitted context are reviewed before the session begins.', arBody: 'تُراجَع نتائج تشخيصك والسياق المُقدَّم قبل بدء الجلسة.' },
-              { n: '02', en: 'Diagnosis', ar: 'التشخيص', enBody: 'A forensic reading of your specific failure patterns, blind spots, and decision history.', arBody: 'قراءة جنائية لأنماط الفشل الخاصة بك ونقاط عمائك وتاريخ قراراتك.' },
-              { n: '03', en: 'Strategic Discussion', ar: 'النقاش الاستراتيجي', enBody: 'An honest conversation about what is actually happening — not what should be happening.', arBody: 'محادثة صادقة حول ما يحدث فعلاً — وليس ما ينبغي أن يحدث.' },
-              { n: '04', en: 'Action Plan', ar: 'خطة العمل', enBody: 'A specific set of interventions calibrated to your risk level and current position in the valley.', arBody: 'مجموعة محددة من التدخلات المُعايَرة وفق مستوى مخاطرك وموقعك الحالي في الوادي.' },
+              { n: '01', en: 'Review', ar: 'فحص المدخلات', enBody: 'Your diagnostic results and submitted context are reviewed before the session begins.', arBody: 'مراجعة وتحليل نتائج تشخيصك والسياق الذي قدمته بدقة قبل اللقاء المستور.' },
+              { n: '02', en: 'Diagnosis', ar: 'التشريح المعرفي', enBody: 'A forensic reading of your specific failure patterns, blind spots, and decision history.', arBody: 'قراءة جنائية حادة لأنماط الفشل الكامنة لديك، وتحديد أبعاد نقاط عماك وتاريخ قراراتك.' },
+              { n: '03', en: 'Strategic Discussion', ar: 'المواجهة الاستراتيجية', enBody: 'An honest conversation about what is actually happening — not what should be happening.', arBody: 'محادثة مغلقة وصادقة حول ما يحدث في غرفتك المغلقة فعلياً—وليس ما تنشره على الملأ.' },
+              { n: '04', en: 'Action Plan', ar: 'بروتوكول التدخل', enBody: 'A specific set of interventions calibrated to your risk level and current position in the valley.', arBody: 'صياغة خطة عمل محددة وحاسمة، مُعايَرة وفق منسوب المخاطر وموقعك الحالي في الوادي.' },
             ].map((step, i) => (
               <motion.div
                 key={step.n}
@@ -331,13 +331,13 @@ export default function ValleyOfDeath() {
       <section className="relative py-16 px-6 lg:px-12 border-t border-white/5 bg-black">
         <div className={cn('max-w-5xl mx-auto', isRTL && 'text-right')}>
           <p className={cn('text-[10px] uppercase text-white/20 mb-6', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]')}>
-            {isRTL ? 'الموارد القادمة' : 'Coming resources'}
+            {isRTL ? 'الموارد الاستخباراتية القادمة (قريباً):' : 'Coming resources'}
           </p>
           <div className={cn('flex flex-wrap gap-4', isRTL && 'justify-end')}>
             {[
-              { en: 'Recovery Playbook', ar: 'دليل الاسترداد' },
-              { en: 'Founder Survival Toolkit', ar: 'أدوات نجاة المؤسس' },
-              { en: 'Startup Failure Framework', ar: 'إطار فشل الشركات' },
+              { en: 'Recovery Playbook', ar: 'دليل الاسترداد النقدّي' },
+              { en: 'Founder Survival Toolkit', ar: 'أدوات نجاة المؤسس المعزول' },
+              { en: 'Startup Failure Framework', ar: 'إطار تشريح فشل الشركات' },
             ].map(item => (
               <div key={item.en} className={cn(
                 'px-4 py-2.5 border border-white/[0.06] text-[11px] text-white/20',

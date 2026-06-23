@@ -17,7 +17,7 @@ export default function Methodology() {
 
   const metaTitle = isRTL ? 'المنهجية — خبير الفشل' : 'Methodology — خبير الفشل';
   const metaDesc = isRTL
-    ? 'إطار منهجي صارم قائم على الأدلة لتحديد الأنماط التي تسبق فشل الشركات الناشئة.'
+    ? 'إطار بحثي صارم قائم على الأدلة والتحليل الجنائي، لتحديد ورصد الأنماط السلوكية التي تسبق انهيار الشركات الناشئة.'
     : 'A rigorous, evidence-based framework for identifying the patterns that precede startup failure.';
 
   const sections = [
@@ -27,8 +27,8 @@ export default function Methodology() {
         body: 'The framework draws from a structured corpus of post-mortem analyses, founder interviews, investor notes, and acquisition failure reports spanning 2012–2024. Sources include CB Insights, Crunchbase Failure Reports, Y Combinator retrospectives, and direct founder testimony collected over seven years.',
       },
       ar: {
-        title: 'أكثر من ١٤٠٠ حالة فشل موثقة',
-        body: 'يستند الإطار إلى مجموعة منظمة من تحليلات ما بعد الإغلاق، ومقابلات المؤسسين، وملاحظات المستثمرين، وتقارير فشل الاستحواذ من 2012 إلى 2024. تشمل المصادر CB Insights وتقارير Crunchbase وندوات Y Combinator وشهادات مؤسسين مباشرة جُمعت خلال سبع سنوات.',
+        title: 'تشريح 1,400+ حالة فشل موثقة',
+        body: 'يستند الإطار إلى قاعدة بيانات منظمة من تحليلات ما بعد الإغلاق (Post-Mortem)، ومقابلات المؤسسين، وملاحظات المستثمرين، وتقارير انهيار الاستحواذ في الفترة بين 2012 و2024. المصادر المرجعية: CB Insights، Crunchbase، Y Combinator، بالإضافة إلى شهادات حية ومباشرة من مؤسسين جُمعت على مدار 7 سنوات.',
       },
     },
     {
@@ -37,8 +37,8 @@ export default function Methodology() {
         body: 'Most failure predictors are not financial — they are behavioral. The framework identifies cognitive and organizational signals that consistently appear 6–18 months before collapse: decision avoidance, information isolation, identity fusion, and cash denial. These are weighted and scored against validated failure trajectories.',
       },
       ar: {
-        title: 'اكتشاف الإشارات السلوكية',
-        body: 'معظم مؤشرات الفشل ليست مالية — بل سلوكية. يرصد الإطار الإشارات المعرفية والتنظيمية التي تظهر باستمرار بين 6 و18 شهراً قبل الانهيار: تجنّب القرارات، وعزل المعلومات، والاندماج مع الهوية، وإنكار السيولة. يتم ترجيح هذه الإشارات وتسجيلها مقارنةً بمسارات الفشل المُتحققة.',
+        title: 'رصد الإشارات السلوكية الصامتة',
+        body: 'معظم مؤشرات الفشل الحقيقية ليست مالية، بل سلوكية ونفسية. يرصد الإطار التشوهات المعرفية والتنظيمية التي تظهر باستمرار في غضون 6 إلى 18 شهراً قبل الانهيار المالي الملموس. أبرز الإشارات: تجنّب المحادثات الصعبة، عزل المعلومات، الاندماج العاطفي مع الهوية، وإنكار مؤشرات الحرق. تخضع هذه الإشارات لنظام ترجيح رقمي ومقارنة دقيقة بمسارات الفشل المُتحققة تاريخياً.',
       },
     },
     {
@@ -47,8 +47,8 @@ export default function Methodology() {
         body: 'The diagnostic instrument is built from 12 questions derived through iterative refinement across 400+ founder sessions. Each question targets a specific failure signal, weighted by its observed correlation with actual collapse events. Questions undergo annual recalibration based on new case data.',
       },
       ar: {
-        title: '١٢ سؤالاً معايَراً',
-        body: 'تتكوّن أداة التشخيص من 12 سؤالاً مُستَخلصاً من صياغة تكرارية عبر أكثر من 400 جلسة مع مؤسسين. يستهدف كل سؤال إشارة فشل محددة، مرجّحةً بارتباطها الملحوظ بأحداث الانهيار الفعلية. تخضع الأسئلة لإعادة معايرة سنوية استناداً إلى بيانات الحالات الجديدة.',
+        title: 'بروتوكول الـ 12 سؤالاً المعاير',
+        body: 'تتكوّن أداة التشخيص من 12 سؤالاً استراتيجياً، جرى استخلاصها وصياغتها وتطويرها تكرارياً عبر أكثر من 400 جلسة مغلقة مع مؤسسين. يستهدف كل سؤال إشارة مخاطر محددة بدقة، مرجّحةً بارتباطها الإحصائي بأحداث الانهيار الفعلية، وتخضع الأسئلة لإعادة معايرة سنوية استناداً إلى تدفق بيانات الحالات الجديدة.',
       },
     },
     {
@@ -57,8 +57,8 @@ export default function Methodology() {
         body: 'Research identifies five dominant failure modes that account for 78% of documented startup collapses: financial denial, leadership isolation, strategic paralysis, identity fusion, and concentration risk. Each mode has a distinct behavioral signature, predictable escalation pattern, and documented intervention window. The framework maps founder responses to these signatures in real time.',
       },
       ar: {
-        title: 'خمسة أنماط فشل رئيسية',
-        body: 'تحدد الأبحاث خمسة أنماط فشل رئيسية تُفسّر 78% من حالات الانهيار الموثقة: إنكار الوضع المالي، وعزلة القيادة، وشلل الاستراتيجية، والاندماج مع الهوية، ومخاطر التركّز. لكل نمط بصمة سلوكية متميزة، ومسار تصعيد متوقع، ونافذة تدخل موثقة. يُرسم الإطار استجابات المؤسس لهذه البصمات في الوقت الفعلي.',
+        title: 'خريطة الأنماط الـ 5 الرئيسية',
+        body: 'تُشير البيانات إلى أن 5 أنماط فشل رئيسية تُفسّر وحدها 78% من حالات انهيار الشركات الموثقة: إنكار الواقع المالي، وعزلة القيادة وانقطاع القرار، وشلل التموضع الاستراتيجي، والاندماج الوجداني مع الهوية، ومخاطر التركّز العالي. لكل نمط بصمة سلوكية متميزة، ومسار تصعيد متوقع، ونافذة تدخل موثقة نحددها لك في الوقت الفعلي.',
       },
     },
   ];
@@ -89,7 +89,7 @@ export default function Methodology() {
                 ? 'font-arabic font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.3]'
                 : 'font-serif-display text-4xl md:text-6xl lg:text-7xl leading-[1.0]'
             )}>
-              {isRTL ? 'منهجية / خبير الفشل™' : 'Khabeer Al Fashal™ / Methodology'}
+              {isRTL ? 'المنهجية العلمية لـ خبير الفشل™' : 'Khabeer Al Fashal™ / Methodology'}
             </h1>
             <p className={cn(
               'text-white/55 max-w-2xl',
@@ -98,7 +98,7 @@ export default function Methodology() {
                 : 'text-base md:text-xl leading-relaxed font-light'
             )}>
               {isRTL
-                ? 'إطار منهجي صارم قائم على الأدلة لتحديد الأنماط التي تسبق فشل الشركات الناشئة.'
+                ? 'إطار بحثي صارم قائم على الأدلة والتحليل الجنائي، لتحديد ورصد الأنماط السلوكية التي تسبق انهيار الشركات الناشئة.'
                 : 'A rigorous, evidence-based framework for identifying the patterns that precede startup failure.'}
             </p>
           </motion.div>
@@ -165,7 +165,7 @@ export default function Methodology() {
             isRTL ? 'font-arabic leading-[1.9]' : 'font-serif-display italic leading-[1.4]'
           )}>
             {isRTL
-              ? 'التشخيص هو نقطة البداية. الجلسة هي حيث تتحول الأنماط إلى استراتيجية.'
+              ? 'التشخيص الرقمي هو مجرد نقطة البداية.. الجلسة التشريحية المغلقة هي المكان الذي تتحول فيه الأنماط إلى طوق نجاة استراتيجي.'
               : 'The diagnostic is a starting point. The session is where patterns become strategy.'}
           </p>
           <Link
@@ -179,7 +179,7 @@ export default function Methodology() {
               'text-sm font-semibold',
               isRTL ? 'font-arabic tracking-normal text-base' : 'uppercase tracking-[0.28em]'
             )}>
-              {isRTL ? 'احجز جلسة' : 'Book a Session'}
+              {isRTL ? 'احجز جلستك الاستراتيجية الآن' : 'Book a Session'}
             </span>
             <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
           </Link>
