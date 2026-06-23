@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdminLanguage } from '@/hooks/useAdminLanguage';
 import { useCreateInvoice, InvoicePriceUnavailableError } from '@/hooks/useCreateInvoice';
+import { lookupSessionPrice } from '@/lib/sessionPricing';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   X,
@@ -506,11 +507,14 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const sessionValue = await lookupSessionPrice(sessionType);
+
       const { error } = await supabase.from('advisory_sessions').insert({
         founder_name:    founderName,
         founder_email:   founderEmail,
         company:         company || null,
         session_type:    sessionType,
+        session_value:   sessionValue,
         scheduled_at:    scheduledAt || null,
         duration_minutes: duration,
         risk_level:      riskLevel || null,
