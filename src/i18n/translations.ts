@@ -140,6 +140,7 @@ interface LangStrings {
       axisX: string;
       valleyLabel: string;
       captions: { t: string; b: string }[];
+      phases: { dormant: string; descent: string; floor: string; ascent: string };
     };
     testimonialsEyebrow: string;
     testimonialsHeading: string;
@@ -476,6 +477,12 @@ const en: LangStrings = {
         { t: 'The floor', b: 'Most companies die here. No capital, no traction, no time, no honest mirror.' },
         { t: 'The climb', b: 'If you make it here, revenue starts covering burn. The company finally exists.' },
       ],
+      phases: {
+        dormant: 'Standby',
+        descent: 'Descent',
+        floor: 'Critical floor',
+        ascent: 'Ascent',
+      },
     },
     testimonialsEyebrow: 'After the Session',
     testimonialsHeading: "What they said\nwhen the room got quiet.",
@@ -1008,6 +1015,12 @@ const ar: LangStrings = {
       axisY: 'الأرباح/الخسائر التراكمية',
       axisX: 'الزمن',
       valleyLabel: 'وادي الموت',
+      phases: {
+        dormant: 'استعداد',
+        descent: 'الانحدار',
+        floor: 'القاع الحرج',
+        ascent: 'الصعود',
+      },
       captions: [
         { t: '01 · المنحدر (النزول)', b: 'أنت تحرق النقد قبل أن يبيع المنتج؛ وكل شهر يمر يقرّبك خطوة من القاع.' },
         { t: '02 · القاع الميت', b: 'هنا تختنق معظم الشركات. لا تمويل، لا إيرادات كافية، لا وقت.. وبلا مرآة واحدة صادقة.' },
