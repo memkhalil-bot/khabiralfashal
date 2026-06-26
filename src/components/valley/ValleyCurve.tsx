@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -6,6 +7,11 @@ import { cn } from '@/lib/utils';
 /**
  * ValleyCurve — animated Valley of Death diagram, fully language-aware.
  * Labels are driven entirely by translations. No mixed-language SVG.
+ *
+ * Motion system: a one-shot phase sequence (dormant -> descent -> floor ->
+ * ascent -> settled) triggered once when the panel enters the viewport.
+ * Segment geometry is derived at runtime from the CURVE path via
+ * getTotalLength()/getPointAtLength() rather than hardcoded keyframes.
  */
 
 const CURVE = 'M 60 215 C 180 235, 280 410, 430 420 S 680 320, 900 90';
@@ -17,12 +23,135 @@ const MILESTONE_POS = [
   { x: 820, y: 145 },
 ];
 
+type Phase = 'dormant' | 'descent' | 'floor' | 'ascent' | 'settled';
+const PHASE_ORDER: Phase[] = ['dormant', 'descent', 'floor', 'ascent', 'settled'];
+
+// Desaturated, brand-aligned phase colors (not the literal neon prototype hexes).
+const PHASE_COLOR: Record<Phase, string> = {
+  dormant: 'hsl(0 0% 45%)',
+  descent: 'hsl(18 92% 55%)',
+  floor: 'hsl(0 0% 65%)',
+  ascent: 'hsl(107 45% 52%)',
+  settled: 'hsl(107 45% 52%)',
+};
+
+function buildSegment(
+  path: SVGPathElement,
+  total: number,
+  fromT: number,
+  toT: number,
+  steps = 32
+) {
+  let points = '';
+  let length = 0;
+  let prev: { x: number; y: number } | null = null;
+  for (let i = 0; i <= steps; i++) {
+    const t = fromT + (toT - fromT) * (i / steps);
+    const p = path.getPointAtLength(t * total);
+    points += `${p.x},${p.y} `;
+    if (prev) length += Math.hypot(p.x - prev.x, p.y - prev.y);
+    prev = { x: p.x, y: p.y };
+  }
+  return { points: points.trim(), length };
+}
+
 export function ValleyCurve() {
   const t = useT();
   const c = t.valley.curve;
   const { lang } = useLanguage();
   const isRTL = lang === 'ar';
   const fontFamily = isRTL ? 'Cairo, sans-serif' : 'ui-sans-serif, system-ui';
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const isInView = useInView(panelRef, { once: true, margin: '-100px' });
+
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [measured, setMeasured] = useState(false);
+  const [floorT, setFloorT] = useState(0.5);
+  const [segments, setSegments] = useState<{
+    descent: { points: string; length: number };
+    ascent: { points: string; length: number };
+  } | null>(null);
+  const [phase, setPhase] = useState<Phase>('dormant');
+  const [markerT, setMarkerT] = useState(0);
+  const [markerPos, setMarkerPos] = useState({ x: 60, y: 215 });
+
+  useEffect(() => {
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  // Derive floor point + segment polylines from the live path geometry once.
+  useEffect(() => {
+    const path = pathRef.current;
+    if (!path) return;
+    const total = path.getTotalLength();
+    let deepestT = 0.5;
+    let deepestY = -Infinity;
+    const steps = 60;
+    for (let i = 0; i <= steps; i++) {
+      const tNorm = i / steps;
+      const p = path.getPointAtLength(tNorm * total);
+      if (p.y > deepestY) {
+        deepestY = p.y;
+        deepestT = tNorm;
+      }
+    }
+    setFloorT(deepestT);
+    setSegments({
+      descent: buildSegment(path, total, 0, deepestT),
+      ascent: buildSegment(path, total, deepestT, 1),
+    });
+    setMarkerPos(path.getPointAtLength(0));
+    setMeasured(true);
+  }, []);
+
+  // One-shot phase sequence, gated on viewport entry + measured geometry.
+  useEffect(() => {
+    if (!isInView || !measured) return;
+
+    if (reducedMotion) {
+      setPhase('settled');
+      setMarkerT(1);
+      return;
+    }
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setPhase('descent'), 500));
+    timers.push(
+      setTimeout(() => {
+        setPhase('floor');
+        setMarkerT(floorT);
+      }, 700)
+    );
+    timers.push(setTimeout(() => setPhase('ascent'), 1700));
+    timers.push(
+      setTimeout(() => {
+        setMarkerT(1);
+      }, 1750)
+    );
+    timers.push(setTimeout(() => setPhase('settled'), 3300));
+
+    return () => timers.forEach(clearTimeout);
+  }, [isInView, measured, floorT, reducedMotion]);
+
+  useEffect(() => {
+    const path = pathRef.current;
+    if (!path || !measured) return;
+    const total = path.getTotalLength();
+    setMarkerPos(path.getPointAtLength(markerT * total));
+  }, [markerT, measured]);
+
+  const phaseIndex = PHASE_ORDER.indexOf(phase);
+  const phaseAtLeast = (target: Phase) => phaseIndex >= PHASE_ORDER.indexOf(target);
+  const markerColor = PHASE_COLOR[phase];
+
+  const phaseLabel = useMemo(() => {
+    if (phase === 'dormant') return c.phases.dormant;
+    if (phase === 'descent') return c.phases.descent;
+    if (phase === 'floor') return c.phases.floor;
+    return c.phases.ascent;
+  }, [phase, c.phases]);
 
   return (
     <section
@@ -74,12 +203,33 @@ export function ValleyCurve() {
         </motion.div>
 
         <motion.div
+          ref={panelRef}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 1.1, delay: 0.15 }}
           className="relative bg-gradient-to-b from-white/[0.02] to-transparent border border-white/10 p-6 md:p-10"
         >
+          {/* Phase status readout — HTML so it stays legible at any viewport width */}
+          <div className="absolute top-3 right-4 md:top-5 md:right-6 flex items-center gap-2 z-10">
+            <span
+              className="h-1.5 w-1.5 rounded-full transition-colors duration-500"
+              style={{
+                backgroundColor: markerColor,
+                boxShadow: phaseAtLeast('settled') ? `0 0 6px ${markerColor}` : 'none',
+              }}
+            />
+            <span
+              className={cn(
+                'text-[10px] uppercase tracking-[0.25em] transition-colors duration-500',
+                isRTL && 'font-arabic tracking-normal'
+              )}
+              style={{ color: markerColor }}
+            >
+              {phaseLabel}
+            </span>
+          </div>
+
           <svg viewBox="0 0 960 480" className="w-full h-auto" role="img" aria-label={c.valleyLabel}>
             {/* Stage bands */}
             {c.stages.map((s, i) => {
@@ -148,30 +298,73 @@ export function ValleyCurve() {
               opacity="0.06"
             />
 
-            {/* Curve */}
-            <motion.path
+            {/* Ghost track — always-visible muted base line, doubles as geometry source */}
+            <path
+              ref={pathRef}
               d={CURVE}
               fill="none"
-              stroke="hsl(18 92% 55%)"
-              strokeWidth="3.5"
+              stroke={PHASE_COLOR.dormant}
+              strokeWidth="2.5"
               strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
+              opacity="0.35"
             />
-            <motion.path
-              d={CURVE}
-              fill="none"
-              stroke="hsl(18 92% 55%)"
-              strokeWidth="10"
-              strokeLinecap="round"
-              opacity="0.18"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
-            />
+
+            {/* Descent segment reveal */}
+            {segments && (
+              <polyline
+                points={segments.descent.points}
+                fill="none"
+                stroke={PHASE_COLOR.descent}
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={segments.descent.length}
+                strokeDashoffset={phaseAtLeast('descent') ? 0 : segments.descent.length}
+                style={{ transition: 'stroke-dashoffset 1.1s cubic-bezier(0.16,1,0.3,1)' }}
+              />
+            )}
+
+            {/* Ascent segment reveal */}
+            {segments && (
+              <polyline
+                points={segments.ascent.points}
+                fill="none"
+                stroke={PHASE_COLOR.ascent}
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={segments.ascent.length}
+                strokeDashoffset={phaseAtLeast('ascent') ? 0 : segments.ascent.length}
+                style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)' }}
+              />
+            )}
+
+            {/* Moving marker */}
+            {measured && (
+              <g>
+                <circle
+                  cx={markerPos.x}
+                  cy={markerPos.y}
+                  r={phaseAtLeast('settled') ? 10 : 7}
+                  fill="none"
+                  stroke={markerColor}
+                  opacity={phaseAtLeast('settled') ? 0.35 : 0}
+                  className={phaseAtLeast('settled') && !reducedMotion ? 'animate-pulse' : ''}
+                  style={{
+                    transition: 'cx 0.9s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), stroke 0.5s, r 0.6s, opacity 0.6s',
+                  }}
+                />
+                <circle
+                  cx={markerPos.x}
+                  cy={markerPos.y}
+                  r="4.5"
+                  fill={markerColor}
+                  style={{
+                    transition: 'cx 0.9s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), fill 0.5s',
+                  }}
+                />
+              </g>
+            )}
 
             {/* Milestones */}
             {MILESTONE_POS.map((p, i) => (
@@ -206,12 +399,12 @@ export function ValleyCurve() {
               </motion.g>
             ))}
 
-            {/* Valley label */}
-            <motion.g
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 1.6 }}
+            {/* Valley label — reveals once the marker reaches the floor */}
+            <g
+              style={{
+                opacity: phaseAtLeast('floor') ? 1 : 0,
+                transition: 'opacity 0.8s ease-out',
+              }}
             >
               <line x1="430" y1="420" x2="430" y2="455" stroke="hsl(18 92% 55%)" strokeDasharray="3 3" />
               <text
@@ -226,7 +419,7 @@ export function ValleyCurve() {
               >
                 {c.valleyLabel}
               </text>
-            </motion.g>
+            </g>
           </svg>
 
           {/* Stage legend below */}
