@@ -232,6 +232,7 @@ interface LangStrings {
     nextMoveSection: string;
     ctas: { title: string; desc: string }[];
     dynamicCtas: Record<'low' | 'medium' | 'high', { title: string; desc: string; intent: string; urgent?: boolean }[]>;
+    visualPhases: { descent: string; floor: string; ascent: string };
     continueLabel: string;
     restartDiagnosticLabel: string;
 
@@ -659,6 +660,11 @@ const en: LangStrings = {
       high: [
         { title: 'Emergency Founder Session', desc: 'This week. We triage runway, team, and the decision you\'ve been postponing. Limited intake.', intent: 'emergency', urgent: true },
       ],
+    },
+    visualPhases: {
+      descent: 'Descent',
+      floor: 'Critical floor',
+      ascent: 'Ascent',
     },
     continueLabel:          'Continue',
     restartDiagnosticLabel: 'Restart diagnostic',
@@ -1201,6 +1207,11 @@ const ar: LangStrings = {
       high: [
         { title: 'جلسة طوق النجاة', desc: 'هذا الأسبوع. نحدّد الأولويات: التدفق، الفريق، القرار الذي تؤجّله. المقاعد محدودة.', intent: 'emergency', urgent: true },
       ],
+    },
+    visualPhases: {
+      descent: 'الانحدار',
+      floor: 'القاع الحرج',
+      ascent: 'الصعود',
     },
     continueLabel:          'متابعة',
     restartDiagnosticLabel: 'إعادة التشخيص',
