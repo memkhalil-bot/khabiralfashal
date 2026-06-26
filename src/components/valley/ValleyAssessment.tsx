@@ -154,16 +154,59 @@ function finalSink(pct: number): number {
   return pct >= 78 ? 40 : 0;
 }
 
-// Build SVG polyline points along path segment
-function pathPoints(fromT: number, toT: number, steps = 16): string {
-  const pts: string[] = [];
+// ── Zone boundaries + segment geometry for the dash-offset trail reveal ──────
+// pathAt() is a pure function of the static keyframes, so each zone's
+// polyline + length can be precomputed once instead of every render.
+
+const DESCENT_END = 0.45;
+const FLOOR_END = 0.55;
+
+type Zone = 'descent' | 'floor' | 'ascent';
+
+function zoneAt(t01: number): Zone {
+  if (t01 <= DESCENT_END) return 'descent';
+  if (t01 <= FLOOR_END) return 'floor';
+  return 'ascent';
+}
+
+function zoneProgress(t01: number, fromT: number, toT: number): number {
+  if (t01 <= fromT) return 0;
+  if (t01 >= toT) return 1;
+  return (t01 - fromT) / (toT - fromT);
+}
+
+interface ZoneSegment { points: string; length: number }
+
+function buildZoneSegment(fromT: number, toT: number, steps = 24): ZoneSegment {
+  let points = '';
+  let length = 0;
+  let prev: { cx: number; cy: number } | null = null;
   for (let i = 0; i <= steps; i++) {
     const t = fromT + (toT - fromT) * (i / steps);
-    const { cx, cy } = pathAt(t);
-    pts.push(`${cx.toFixed(1)},${cy.toFixed(1)}`);
+    const p = pathAt(t);
+    points += `${p.cx.toFixed(1)},${p.cy.toFixed(1)} `;
+    if (prev) length += Math.hypot(p.cx - prev.cx, p.cy - prev.cy);
+    prev = p;
   }
-  return pts.join(' ');
+  return { points: points.trim(), length };
 }
+
+const SEG_DESCENT = buildZoneSegment(0, DESCENT_END);
+const SEG_FLOOR = buildZoneSegment(DESCENT_END, FLOOR_END);
+const SEG_ASCENT = buildZoneSegment(FLOOR_END, 1);
+const SEG_GHOST = buildZoneSegment(0, 1, 48);
+
+// Desaturated, brand-aligned idle colors per zone (not the flash colors).
+const ZONE_COLOR: Record<Zone, string> = {
+  descent: 'hsl(18 92% 55%)',
+  floor: 'hsl(0 0% 65%)',
+  ascent: 'hsl(107 45% 52%)',
+};
+const ZONE_GLOW: Record<Zone, string> = {
+  descent: '18 92% 55%',
+  floor: '0 0% 65%',
+  ascent: '107 45% 52%',
+};
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
 
@@ -344,34 +387,40 @@ function Field({ label, required, isRTL, children }: {
 // ── Valley Visual — image hero + transparent marker overlay ──────────────────
 
 function ValleyVisual({
-  markerY, markerCx, tension, isDanger, markerActive, isRTL,
-  nodeFlash, startGlow, dispT01,
+  markerY, markerCx, tension, markerActive, isRTL,
+  nodeFlash, startGlow, dispT01, phaseLabels,
 }: {
   markerY: number; markerCx: number;
-  tension: number; isDanger: boolean;
+  tension: number;
   markerActive: boolean; isRTL: boolean;
   nodeFlash: 'safe' | 'risky' | null;
   startGlow: boolean;
   dispT01: number;
+  phaseLabels: { descent: string; floor: string; ascent: string };
 }) {
-  // Marker color driven by flash state → zone
+  const zone = zoneAt(dispT01);
+
+  // Marker color: transient answer feedback takes priority over the idle zone color.
   const markerFill =
     startGlow         ? '#ffffff'
     : nodeFlash === 'safe'  ? 'hsl(142 76% 55%)'
     : nodeFlash === 'risky' ? 'hsl(0 84% 60%)'
-    : isDanger              ? 'hsl(0 84% 60%)'
-    :                         'hsl(18 92% 55%)';
+    :                         ZONE_COLOR[zone];
 
   const glowColor =
     startGlow         ? '0 0% 100%'
     : nodeFlash === 'safe'  ? '142 76% 55%'
     : nodeFlash === 'risky' ? '0 84% 60%'
-    : isDanger              ? '0 84% 60%'
-    :                         '18 92% 55%';
+    :                         ZONE_GLOW[zone];
 
-  // Zone boundaries for path trail
-  const DESCENT_END = 0.45;
-  const FLOOR_END   = 0.55;
+  const descentProgress = zoneProgress(dispT01, 0, DESCENT_END);
+  const floorProgress = zoneProgress(dispT01, DESCENT_END, FLOOR_END);
+  const ascentProgress = zoneProgress(dispT01, FLOOR_END, 1);
+
+  const phaseLabel =
+    zone === 'descent' ? phaseLabels.descent
+    : zone === 'floor' ? phaseLabels.floor
+    : phaseLabels.ascent;
 
   return (
     // Natural aspect-ratio — image drives its own height via h-auto.
@@ -387,6 +436,22 @@ function ValleyVisual({
           draggable={false}
         />
       </picture>
+
+      {/* Phase/status readout — HTML so it stays legible regardless of SVG scaling */}
+      {markerActive && (
+        <div className={cn('absolute top-3 z-10 flex items-center gap-2', isRTL ? 'left-3' : 'right-3')}>
+          <span
+            className="h-1.5 w-1.5 rounded-full transition-colors duration-500"
+            style={{ backgroundColor: markerFill }}
+          />
+          <span
+            className={cn('text-[10px] uppercase tracking-[0.25em] transition-colors duration-500', isRTL && 'tracking-normal')}
+            style={{ color: markerFill }}
+          >
+            {phaseLabel}
+          </span>
+        </div>
+      )}
 
       {/* SVG overlay — absolutely covers the exact image bounds */}
       <svg
@@ -409,43 +474,58 @@ function ValleyVisual({
             Khabeer Al Fashal™
           </text>
 
-          {/* Path trail overlay — zone-colored segments (rendered when marker is active) */}
-          {markerActive && dispT01 > 0 && (
+          {/* Ghost track — full path, very low opacity, for orientation at rest */}
+          {markerActive && (
+            <polyline
+              points={SEG_GHOST.points}
+              fill="none"
+              stroke="hsl(0 0% 70%)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.14}
+            />
+          )}
+
+          {/* Path trail — zone-colored segments, smooth stroke-dashoffset reveal */}
+          {markerActive && (
             <>
-              {/* Descent zone: orange */}
               <polyline
-                points={pathPoints(0, Math.min(dispT01, DESCENT_END))}
+                points={SEG_DESCENT.points}
                 fill="none"
                 stroke="hsl(18 92% 60%)"
                 strokeWidth="3.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.5}
+                opacity={0.55}
+                strokeDasharray={SEG_DESCENT.length}
+                strokeDashoffset={SEG_DESCENT.length * (1 - descentProgress)}
+                style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
               />
-              {/* Floor zone: muted gray */}
-              {dispT01 > DESCENT_END && (
-                <polyline
-                  points={pathPoints(DESCENT_END, Math.min(dispT01, FLOOR_END))}
-                  fill="none"
-                  stroke="hsl(0 0% 55%)"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.45}
-                />
-              )}
-              {/* Ascent zone: green */}
-              {dispT01 > FLOOR_END && (
-                <polyline
-                  points={pathPoints(FLOOR_END, Math.min(dispT01, 1.0))}
-                  fill="none"
-                  stroke="hsl(107 55% 58%)"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.5}
-                />
-              )}
+              <polyline
+                points={SEG_FLOOR.points}
+                fill="none"
+                stroke="hsl(0 0% 60%)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.5}
+                strokeDasharray={SEG_FLOOR.length}
+                strokeDashoffset={SEG_FLOOR.length * (1 - floorProgress)}
+                style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
+              />
+              <polyline
+                points={SEG_ASCENT.points}
+                fill="none"
+                stroke="hsl(107 45% 55%)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.55}
+                strokeDasharray={SEG_ASCENT.length}
+                strokeDashoffset={SEG_ASCENT.length * (1 - ascentProgress)}
+                style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
+              />
             </>
           )}
 
@@ -473,7 +553,7 @@ function ValleyVisual({
                 fill={`hsl(${glowColor} / ${(startGlow || nodeFlash) ? 0.35 : 0.16 + tension * 0.22})`}
                 style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease, fill 0.4s ease' }}
               />
-              {/* Main dot — pulsing */}
+              {/* Main dot — pulsing. White rim keeps it readable against the baked-in path art, even in the ember/descent zone where fill and background share a hue. */}
               <motion.circle
                 animate={{ cx: markerCx, cy: markerY, r: [9, 12, 9] }}
                 transition={{
@@ -482,6 +562,8 @@ function ValleyVisual({
                   r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
                 }}
                 fill={markerFill}
+                stroke="rgba(255,255,255,0.85)"
+                strokeWidth={2}
                 style={{ transition: 'fill 0.35s ease' }}
               />
             </>
@@ -887,12 +969,12 @@ export function ValleyAssessment() {
             markerY={markerY}
             markerCx={baseCx}
             tension={tension}
-            isDanger={isDanger}
             markerActive={markerActive}
             isRTL={isRTL}
             nodeFlash={nodeFlash}
             startGlow={startGlow}
             dispT01={dispT01}
+            phaseLabels={a.visualPhases}
           />
 
           {/* Premium single gradient progress bar */}
