@@ -178,7 +178,7 @@ export default function Home() {
 
               <div className={cn('flex flex-col sm:flex-row gap-3', isRTL && 'sm:flex-row-reverse')}>
                 <Link
-                  to={getPath('/book-session')}
+                  to={getPath('/valley-of-death')}
                   className="group inline-flex items-center justify-between gap-8 px-7 py-4 bg-ember text-black hover:bg-white transition-colors duration-500"
                 >
                   <span className={cn(

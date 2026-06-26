@@ -28,7 +28,7 @@ interface LangStrings {
     caseFile: string;
     valley: string;
     contact: string;
-    bookSession: string;
+    startDiagnosis: string;
     langToggle: string; // "AR" or "EN"
     methodology: string;
   };
@@ -278,7 +278,7 @@ const en: LangStrings = {
     caseFile: 'Case File',
     valley: 'Valley of Death',
     contact: 'Contact',
-    bookSession: 'Book Session',
+    startDiagnosis: 'Start the Diagnosis',
     langToggle: 'AR',
     methodology: 'Methodology',
   },
@@ -298,7 +298,7 @@ const en: LangStrings = {
     heroLine5: 'why',
     heroPitch:
       'خبير الفشل — a forensic practice studying the psychology, decisions, and blind spots that kill companies long before the funding runs out.',
-    ctaPrimary: 'Book a Risk Session',
+    ctaPrimary: 'Start the Diagnosis',
     ctaSecondary: 'The Case File',
     scrollLabel: 'Scroll · انزل',
     scrollSubject: 'Subject: The Founder',
@@ -821,7 +821,7 @@ const ar: LangStrings = {
     caseFile: 'الملف',
     valley: 'وادي الموت',
     contact: 'تواصل',
-    bookSession: 'احجز جلسة',
+    startDiagnosis: 'ابدأ التشخيص',
     langToggle: 'EN',
     methodology: 'المنهجية',
   },
@@ -841,7 +841,7 @@ const ar: LangStrings = {
     heroLine5: 'تخسر.',
     heroPitch:
       'خبير الفشل — ممارسة تشريحية تدرس سيكولوجية المؤسس وقراراته ونقاط عماه قبل أن ينفد التمويل بأشهر.',
-    ctaPrimary: 'احجز جلسة المخاطر',
+    ctaPrimary: 'ابدأ التشخيص',
     ctaSecondary: 'الملف التفصيلي',
     scrollLabel: 'انزل',
     scrollSubject: 'الموضوع: المؤسس',

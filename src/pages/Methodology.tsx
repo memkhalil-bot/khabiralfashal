@@ -108,7 +108,7 @@ export default function Methodology() {
       {/* ============ METHODOLOGY SECTIONS ============ */}
       <section className="relative py-24 md:py-32 px-6 lg:px-12 bg-black">
         <div className="max-w-5xl mx-auto">
-          <div className="space-y-0 divide-y divide-white/[0.06]">
+          <div className="space-y-6 md:space-y-8">
             {sections.map((sec, i) => (
               <motion.div
                 key={i}
@@ -116,7 +116,10 @@ export default function Methodology() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-                className={cn('py-16 md:py-20', isRTL && 'text-right')}
+                className={cn(
+                  'p-8 md:p-12 border border-white/[0.06] bg-white/[0.015] rounded-2xl',
+                  isRTL && 'text-right'
+                )}
               >
                 <div className={cn('flex items-start gap-8 md:gap-16', isRTL && 'flex-row-reverse')}>
                   <span className={cn(
@@ -169,7 +172,7 @@ export default function Methodology() {
               : 'The diagnostic is a starting point. The session is where patterns become strategy.'}
           </p>
           <Link
-            to={getPath('/contact')}
+            to={getPath('/book-session')}
             className={cn(
               'group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500',
               isRTL && 'flex-row-reverse'
