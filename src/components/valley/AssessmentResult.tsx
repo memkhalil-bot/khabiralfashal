@@ -105,6 +105,7 @@ interface Props {
     recoverySection: string;
     nextMoveSection: string;
     restartDiagnosticLabel: string;
+    requestReportCta: string;
   };
   onReset: () => void;
 }
@@ -307,7 +308,7 @@ export function AssessmentResult({
           <p className={eyebrow(labels.blindSpotsSection, 'text-ember')}>
             {labels.blindSpotsSection}
           </p>
-          <ul className="max-w-2xl">
+          <ul className="max-w-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
             {blindSpots.map((b, i) => (
               <motion.li
                 key={b}
@@ -364,6 +365,24 @@ export function AssessmentResult({
         )}
       </motion.section>
 
+      {/* ── 5.5 · GUARANTEED REPORT CTA ────────────────────────────
+          Always available, regardless of risk bucket.                 */}
+      <motion.section {...reveal} className="border-t border-white/[0.07] pt-16 pb-20">
+        <Link
+          to={ctaHref('report')}
+          state={ctaState('report')}
+          className={cn(
+            'group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500',
+            isRTL && 'flex-row-reverse'
+          )}
+        >
+          <span className={cn('text-sm uppercase font-semibold', isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]')}>
+            {labels.requestReportCta}
+          </span>
+          <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
+        </Link>
+      </motion.section>
+
       {/* ── 6 · ACTION ─────────────────────────────────────────────
           One clear next move. Dynamic by risk level.                  */}
       <motion.section {...reveal} className="border-t border-white/[0.07] pt-16 pb-10">
@@ -407,7 +426,7 @@ export function AssessmentResult({
             </div>
           </div>
           <p className={cn('text-sm text-white/55 leading-relaxed', isRTL ? 'font-arabic leading-[1.9] text-right' : 'font-light')}>
-            {verdict.tone}
+            {verdict.insight}
           </p>
         </div>
 
