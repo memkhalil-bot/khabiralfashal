@@ -383,7 +383,7 @@ All colors MUST be HSL.
 [data-admin-theme="day"] .bg-\[\#1a2235\],
 [data-admin-theme="day"] .bg-\[\#111111\],
 [data-admin-theme="day"] .bg-\[\#0c1119\],
-[data-admin-theme="day"] .bg-\[\#0090d14\] {
+[data-admin-theme="day"] .bg-\[\#090d14\] {
   background-color: var(--color-admin-card);
 }
 
