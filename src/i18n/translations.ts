@@ -230,10 +230,9 @@ interface LangStrings {
     consequencesSection: string;
     recoverySection: string;
     nextMoveSection: string;
-    requestReportCta: string;
     ctas: { title: string; desc: string }[];
     dynamicCtas: Record<'low' | 'medium' | 'high', { title: string; desc: string; intent: string; urgent?: boolean }[]>;
-    visualPhases: { dormant: string; descent: string; floor: string; ascent: string };
+    visualPhases: { descent: string; floor: string; ascent: string };
     continueLabel: string;
     restartDiagnosticLabel: string;
 
@@ -643,7 +642,6 @@ const en: LangStrings = {
     consequencesSection: 'If you ignore this',
     recoverySection:   'Recovery path',
     nextMoveSection:   'Your next move',
-    requestReportCta:  'Request a Detailed Report Now',
     ctas: [
       { title: 'Book Emergency Session', desc: '60 minutes. We triage runway, team, and the decision you\'ve been postponing.' },
       { title: 'Request Startup Autopsy', desc: 'A full forensic review of where the company is bleeding — and why.' },
@@ -664,7 +662,6 @@ const en: LangStrings = {
       ],
     },
     visualPhases: {
-      dormant: 'Dormant',
       descent: 'Descent',
       floor: 'Critical floor',
       ascent: 'Ascent',
@@ -1192,7 +1189,6 @@ const ar: LangStrings = {
     consequencesSection: 'إن تجاهلتَ هذا',
     recoverySection:   'مسار التعافي',
     nextMoveSection:   'خطوتك التالية',
-    requestReportCta:  'اطلب تقريرًا مفصلًا الآن',
     ctas: [
       { title: 'احجز جلسة طارئة', desc: '٦٠ دقيقة. نحدّد التدفق والفريق والقرار الذي أجّلتَه.' },
       { title: 'اطلب تشريح شركتك', desc: 'مراجعة جنائية شاملة لمكان نزف الشركة — ولماذا.' },
@@ -1213,7 +1209,6 @@ const ar: LangStrings = {
       ],
     },
     visualPhases: {
-      dormant: 'خامل',
       descent: 'الانحدار',
       floor: 'القاع الحرج',
       ascent: 'الصعود',

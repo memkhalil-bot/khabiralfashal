@@ -194,43 +194,19 @@ function buildZoneSegment(fromT: number, toT: number, steps = 24): ZoneSegment {
 const SEG_DESCENT = buildZoneSegment(0, DESCENT_END);
 const SEG_FLOOR = buildZoneSegment(DESCENT_END, FLOOR_END);
 const SEG_ASCENT = buildZoneSegment(FLOOR_END, 1);
-const SEG_GHOST = buildZoneSegment(0, 1, 64);
+const SEG_GHOST = buildZoneSegment(0, 1, 48);
 
-// Brand-aligned idle colors per zone (not the flash colors). Descent is the
-// literal brand ember (#FF4D00 == hsl(18 100% 50%)); floor and ascent are kept
-// desaturated/controlled per design spec (no bright white, no neon green).
-const DORMANT_COLOR = '#444748';
+// Desaturated, brand-aligned idle colors per zone (not the flash colors).
 const ZONE_COLOR: Record<Zone, string> = {
-  descent: 'hsl(18 100% 50%)',
-  floor: 'hsl(0 0% 48%)',
-  ascent: 'hsl(107 40% 46%)',
+  descent: 'hsl(18 92% 55%)',
+  floor: 'hsl(0 0% 65%)',
+  ascent: 'hsl(107 45% 52%)',
 };
 const ZONE_GLOW: Record<Zone, string> = {
-  descent: '18 100% 50%',
-  floor: '0 0% 48%',
-  ascent: '107 40% 46%',
+  descent: '18 92% 55%',
+  floor: '0 0% 65%',
+  ascent: '107 45% 52%',
 };
-
-// ── Code-drawn backdrop geometry (no raster background image) ───────────────
-// Mountain silhouettes, camp/city glows and the floor pool are all derived
-// from the same 1672×941 coordinate space as PATH_KEYFRAMES, so they frame
-// the path consistently at any viewport width.
-
-const VALLEY_START = PATH_KEYFRAMES[0];
-const VALLEY_END = PATH_KEYFRAMES[PATH_KEYFRAMES.length - 1];
-const FLOOR_MID = pathAt((DESCENT_END + FLOOR_END) / 2);
-
-const MOUNTAIN_BACK =
-  '0,941 0,420 90,300 180,400 300,260 430,460 560,330 700,520 ' +
-  '840,380 980,560 1120,420 1260,300 1390,440 1672,330 1672,941';
-const MOUNTAIN_FRONT =
-  '0,941 0,560 140,480 260,620 400,500 540,650 ' +
-  '680,560 820,700 960,600 1100,680 1240,580 1672,640 1672,941';
-
-const CITY_BARS = [
-  { dx: -46, h: 30 }, { dx: -32, h: 50 }, { dx: -18, h: 22 },
-  { dx: -2,  h: 58 }, { dx: 14,  h: 36 }, { dx: 30,  h: 46 },
-];
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
 
@@ -408,11 +384,7 @@ function Field({ label, required, isRTL, children }: {
   );
 }
 
-// ── Valley Visual — fully code-drawn SVG/CSS valley, no raster background ───
-// Replaces the former baked /valley-bg-{ar,en}.{png,webp} hero image. The sky,
-// mountains, camp/city glows and valley track are all vector primitives in the
-// same 1672×941 coordinate space PATH_KEYFRAMES already uses, so the marker
-// and zone-colored trail line up with the backdrop at any viewport width.
+// ── Valley Visual — image hero + transparent marker overlay ──────────────────
 
 function ValleyVisual({
   markerY, markerCx, tension, markerActive, isRTL,
@@ -424,15 +396,13 @@ function ValleyVisual({
   nodeFlash: 'safe' | 'risky' | null;
   startGlow: boolean;
   dispT01: number;
-  phaseLabels: { dormant: string; descent: string; floor: string; ascent: string };
+  phaseLabels: { descent: string; floor: string; ascent: string };
 }) {
   const zone = zoneAt(dispT01);
 
-  // Marker color: transient answer feedback takes priority over the idle zone
-  // color; before the quiz starts (dormant) the marker/badge sit in muted gray.
+  // Marker color: transient answer feedback takes priority over the idle zone color.
   const markerFill =
-    !markerActive     ? DORMANT_COLOR
-    : startGlow       ? '#ffffff'
+    startGlow         ? '#ffffff'
     : nodeFlash === 'safe'  ? 'hsl(142 76% 55%)'
     : nodeFlash === 'risky' ? 'hsl(0 84% 60%)'
     :                         ZONE_COLOR[zone];
@@ -448,75 +418,47 @@ function ValleyVisual({
   const ascentProgress = zoneProgress(dispT01, FLOOR_END, 1);
 
   const phaseLabel =
-    !markerActive     ? phaseLabels.dormant
-    : zone === 'descent' ? phaseLabels.descent
+    zone === 'descent' ? phaseLabels.descent
     : zone === 'floor' ? phaseLabels.floor
     : phaseLabels.ascent;
 
   return (
-    // Fixed aspect-ratio matches the old image's 1672:941 footprint exactly,
-    // so the layout height is unchanged even though nothing is raster anymore.
-    <div className="relative w-full aspect-[1672/941] overflow-hidden bg-[#0a0a0a]">
-      {/* Phase/status readout — HTML so it stays legible regardless of SVG scaling */}
-      <div className={cn('absolute top-3 z-10 flex items-center gap-2', isRTL ? 'left-3' : 'right-3')}>
-        <span
-          className="h-1.5 w-1.5 rounded-full transition-colors duration-500"
-          style={{ backgroundColor: markerFill, boxShadow: markerActive ? `0 0 6px ${markerFill}` : 'none' }}
+    // Natural aspect-ratio — image drives its own height via h-auto.
+    // No paddingBottom trick, no object-cover, no cropping ever.
+    <div className="relative w-full">
+      {/* Hero image — full image, zero crop */}
+      <picture>
+        <source srcSet={isRTL ? '/valley-bg-ar.webp' : '/valley-bg-en.webp'} type="image/webp" />
+        <img
+          src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.png'}
+          alt=""
+          className="w-full h-auto block"
+          draggable={false}
         />
-        <span
-          className={cn('text-[10px] uppercase tracking-[0.25em] transition-colors duration-500', isRTL && 'tracking-normal')}
-          style={{ color: markerFill }}
-        >
-          {phaseLabel}
-        </span>
-      </div>
+      </picture>
 
+      {/* Phase/status readout — HTML so it stays legible regardless of SVG scaling */}
+      {markerActive && (
+        <div className={cn('absolute top-3 z-10 flex items-center gap-2', isRTL ? 'left-3' : 'right-3')}>
+          <span
+            className="h-1.5 w-1.5 rounded-full transition-colors duration-500"
+            style={{ backgroundColor: markerFill }}
+          />
+          <span
+            className={cn('text-[10px] uppercase tracking-[0.25em] transition-colors duration-500', isRTL && 'tracking-normal')}
+            style={{ color: markerFill }}
+          >
+            {phaseLabel}
+          </span>
+        </div>
+      )}
+
+      {/* SVG overlay — absolutely covers the exact image bounds */}
       <svg
         viewBox="0 0 1672 941"
         className="absolute inset-0 w-full h-full"
         style={{ overflow: 'visible' }}
       >
-          <defs>
-            <linearGradient id="vaSky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0a0a0a" />
-              <stop offset="55%" stopColor="#121314" />
-              <stop offset="100%" stopColor="#1b1c1d" />
-            </linearGradient>
-            <filter id="vaMarkerGlow" x="-150%" y="-150%" width="400%" height="400%">
-              <feGaussianBlur stdDeviation="10" />
-            </filter>
-            <filter id="vaSoftGlow" x="-200%" y="-200%" width="500%" height="500%">
-              <feGaussianBlur stdDeviation="22" />
-            </filter>
-          </defs>
-
-          {/* Dark cinematic sky */}
-          <rect x="0" y="0" width="1672" height="941" fill="url(#vaSky)" />
-
-          {/* Mountain silhouettes — vector depth, no raster art */}
-          <polygon points={MOUNTAIN_BACK} fill="#0d0e0f" opacity="0.85" />
-          <polygon points={MOUNTAIN_FRONT} fill="#1b1c1d" opacity="0.8" />
-
-          {/* Camp glow — origin of the descent */}
-          <circle cx={VALLEY_START.cx} cy={VALLEY_START.cy} r="46" fill="hsl(18 100% 50% / 0.16)" filter="url(#vaSoftGlow)" />
-          <circle cx={VALLEY_START.cx} cy={VALLEY_START.cy} r="4" fill="hsl(18 100% 62%)" opacity="0.75" />
-
-          {/* City glow — destination of the ascent */}
-          <circle cx={VALLEY_END.cx} cy={VALLEY_END.cy - 12} r="64" fill="rgba(255,255,255,0.07)" filter="url(#vaSoftGlow)" />
-          {CITY_BARS.map((b, i) => (
-            <rect
-              key={i}
-              x={VALLEY_END.cx + b.dx}
-              y={VALLEY_END.cy - b.h}
-              width="6"
-              height={b.h}
-              fill="rgba(255,255,255,0.10)"
-            />
-          ))}
-
-          {/* Floor glow — faint ember pool marking the valley bottom */}
-          <ellipse cx={FLOOR_MID.cx} cy={FLOOR_MID.cy} rx="180" ry="40" fill="hsl(18 100% 50% / 0.05)" filter="url(#vaSoftGlow)" />
-
           {/* Watermark — low opacity, bottom-right */}
           <text
             x="1648" y="928"
@@ -532,17 +474,18 @@ function ValleyVisual({
             Khabeer Al Fashal™
           </text>
 
-          {/* Dormant base track — always visible; this is the valley before motion begins */}
-          <polyline
-            points={SEG_GHOST.points}
-            fill="none"
-            stroke={DORMANT_COLOR}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            opacity={markerActive ? 0.18 : 0.55}
-            style={{ transition: 'opacity 0.6s ease' }}
-          />
+          {/* Ghost track — full path, very low opacity, for orientation at rest */}
+          {markerActive && (
+            <polyline
+              points={SEG_GHOST.points}
+              fill="none"
+              stroke="hsl(0 0% 70%)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.14}
+            />
+          )}
 
           {/* Path trail — zone-colored segments, smooth stroke-dashoffset reveal */}
           {markerActive && (
@@ -550,11 +493,11 @@ function ValleyVisual({
               <polyline
                 points={SEG_DESCENT.points}
                 fill="none"
-                stroke={ZONE_COLOR.descent}
+                stroke="hsl(18 92% 60%)"
                 strokeWidth="3.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.6}
+                opacity={0.55}
                 strokeDasharray={SEG_DESCENT.length}
                 strokeDashoffset={SEG_DESCENT.length * (1 - descentProgress)}
                 style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
@@ -562,11 +505,11 @@ function ValleyVisual({
               <polyline
                 points={SEG_FLOOR.points}
                 fill="none"
-                stroke={ZONE_COLOR.floor}
+                stroke="hsl(0 0% 60%)"
                 strokeWidth="3.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.55}
+                opacity={0.5}
                 strokeDasharray={SEG_FLOOR.length}
                 strokeDashoffset={SEG_FLOOR.length * (1 - floorProgress)}
                 style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
@@ -574,11 +517,11 @@ function ValleyVisual({
               <polyline
                 points={SEG_ASCENT.points}
                 fill="none"
-                stroke={ZONE_COLOR.ascent}
+                stroke="hsl(107 45% 55%)"
                 strokeWidth="3.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                opacity={0.6}
+                opacity={0.55}
                 strokeDasharray={SEG_ASCENT.length}
                 strokeDashoffset={SEG_ASCENT.length * (1 - ascentProgress)}
                 style={{ transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)' }}
@@ -586,9 +529,15 @@ function ValleyVisual({
             </>
           )}
 
-          {/* Animated marker — only once the quiz is actually moving it */}
+          {/* Marker (only when markerActive) */}
           {markerActive && (
             <>
+              <defs>
+                <filter id="vaMarkerGlow" x="-150%" y="-150%" width="400%" height="400%">
+                  <feGaussianBlur stdDeviation="10" />
+                </filter>
+              </defs>
+
               {/* Outer ambient glow */}
               <circle
                 cx={markerCx} cy={markerY}
@@ -604,7 +553,7 @@ function ValleyVisual({
                 fill={`hsl(${glowColor} / ${(startGlow || nodeFlash) ? 0.35 : 0.16 + tension * 0.22})`}
                 style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease, fill 0.4s ease' }}
               />
-              {/* Main dot — pulsing. White rim keeps it readable against the dark backdrop in every zone. */}
+              {/* Main dot — pulsing. White rim keeps it readable against the baked-in path art, even in the ember/descent zone where fill and background share a hue. */}
               <motion.circle
                 animate={{ cx: markerCx, cy: markerY, r: [9, 12, 9] }}
                 transition={{
@@ -618,18 +567,6 @@ function ValleyVisual({
                 style={{ transition: 'fill 0.35s ease' }}
               />
             </>
-          )}
-
-          {/* Dormant marker — static, at the camp, before the quiz starts moving it */}
-          {!markerActive && (
-            <circle
-              cx={VALLEY_START.cx}
-              cy={VALLEY_START.cy}
-              r="6"
-              fill={DORMANT_COLOR}
-              stroke="rgba(255,255,255,0.5)"
-              strokeWidth="1.5"
-            />
           )}
         </svg>
     </div>
@@ -656,11 +593,6 @@ export function ValleyAssessment() {
   const startGlowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const valleyLeadId = useRef<string | null>(null);
   const assessmentRowId = useRef<string | null>(null);
-  // Tracks which question ids have already been recorded, so a stale answer
-  // button still mid-exit-transition can't fire pickAnswer a second time for
-  // a question that's already advanced past (which would double-advance idx
-  // past the last question and read QUESTIONS[idx] out of bounds).
-  const answeredIds = useRef<Set<string>>(new Set());
 
   // Gate form
   const [form, setForm] = useState({
@@ -849,7 +781,6 @@ export function ValleyAssessment() {
     setStage('quiz');
     setIdx(0);
     setAnswers({});
-    answeredIds.current.clear();
     // Brief white start glow on marker entrance
     setStartGlow(true);
     if (startGlowTimer.current) clearTimeout(startGlowTimer.current);
@@ -859,9 +790,6 @@ export function ValleyAssessment() {
   // ── Quiz answer ────────────────────────────────────────────────────────────
 
   const pickAnswer = useCallback((level: 0 | 1 | 2 | 3, q: BinaryQ) => {
-    if (answeredIds.current.has(q.id)) return;
-    answeredIds.current.add(q.id);
-
     // Scoring: yesRisky=true → more = riskier: 0→0, 1→1, 2→3, 3→5
     //          yesRisky=false (q12) → less = riskier: 0→5, 1→3, 2→1, 3→0
     const riskTable   = [0, 1, 3, 5] as const;
@@ -906,7 +834,6 @@ export function ValleyAssessment() {
   const goBack = useCallback(() => {
     if (idx === 0) return;
     const prevQ = QUESTIONS[idx - 1];
-    answeredIds.current.delete(prevQ.id);
     setAnswers(prev => {
       const next = { ...prev };
       delete next[prevQ.id];
@@ -969,7 +896,6 @@ export function ValleyAssessment() {
     setStage('gate');
     setIdx(0); setAnswers({}); setFinalAnswers({}); setFlashKey(0);
     setNodeFlash(null); setStartGlow(false);
-    answeredIds.current.clear();
     if (nodeFlashTimer.current) clearTimeout(nodeFlashTimer.current);
     if (startGlowTimer.current) clearTimeout(startGlowTimer.current);
     setForm({ name: '', email: '', company: '', country: '', city: '', sector: '', stageField: '', employees: '' });
@@ -1403,7 +1329,6 @@ export function ValleyAssessment() {
                   recoverySection:      a.recoverySection,
                   nextMoveSection:      a.nextMoveSection,
                   restartDiagnosticLabel: a.restartDiagnosticLabel,
-                  requestReportCta:     a.requestReportCta,
                 }}
                 onReset={reset}
               />
