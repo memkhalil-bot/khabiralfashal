@@ -14,6 +14,14 @@ import { cn } from '@/lib/utils';
  * Cinematic dark landing. Fully bilingual via useT() and useLanguage().
  */
 
+// Bento spans for the 4 pattern cards: 8/4 then 4/8 on desktop, full width on mobile.
+const PATTERN_SPANS = [
+  'col-span-1 md:col-span-8',
+  'col-span-1 md:col-span-4',
+  'col-span-1 md:col-span-4',
+  'col-span-1 md:col-span-8',
+];
+
 function useCountUp(end: number, duration = 1200) {
   const [count, setCount] = useState(0);
   const elRef = useRef<HTMLSpanElement>(null);
@@ -133,31 +141,9 @@ export default function Home() {
                 ? 'font-arabic font-bold text-[12vw] md:text-[8vw] lg:text-[7vw] leading-[1.2]'
                 : 'font-serif-display text-[15vw] md:text-[10vw] lg:text-[8.5vw]'
             )}>
-              {isRTL ? (
-                <>
-                  {h.heroLine1}
-                  <br />
-                  {h.heroLine2}{' '}
-                  <span className="italic text-white/40">{h.heroLine3}</span>
-                  <br />
-                  {h.heroLine4}{' '}
-                  <span className={cn('text-ember', !isRTL && 'italic')}>{h.heroLine5}</span>
-                </>
-              ) : (
-                <>
-                  {h.heroLine1}
-                  <br />
-                  {h.heroLine2}{' '}
-                  <span className="italic text-white/40">{h.heroLine3}</span>
-                  <br />
-                  {h.heroLine4}{' '}
-                  <span className="text-ember italic">{h.heroLine5}</span>
-                  <br />
-                  {t.home.heroPitch.split('—')[0] && (
-                    <span className="italic">you fail.</span>
-                  )}
-                </>
-              )}
+              {h.heroHeadline1}
+              <br />
+              <span className={cn('text-ember', !isRTL && 'italic')}>{h.heroHeadline2}</span>
             </h1>
 
             <div className="mt-12 grid md:grid-cols-[1fr_auto] gap-8 md:gap-16 items-end max-w-4xl">
@@ -165,15 +151,7 @@ export default function Home() {
                 'text-base md:text-lg text-white/55 leading-relaxed font-light max-w-xl',
                 isRTL && 'text-right leading-[2]'
               )}>
-                {isRTL ? (
-                  h.heroPitch
-                ) : (
-                  <>
-                    <span className="font-arabic text-white/80 text-xl">خبير الفشل</span>{' '}
-                    — a forensic practice studying the psychology, decisions, and blind spots
-                    that kill companies long before the funding runs out.
-                  </>
-                )}
+                {h.heroPitch}
               </p>
 
               <div className={cn('flex flex-col sm:flex-row gap-3', isRTL && 'sm:flex-row-reverse')}>
@@ -321,9 +299,13 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-px bg-white/5 border border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-px bg-white/5 border border-white/5">
             {h.patterns.map((p, i) => (
-              <Link key={p.n} to={getPath('/valley-of-death')} className="block">
+              <Link
+                key={p.n}
+                to={getPath('/valley-of-death')}
+                className={cn('block', PATTERN_SPANS[i])}
+              >
                 <motion.article
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -356,77 +338,82 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ PULL QUOTE ============ */}
+      {/* ============ DIAGNOSTIC INDICATORS ============ */}
       <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(18_92%_55%/0.10),transparent_70%)]" />
-        <motion.blockquote
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.6 }}
-          className="relative max-w-5xl mx-auto text-center"
-        >
-          <p className={cn(
-            'text-4xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight',
-            isRTL ? 'font-arabic font-bold leading-[1.6]' : 'font-serif-display'
-          )}>
-            {h.pullQuote1}
-            <br />
-            {h.pullQuote2}
-            <br />
-            <span className={cn('text-ember', !isRTL && 'italic')}>{h.pullQuote3}</span>
-          </p>
-          {h.fieldNote && (
+        <div className="relative max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-20 items-center">
+          {/* Statement */}
+          <motion.blockquote
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.6 }}
+            className={cn('col-span-1 md:col-span-7', isRTL && 'text-right')}
+          >
             <p className={cn(
-              'mt-12 text-[10px] uppercase text-white/30',
-              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+              'text-4xl md:text-5xl lg:text-6xl leading-[1.1] tracking-tight',
+              isRTL ? 'font-arabic font-bold leading-[1.6]' : 'font-serif-display'
             )}>
-              {h.fieldNote}
+              {h.pullQuote1}
+              <br />
+              {h.pullQuote2}
+              <br />
+              <span className={cn('text-ember', !isRTL && 'italic')}>{h.pullQuote3}</span>
             </p>
-          )}
-        </motion.blockquote>
-      </section>
+            {h.fieldNote && (
+              <p className={cn(
+                'mt-12 text-[10px] uppercase text-white/30',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+              )}>
+                {h.fieldNote}
+              </p>
+            )}
+          </motion.blockquote>
 
-      {/* ============ STATS ============ */}
-      <section className="border-t border-white/5 py-20 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px bg-white/5 border border-white/5">
-          {h.stats.map((s, i) => (
-            <motion.button
-              key={s.k}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.08 }}
-              onClick={() => setActiveStatIdx(activeStatIdx === i ? null : i)}
-              className={cn(
-                'bg-black p-8 md:p-10 text-left w-full transition-colors duration-300 cursor-pointer',
-                isRTL && 'text-right',
-                activeStatIdx === i && 'bg-ember/[0.05]'
-              )}
-            >
-              <StatCell k={s.k} isRTL={isRTL} />
-              <div className={cn('text-[10px] uppercase text-white/40', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]')}>
-                {s.v}
-              </div>
-              <AnimatePresence>
-                {activeStatIdx === i && (s as any).i && (
-                  <motion.p
-                    key="insight"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={cn(
-                      'mt-4 text-xs text-white/55 leading-relaxed overflow-hidden',
-                      isRTL ? 'font-arabic leading-[2]' : 'font-light'
-                    )}
-                  >
-                    {(s as any).i}
-                  </motion.p>
+          {/* Data readouts */}
+          <div className={cn(
+            'col-span-1 md:col-span-5 border-t md:border-t-0 pt-12 md:pt-0 border-white/10',
+            isRTL ? 'md:border-r md:pr-12 lg:pr-16' : 'md:border-l md:pl-12 lg:pl-16'
+          )}>
+            {h.stats.map((s, i) => (
+              <motion.button
+                key={s.k}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
+                onClick={() => setActiveStatIdx(activeStatIdx === i ? null : i)}
+                className={cn(
+                  'block w-full text-left py-6 first:pt-0 transition-colors duration-300 cursor-pointer',
+                  isRTL && 'text-right',
+                  i > 0 && 'border-t border-white/10',
+                  activeStatIdx === i && 'bg-ember/[0.05]'
                 )}
-              </AnimatePresence>
-            </motion.button>
-          ))}
+              >
+                <StatCell k={s.k} isRTL={isRTL} />
+                <div className={cn('text-[10px] uppercase text-white/40', isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]')}>
+                  {s.v}
+                </div>
+                <AnimatePresence>
+                  {activeStatIdx === i && (s as any).i && (
+                    <motion.p
+                      key="insight"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={cn(
+                        'mt-4 text-xs text-white/55 leading-relaxed overflow-hidden',
+                        isRTL ? 'font-arabic leading-[2]' : 'font-light'
+                      )}
+                    >
+                      {(s as any).i}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            ))}
+          </div>
         </div>
       </section>
 
