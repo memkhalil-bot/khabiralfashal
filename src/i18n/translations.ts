@@ -40,11 +40,8 @@ interface LangStrings {
     stripCenter: string;
     stripRight: string;
     tagline: string;
-    heroLine1: string;
-    heroLine2: string;
-    heroLine3: string;
-    heroLine4: string;
-    heroLine5: string;
+    heroHeadline1: string;
+    heroHeadline2: string;
     heroPitch: string;
     ctaPrimary: string;
     ctaSecondary: string;
@@ -292,13 +289,10 @@ const en: LangStrings = {
     stripCenter: '',
     stripRight: '',
     tagline: 'Startup Failure Intelligence',
-    heroLine1: "We don't teach",
-    heroLine2: 'you how to',
-    heroLine3: 'win.',
-    heroLine4: 'We show you',
-    heroLine5: 'why',
+    heroHeadline1: "The company didn't fail.",
+    heroHeadline2: 'The founder stopped seeing.',
     heroPitch:
-      'خبير الفشل — a forensic practice studying the psychology, decisions, and blind spots that kill companies long before the funding runs out.',
+      'We document the pathology of executive collapse. Before the runway ends, the blind spots begin.',
     ctaPrimary: 'Start the Diagnosis',
     ctaSecondary: 'The Case File',
     scrollLabel: 'Scroll · انزل',
@@ -321,22 +315,22 @@ const en: LangStrings = {
       {
         n: '01',
         title: 'Founder Denial Loop',
-        body: 'The story you tell investors becomes the story you tell yourself. Eighteen months later, the spreadsheet finally disagrees.',
+        body: 'Conviction quietly mutates into delusion. Contrary data gets reframed as noise; convenient anecdotes get promoted to signal — until the spreadsheet finally disagrees.',
       },
       {
         n: '02',
-        title: 'Green Dashboard Collapse',
-        body: 'Every metric is up and to the right while the company is already dying underneath. The signal was never in the dashboard.',
+        title: 'Sunk Cost Paralysis',
+        body: "You can't kill the initiative, because you can't admit what it already cost. Every additional dollar becomes a reason to spend the next one.",
       },
       {
         n: '03',
-        title: 'Co-founder Drift',
-        body: 'You stopped having the hard conversation in month four. By month sixteen the company is paying for a silence neither of you owns.',
+        title: 'Echo Chamber Formation',
+        body: 'Dissenting voices get sidelined, then fired, then forgotten. The executive suite stops hearing anything it didn\'t already believe.',
       },
       {
         n: '04',
-        title: 'Premature Scaling',
-        body: 'You hired ahead of clarity. The org chart is now defending a strategy nobody believes in but everyone is paid to execute.',
+        title: 'The Pivot Mirage',
+        body: "Chaotic strategic shifts get dressed up as agility. Usually, they're a distraction from a unit-economics problem nobody wants to name.",
       },
     ],
     pullQuote1: 'By the time the numbers',
@@ -840,13 +834,10 @@ const ar: LangStrings = {
     stripCenter: '',
     stripRight: '',
     tagline: 'ذكاء فشل الشركات الناشئة',
-    heroLine1: 'لا نعلّمك',
-    heroLine2: 'كيف',
-    heroLine3: 'تنجح.',
-    heroLine4: 'نريك لماذا',
-    heroLine5: 'تخسر.',
+    heroHeadline1: 'الشركة لم تفشل.',
+    heroHeadline2: 'المؤسس توقّف عن الرؤية.',
     heroPitch:
-      'خبير الفشل — ممارسة تشريحية تدرس سيكولوجية المؤسس وقراراته ونقاط عماه قبل أن ينفد التمويل بأشهر.',
+      'نقرأ تشريح الانهيار قبل أن ينتهي الرصيد، وقبل أن تتحول نقاط العمى إلى موتٍ صامت للشركة.',
     ctaPrimary: 'ابدأ التشخيص',
     ctaSecondary: 'الملف التفصيلي',
     scrollLabel: 'انزل',
@@ -868,23 +859,23 @@ const ar: LangStrings = {
     patterns: [
       {
         n: '01',
-        title: 'حلقة الإنكار عند المؤسس',
-        body: 'القصة التي ترويها للمستثمرين تصبح القصة التي تحكيها لنفسك. بعد ثمانية عشر شهراً، تختلف معك جداول البيانات أخيراً.',
+        title: 'حلقة إنكار المؤسس',
+        body: 'تتحوّل القناعة إلى وهمٍ دون أن تشعر. تُعاد تسمية البيانات المخالفة بـ"ضجيج"، بينما تُرفّع الحكايات المريحة إلى "إشارة" — إلى أن تختلف معك جداول البيانات أخيراً.',
       },
       {
         n: '02',
-        title: 'انهيار اللوحة الخضراء',
-        body: 'كل مؤشر يصعد وتتحسن وتيرته، والشركة تحته تنزف فعلاً. الإشارة لم تكن يوماً في لوحة التحكم.',
+        title: 'شلل التكلفة الغارقة',
+        body: 'لا يمكنك إيقاف المشروع الفاشل، لأنك لا تقدر على الاعتراف بما كلّفك فعلاً. كل دولار إضافي يصبح سبباً لإنفاق الدولار التالي.',
       },
       {
         n: '03',
-        title: 'تباعد الشركاء المؤسسين',
-        body: 'توقّفتم عن خوض المحادثة الصعبة في الشهر الرابع. في الشهر السادس عشر، تدفع الشركة ثمن صمت لا يملكه أحدٌ منكم.',
+        title: 'غرفة الصدى',
+        body: 'تُهمَّش الأصوات المعارضة، ثم تُفصل، ثم تُنسى. تتوقف الغرفة التنفيذية عن سماع أي شيء لم تكن تؤمن به مسبقاً.',
       },
       {
         n: '04',
-        title: 'التوسع المبكر',
-        body: 'وظّفتَ قبل أن تتضح الاستراتيجية. المخطط التنظيمي الآن يدافع عن توجّه لا يؤمن به أحد، لكن الجميع يتقاضى أجره لتنفيذه.',
+        title: 'سراب التحول الاستراتيجي',
+        body: 'تتزيّن التحوّلات الاستراتيجية الفوضوية بمظهر المرونة. وغالباً، تكون مجرد تشتيت عن مشكلة اقتصاديات وحدة لا يريد أحد تسميتها.',
       },
     ],
     pullQuote1: 'حين تُفصح الأرقام',
