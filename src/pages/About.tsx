@@ -35,7 +35,7 @@ export default function About() {
       {/* ============ HERO ============ */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex flex-col justify-between overflow-hidden pt-32 pb-12 px-6 lg:px-12"
+        className="relative min-h-[88vh] flex flex-col justify-between overflow-hidden pt-24 md:pt-28 pb-12 px-6 lg:px-12"
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(18_92%_55%/0.15),transparent_60%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,transparent_70%,black_100%)]" />
@@ -114,7 +114,7 @@ export default function About() {
       </section>
 
       {/* ============ NARRATIVE / SUBJECT PHOTO ============ */}
-      <section className="relative py-32 md:py-40 px-6 lg:px-12 border-t border-white/5">
+      <section className="relative py-20 md:py-28 px-6 lg:px-12 border-t border-white/5">
         <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-12 md:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -164,9 +164,9 @@ export default function About() {
       </section>
 
       {/* ============ CHAPTERS ============ */}
-      <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
+      <section className="relative py-20 md:py-28 px-6 lg:px-12 border-t border-white/5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(18_92%_55%/0.04),transparent_70%)] pointer-events-none" />
-        <div className="relative max-w-4xl mx-auto space-y-32 md:space-y-48">
+        <div className="relative max-w-4xl mx-auto space-y-20 md:space-y-28">
           {a.chapters.map((c) => (
             <motion.article
               key={c.eyebrow}
@@ -210,7 +210,7 @@ export default function About() {
       </section>
 
       {/* ============ PULL QUOTE ============ */}
-      <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
+      <section className="relative py-20 md:py-28 px-6 lg:px-12 border-t border-white/5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(18_92%_55%/0.08),transparent_70%)]" />
         <motion.blockquote
           initial={{ opacity: 0 }}
@@ -245,7 +245,7 @@ export default function About() {
       </section>
 
       {/* ============ CLINICAL OBSERVATIONS ============ */}
-      <section className="py-32 px-6 lg:px-12 border-t border-white/5">
+      <section className="py-20 md:py-24 px-6 lg:px-12 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <p className={cn(
             'text-xs uppercase text-ember mb-16',
@@ -332,7 +332,7 @@ export default function About() {
       <EmergencyBriefings isRTL={isRTL} />
 
       {/* ============ CLOSING + CTA ============ */}
-      <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
+      <section className="relative py-20 md:py-28 px-6 lg:px-12 border-t border-white/5">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
