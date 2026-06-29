@@ -82,6 +82,9 @@ interface LangStrings {
     heroLine4: string;
     heroBio: string;
     scrollLabel: string;
+    dossierSubject: string;
+    dossierStatus: string;
+    dossierDiagnosis: string;
     chapters: { eyebrow: string; title: string; body: string }[];
     quoteOpen: string;
     quoteBody1: string;
@@ -365,6 +368,9 @@ const en: LangStrings = {
     heroBio:
       'I\'m Mohamed Khalil. I study the death of companies — not to mourn them, but to understand the founder who didn\'t see it coming. Usually, that founder was me.',
     scrollLabel: 'Scroll · شاهد',
+    dossierSubject: 'SUBJECT: The Founder',
+    dossierStatus: 'STATUS: Critical / Isolated',
+    dossierDiagnosis: 'DIAGNOSIS DATE: Ongoing',
     chapters: [
       {
         eyebrow: 'I',
@@ -391,7 +397,7 @@ const en: LangStrings = {
     quoteBody1: 'I am not here to motivate you.',
     quoteBody2: 'I am here to tell you what you refuse to see.',
     quoteAttr: '— Mohamed Khalil · مؤسس خبير الفشل',
-    pillarsLabel: '',
+    pillarsLabel: 'Clinical Observations',
     pillars: [
       {
         n: '01',
@@ -910,6 +916,9 @@ const ar: LangStrings = {
     heroBio:
       'أنا محمد خليل. أدرس موت الشركات—لا لأرثيها، بل لأفهم المؤسس الذي لم يرَ ما هو قادم. وفي الغالب.. كان ذلك المؤسس أنا.',
     scrollLabel: 'شاهد الفكرة (1:30 دقيقة)',
+    dossierSubject: 'الموضوع: المؤسس',
+    dossierStatus: 'الحالة: حرج / معزول',
+    dossierDiagnosis: 'تاريخ التشخيص: مستمر',
     chapters: [
       {
         eyebrow: 'I',
@@ -936,7 +945,7 @@ const ar: LangStrings = {
     quoteBody1: 'لستُ هنا لأحفّزك..',
     quoteBody2: 'أنا هنا لأُريك ما ترفض أنت رؤيته.',
     quoteAttr: '— محمد خليل',
-    pillarsLabel: '',
+    pillarsLabel: 'ملاحظات سريرية',
     pillars: [
       {
         n: '01',
