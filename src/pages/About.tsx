@@ -175,13 +175,11 @@ export default function About() {
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                'grid gap-6 md:gap-12',
-                isRTL
-                  ? 'md:grid-cols-[1fr_64px] text-right'
-                  : 'md:grid-cols-[64px_1fr]'
+                'grid gap-6 md:gap-12 md:grid-cols-[64px_1fr]',
+                isRTL && 'text-right'
               )}
             >
-              <div className={cn('md:pt-4', isRTL && 'order-last md:order-first')}>
+              <div className="md:pt-4">
                 <div className={cn(
                   'text-4xl italic text-ember',
                   isRTL ? 'font-arabic text-right' : 'font-serif-display'
